@@ -11,20 +11,6 @@ function OnMainWndSize(self, type_, width, height)
 	rootObject:SetObjPos(0, 0, width, height)
 end
 
--- Client Method
-function CreateNodeObject(data)
-end
-
--- client method
--- in sizelist
--- out poslist
-function GetChildrenPosList(fatherObj, sizeList)
-end
-
--- client method
-function GetLinesObject(fatherObj, posList)
-end
-
 -- client dataTable Method
 function createDataTreeTable()
 	local tree={}

@@ -1,5 +1,6 @@
 #include "XmlParser.h"
 #include "UIThreadDll.h"
+#include "xl_lib/text/transcode.h"
 
 struct StrSongInfo
 {
@@ -31,26 +32,6 @@ struct XmlParser::range
 		:type(Invalid){}
 };
 
-//! copy from msdn
-BOOL AnsiToUnicode16W(CHAR *in_Src, WCHAR *out_Dst, INT in_MaxLen)
-{
-	INT lv_Len;
-
-	if (in_MaxLen <= 0)
-		return FALSE;
-
-	lv_Len = MultiByteToWideChar(CP_ACP, 0, in_Src, -1, out_Dst, in_MaxLen);
-
-	if (lv_Len < 0)
-		lv_Len = 0;
-
-	if (lv_Len < in_MaxLen)
-		out_Dst[lv_Len] = 0;
-	else if (out_Dst[in_MaxLen-1])
-		out_Dst[0] = 0;
-
-	return TRUE;
-}
 
 typedef void (_cdecl * FUN_POST_MESSAGE)(void*, MainThreadCallbackFun);
 
@@ -81,12 +62,9 @@ XL_BITMAP_HANDLE XmlParser::LoadPng( const wchar_t* lpFile )
 
 XL_BITMAP_HANDLE XmlParser::loadImage(const char* lpFile)
 {
-	const int MAX_LEN = 255;
-	char in[MAX_LEN];
-	strcpy(in, lpFile);
-	wchar_t *bitmapSource = new wchar_t[MAX_LEN];
-	AnsiToUnicode16W(in, bitmapSource, MAX_LEN);
-	return loadImage(bitmapSource);
+	std::wstring wlpFile;
+	xl::text::transcode::UTF8_to_Unicode(lpFile, strlen(lpFile), wlpFile);
+	return loadImage(wlpFile.c_str());
 }
 
 XL_BITMAP_HANDLE XmlParser::loadImage( const wchar_t* lpFile )
@@ -115,15 +93,10 @@ m_callbackOnDataBatchReady(0),
 m_mutexOnPlaylist(0), 
 m_mutexOnRangeList(0)
 {
-	const int MAX_LEN = 255;
-	int maxLen = MAX_LEN;
-	char in[MAX_LEN];
-	wchar_t* playlistName = new wchar_t[MAX_LEN];
-	strcpy(in, fileName);
-	if (AnsiToUnicode16W(in, playlistName, maxLen))
-	{
-		m_playlistName = playlistName;
-	}
+	std::wstring wplaylistName;
+	xl::text::transcode::UTF8_to_Unicode(fileName, strlen(fileName), wplaylistName);
+	m_playlistName = new wchar_t[strlen(fileName)];
+	wcscpy(m_playlistName, wplaylistName.c_str());
 	init();
 }
 
@@ -265,7 +238,7 @@ xl::uint32  XmlParser::thread_proc()
 	return 1;
 }
 
-void XmlParser::AttachSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
+void XmlParser::SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
 {
 	if (m_callbackOnSingleDataReady)
 		delete m_callbackOnSingleDataReady;
@@ -275,7 +248,7 @@ void XmlParser::AttachSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserDat
 	m_callbackOnSingleDataReady->pfnCallback = pfnCallback;
 }
 
-void XmlParser::AttachDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
+void XmlParser::SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
 {
 	if (m_callbackOnDataBatchReady)
 		delete m_callbackOnDataBatchReady;

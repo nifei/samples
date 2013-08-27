@@ -77,12 +77,12 @@ void XmlDataModel::FireDataReadyEvent(int row, int column)
 	}
 }
 
-void XmlDataModel::AttachSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
+void XmlDataModel::SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
 {
-	m_parser->AttachSingleDataReadyListener(dwUserData1, dwUserData2, pfnCallback);
+	m_parser->SetSingleDataReadyListener(dwUserData1, dwUserData2, pfnCallback);
 }
 
-void XmlDataModel::AttachDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
+void XmlDataModel::SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
 {
-	m_parser->AttachDataBatchReadyListener(dwUserData1, dwUserData2, pfnCallback);
+	m_parser->SetDataBatchReadyListener(dwUserData1, dwUserData2, pfnCallback);
 }

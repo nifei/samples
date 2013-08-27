@@ -25,8 +25,8 @@ public:
 	int GetColumnCount(const char*view)const;
 	void PrepareData(int from, int to, const char* userdata);
 	void ReleaseData(int from, int to, const char* userdata);
-	void AttachSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void AttachDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void FireDataReadyEvent(int row, int column);
 
 private:

@@ -31,13 +31,13 @@ public:
 	/*!
 		这个方法和LuaDataModelClass<DataModel>的用法是一样的. 不同之处在于AttachDataBatchDataReadyListener的回调方法DataBatchReady会在一批数据准备好的时候被调用. 例如ItemView调用PrepareData(1, 100), 那么在这个100个数据准备好以后, DataModel应该调用DataBatchReady来通知ItemView有一批数据已经可以被调用了. 
 	*/
-	static int AttachSingleDataReadyListener(lua_State *luaState);
+	static int SetSingleDataReadyListener(lua_State *luaState);
 	/*!
-		如果用户提供给ItemView的DataModelCallbackTable中包含AttachDataBatchReadyListener, 那么ItemView会调用该方法传给LuaDataModelClass<DataModel>一个Lua回调方法DataReadyCallback在数据准备好的时候通知ItemView
+		如果用户提供给ItemView的DataModelCallbackTable中包含SetDataBatchReadyListener, 那么ItemView会调用该方法传给LuaDataModelClass<DataModel>一个Lua回调方法DataReadyCallback在数据准备好的时候通知ItemView
 		LuaDataModelClass<DataModel>会把DataReadyCallback连同回调时需要的参数dwUserData1, dwUserData2原封不动地传给DataModel, 当DataModel准备好数据的时候应该调用DataReadyCallback. 但是DataModel不应该直接操作lua接口, 所以除了lua方法DataReadyCallback和dwUserData1, dwUserData2之外, LuaDataModelClass<DataModel>会把自己的方法LuaDataModelClass<DataModel>::LuaDataReadyListener也作为参数传给DataModel, DataModel回调这个方法通知数据准备好了就可以了. 
 		///sa AttachDataReadyListener
 	*/
-	static int AttachDataBatchReadyListener(lua_State *luaState);
+	static int SetDataBatchReadyListener(lua_State *luaState);
 	static void RegisterClass(XL_LRT_ENV_HANDLE hEnv);
 	static void LuaDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, int row, int column);
 private:
@@ -65,8 +65,8 @@ XLLRTGlobalAPI LuaDataModelClass<TDataModelClass>::mLuaDataModelClassMemberFunct
 	{"GetColumnCount",LuaDataModelClass<TDataModelClass>::GetColumnCount},
 	{"PrepareData",LuaDataModelClass<TDataModelClass>::PrepareData},
 	{"ReleaseData",LuaDataModelClass<TDataModelClass>::ReleaseData},
-	{"AttachDataBatchReadyListener", LuaDataModelClass<TDataModelClass>::AttachDataBatchReadyListener},
-	{"AttachSingleDataReadyListener", LuaDataModelClass<TDataModelClass>::AttachSingleDataReadyListener},
+	{"SetDataBatchReadyListener", LuaDataModelClass<TDataModelClass>::SetDataBatchReadyListener},
+	{"SetSingleDataReadyListener", LuaDataModelClass<TDataModelClass>::SetSingleDataReadyListener},
     {"__gc",LuaDataModelClass<TDataModelClass>::DeleteSelf},
     {NULL,NULL}
 };
@@ -92,7 +92,7 @@ TDataModelClass *LuaDataModelClass<TDataModelClass>::GetDataModelClass(lua_State
 }
 
 template<class TDataModelClass>
-int LuaDataModelClass<TDataModelClass>::AttachSingleDataReadyListener(lua_State* luaState)
+int LuaDataModelClass<TDataModelClass>::SetSingleDataReadyListener(lua_State* luaState)
 {
 	if (TDataModelClass *pDataModelClass = GetDataModelClass(luaState))
 	{
@@ -101,13 +101,13 @@ int LuaDataModelClass<TDataModelClass>::AttachSingleDataReadyListener(lua_State*
 			return 0;
 		}
 		long functionRef = luaL_ref(luaState, LUA_REGISTRYINDEX);
-		pDataModelClass->AttachSingleDataReadyListener(reinterpret_cast<DWORD>(luaState), functionRef, LuaDataModelClass<TDataModelClass>::LuaDataReadyListener);
+		pDataModelClass->SetSingleDataReadyListener(reinterpret_cast<DWORD>(luaState), functionRef, LuaDataModelClass<TDataModelClass>::LuaDataReadyListener);
 	}
 	return 0;
 }
 
 template<class TDataModelClass>
-int LuaDataModelClass<TDataModelClass>::AttachDataBatchReadyListener(lua_State* luaState)
+int LuaDataModelClass<TDataModelClass>::SetDataBatchReadyListener(lua_State* luaState)
 {
 	if (TDataModelClass *pDataModelClass = GetDataModelClass(luaState))
 	{
@@ -116,7 +116,7 @@ int LuaDataModelClass<TDataModelClass>::AttachDataBatchReadyListener(lua_State* 
 			return 0;
 		}
 		long functionRef = luaL_ref(luaState, LUA_REGISTRYINDEX);
-		pDataModelClass->AttachDataBatchReadyListener(reinterpret_cast<DWORD>(luaState), functionRef, LuaDataModelClass<TDataModelClass>::LuaDataReadyListener);
+		pDataModelClass->SetDataBatchReadyListener(reinterpret_cast<DWORD>(luaState), functionRef, LuaDataModelClass<TDataModelClass>::LuaDataReadyListener);
 	}
 	return 0;
 }
@@ -146,10 +146,8 @@ int LuaDataModelClass<TDataModelClass>::PrepareData(lua_State *luaState)
 		int to = static_cast<int>(lua_tointeger(luaState, 4));
 		const char* userdata = static_cast<const char*>(lua_tostring(luaState,2));
 		pDataModelClass->PrepareData(from, to, userdata);
-		lua_pushnil(luaState);
 		return 1;
 	}
-	lua_pushnil(luaState);
 	return 1;
 }
 
@@ -162,10 +160,8 @@ int LuaDataModelClass<TDataModelClass>::ReleaseData(lua_State *luaState)
 		int to = static_cast<int>(lua_tointeger(luaState, 4));
 		const char* userdata = static_cast<const char*>(lua_tostring(luaState,2));
 		pDataModelClass->ReleaseData(from, to, userdata);
-		lua_pushnil(luaState);
 		return 1;
 	}
-	lua_pushnil(luaState);
 	return 1;
 }
 
@@ -207,7 +203,7 @@ int LuaDataModelClass<TDataModelClass>::GetDataBatch(lua_State *L)
 							lua_pushnil(L);
 					} else
 					{
-						lua_pushnil(L);
+						lua_pushnil(L); //即使没有读到数据, 也要放一个空占位
 					}
 					//现在value@-1, index@-2, rowtable@-3
 					lua_settable(L, -3); // 把刚压栈的index, value弹出放在rowtable中
@@ -219,7 +215,6 @@ int LuaDataModelClass<TDataModelClass>::GetDataBatch(lua_State *L)
 			return 1;
 		}
 	}
-	lua_pushnil(L);
 	return 1;
 }
 

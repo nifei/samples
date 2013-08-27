@@ -27,12 +27,12 @@ function GetTestDataModelObject(name)
 		end
 	callbackTable.SetDataBatchReadyListener = 
 		function (userdata, dataBatchReadyListener)
-			userdata.class:AttachDataBatchReadyListener(dataBatchReadyListener)
+			userdata.class:SetDataBatchReadyListener(dataBatchReadyListener)
 		end
 		
 	callbackTable.SetSingleDataReadyListener = 
 		function(userdata, singleDataReadyListener)
-			userdata.class:AttachSingleDataReadyListener(singleDataReadyListener)
+			userdata.class:SetSingleDataReadyListener(singleDataReadyListener)
 		end
 		
 	callbackTable.PrepareData = 

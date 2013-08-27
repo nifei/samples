@@ -32,8 +32,8 @@ public:
 	bool PrepareData(int from, int to);
 	bool ReleaseData(int from, int to);
 	void RunInMainThread();
-	void AttachSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void AttachDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	static void UIThreadCallback(void* msg);
 public:
 	// expat_parser methods
