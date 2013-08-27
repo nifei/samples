@@ -1,0 +1,72 @@
+<xlue>
+	<control class="ItemView">
+		<attr_def>
+		<!-- 预加载数据量, 默认为0. 这个属性在使用lua table做数据源时不起作用 -->
+			<attr name="PreloadDataCount" type="int">
+				<default>50</default>
+			</attr>
+		<!-- 这些是关于显示的属性 -->
+		<!-- 用户可以替换自定义的ScrollBar, Header和背景纹理 -->
+			<attr name="BackgroundTexture" type="string">
+				<default></default>
+			</attr>
+			<attr name="ScrollBarClassNameV" type="string">
+				<default>ItemView.ScrollBarV</default>
+			</attr>
+			<attr name="ScrollBarClassNameH" type="string">
+				<default>ItemView.ScrollBarH</default>
+			</attr>
+			<attr name="ScrollBarSize" type="int">
+				<default>20</default>
+			</attr>
+			<attr name="HeaderClassName" type="string">
+				<default>ItemView.Header</default>
+			</attr>
+			<attr name="HeaderHeight" type="string">
+				<default>30</default>
+			</attr>
+		</attr_def>
+		<method_def>
+			<SetDataTable file="ItemView.lua" func="SetDataTable" />
+			<SetDataModel file="ItemView.lua" func="SetDataModel" />
+			<AppendItem file="ItemView.lua" func="AppendItem" />
+			<SetItemFactory file="ItemView.lua" func="SetItemFactory" />
+			<PageUp file="ItemView.lua" func="PageUp" />
+			<PageDown file="ItemView.lua" func="PageDown" />
+			<SetScrollBarH file="ItemView.lua" func="SetScrollBarH" />
+			<SetScrollBarV file="ItemView.lua" func="SetScrollBarV" />
+			<SetHeader file="ItemView.lua" func="SetHeader" />
+			<SetHeaderNameList file="ItemView.lua" func="SetHeaderNameList" />
+		</method_def>
+		<event_def>
+		</event_def>
+    <objtemplate>
+	<children>
+		<obj id="itemview.bkg" class="TextureObject">
+			<attr>
+				<left>0</left>
+				<top>0</top>
+				<width>father.width</width>
+				<height>father.height</height>
+				<texture></texture>
+			</attr>
+			<children>
+			<!-- 只有ItemView.ScrollArea被指定Control Class, 其他的itemview.header, itemview.scrollV, 在初始化时通过用户设置的Attribute “ScrollBarClassNameH” 等来实例化具体的对象-->
+				<obj id="itemview.scrollarea" class="ItemView.ScrollArea">
+				<attr>
+					<left>0</left>
+					<top>0</top>
+					<width>father.width</width>
+					<height>father.height</height>
+				</attr>
+				</obj>
+			</children>
+		</obj>
+	</children>
+	<eventlist>
+		<event name="OnInitControl" file="ItemView.lua" func="OnInitControl" />	
+		<event name="OnPosChange" file="ItemView.lua" func="OnPosChange" />
+	</eventlist>
+ 	</objtemplate>
+	</control>
+</xlue>
