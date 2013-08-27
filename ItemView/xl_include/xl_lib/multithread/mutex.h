@@ -15,7 +15,7 @@
 #define __MUTEX_H_0F5DC9C1_6D3A_49CA_8124_557485831AE3__
 
 #include "xl_lib/type.h"
-//#include "xl_lib/tchar.h"
+#include "xl_lib/tchar.h"
 #include "xl_lib/win32/multithread/lock_guard.h"
 
 XL_WIN32_NAMESPACE_BEGIN(multithread)
