@@ -3,12 +3,17 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+#include <atlbase.h>
+#include <atlapp.h>
+#include <atlwin.h>
 #include "atlframe.h"
-#include "resource.h"
-#include "UIThreadDll.h"
 
+extern CAppModule _Module;
+typedef void (*MainThreadCallbackFun)(void*);
+const int WM_MY_MESSAGE = WM_USER+1; //自定义消息ID
 ///! wtl窗口类, 这个窗口是隐藏的, 我们只处理自定义的消息类型WM_MY_MESSAGE, 来处理通过WM_MY_MESSAGE post 到消息队列的消息
-
+#define IDR_MAINFRAME				128
 class CMainFrame : public CFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>,
 		public CMessageFilter, public CIdleHandler
 {

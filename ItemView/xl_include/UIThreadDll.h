@@ -1,8 +1,5 @@
 #pragma once
 ///! 这个dll不需要Bolt, XLUE支持, 就是简单的完成"把一个事件放在UI线程队尾"的任务
-
-const int WM_MY_MESSAGE = WM_USER+1; //自定义消息ID
-
 typedef void (*MainThreadCallbackFun)(void*);
 
 ///! UIThreadDll提供的接口只有一个,就是把消息放在UI线程的队尾

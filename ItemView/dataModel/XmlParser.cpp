@@ -1,5 +1,5 @@
 #include "XmlParser.h"
-#include "UIThreadDll.h"
+#include "PostMessageToUIThread.h"
 #include "xl_lib/text/transcode.h"
 
 struct StrSongInfo
@@ -31,26 +31,6 @@ struct XmlParser::range
 	XmlParser::range()
 		:type(Invalid){}
 };
-
-
-typedef void (_cdecl * FUN_POST_MESSAGE)(void*, MainThreadCallbackFun);
-
-//! 加载mydll.dll, 如果找到的话就取出PostMessageToUIThread函数指针存下来
-FUN_POST_MESSAGE GetPostMsgFun()
-{
-	HINSTANCE hmod;
-	hmod =::LoadLibrary(L"UIThreadDll.dll");
-	FUN_POST_MESSAGE lpproc;
-	lpproc = (FUN_POST_MESSAGE)GetProcAddress (hmod,"PostMessageToUIThread");
-
-	if(lpproc)
-	{
-		return lpproc;
-	} else
-		return 0;
-}
-
-static FUN_POST_MESSAGE funPostMessageToUIThread = GetPostMsgFun();
 
 XL_BITMAP_HANDLE XmlParser::LoadPng( const wchar_t* lpFile )
 {
@@ -105,6 +85,7 @@ void XmlParser::init()
 	loadPlaylist();
 	m_mutexOnPlaylist = new xl::win32::multithread::mutex(false, L"PlaylistMutex");
 	m_mutexOnRangeList= new xl::win32::multithread::mutex(false, L"RangeListMutex");
+	InitUIThread();
 }
 
 XmlParser::~XmlParser()
@@ -126,6 +107,7 @@ XmlParser::~XmlParser()
 	}
 	if (m_playlistName != NULL)
 		delete []m_playlistName;
+	UnInitUIThread();
 }
 
 /*!
@@ -203,22 +185,22 @@ xl::uint32  XmlParser::thread_proc()
 					m_mutexOnPlaylist->lock();
 					m_playlist->at(row-1)->hBitmap = loadImage(m_playlist->at(row-1)->cover.c_str());
 					m_mutexOnPlaylist->unlock();
-					if(funPostMessageToUIThread && m_callbackOnSingleDataReady)
+					if(PostMessageToUIThread && m_callbackOnSingleDataReady)
 					{
 						PostUIThreadUserData *u1 = new PostUIThreadUserData(this, row, 1, PostUIThreadUserData::SingleDataReady);
 						PostUIThreadUserData *u2 = new PostUIThreadUserData(this, row, 2, PostUIThreadUserData::SingleDataReady);
 						PostUIThreadUserData *u3 = new PostUIThreadUserData(this, row, 3, PostUIThreadUserData::SingleDataReady);
-						funPostMessageToUIThread((void*)u1, XmlParser::UIThreadCallback);
-						funPostMessageToUIThread((void*)u2, XmlParser::UIThreadCallback);
-						funPostMessageToUIThread((void*)u3, XmlParser::UIThreadCallback);
+						PostMessageToUIThread((void*)u1, XmlParser::UIThreadCallback);
+						PostMessageToUIThread((void*)u2, XmlParser::UIThreadCallback);
+						PostMessageToUIThread((void*)u3, XmlParser::UIThreadCallback);
 						//! 此处并没有特别耗资源的操作,为了在界面看到一行一行FireDataReadyEvent()的效果,停顿50msec再操作下一行.
 						Sleep(50);
 					}
 			}
-			if (funPostMessageToUIThread && m_callbackOnDataBatchReady)
+			if (PostMessageToUIThread && m_callbackOnDataBatchReady)
 			{
 				PostUIThreadUserData *u = new PostUIThreadUserData(this, r.from, r.to, PostUIThreadUserData::DataBatchReady);
-				funPostMessageToUIThread((void*)u, XmlParser::UIThreadCallback);
+				PostMessageToUIThread((void*)u, XmlParser::UIThreadCallback);
 			}
 		} else if (r.type == range::Release)
 		{
