@@ -165,16 +165,10 @@ bool XmlParser::PrepareData(int from, int to)
 	if (from == 0 || from == -1) from = 1;
 	if (to > (int)m_playlist->size()) to = m_playlist->size();
 	if (to <= 0) to = 1;
-	try {
-		m_mutexOnRangeList->lock();
-		range r(from, to, range::Prepare);
-		m_dataRangesWaitingForExecute.push_back(r);
-		m_mutexOnRangeList->unlock();
-	} catch(std::exception)
-	{
-		m_mutexOnRangeList->unlock();
-		return false;
-	}
+	m_mutexOnRangeList->lock();
+	range r(from, to, range::Prepare);
+	m_dataRangesWaitingForExecute.push_back(r);
+	m_mutexOnRangeList->unlock();
 	return true;
 }
 
@@ -191,16 +185,10 @@ bool XmlParser::ReleaseData(int from, int to)
 		to = 0;
 	if (to > (int)m_playlist->size())
 		to = m_playlist->size();
-	try {
-		m_mutexOnRangeList->lock();
-		range r(from, to, range::Release);
-		m_dataRangesWaitingForExecute.push_back(r);
-		m_mutexOnRangeList->unlock();
-	} catch (std::exception)
-	{
-		m_mutexOnRangeList->unlock();
-		return false;
-	}
+	m_mutexOnRangeList->lock();
+	range r(from, to, range::Release);
+	m_dataRangesWaitingForExecute.push_back(r);
+	m_mutexOnRangeList->unlock();
 	return true;
 }
 
@@ -225,19 +213,13 @@ xl::uint32  XmlParser::thread_proc()
 	{
 		range r;
 		r.type = range::Invalid;
-		try {
-			if (m_mutexOnRangeList->try_lock(1000))
-			{
-				if (m_dataRangesWaitingForExecute.empty()==false)
-				{
-					r= m_dataRangesWaitingForExecute.front();
-					m_dataRangesWaitingForExecute.erase(m_dataRangesWaitingForExecute.begin());
-				}
-				m_mutexOnRangeList->unlock();
-			}
-		} catch (std::exception)
+		if (m_mutexOnRangeList->try_lock(1000))
 		{
-			r.type = range::Invalid;
+			if (m_dataRangesWaitingForExecute.empty()==false)
+			{
+				r= m_dataRangesWaitingForExecute.front();
+				m_dataRangesWaitingForExecute.erase(m_dataRangesWaitingForExecute.begin());
+			}
 			m_mutexOnRangeList->unlock();
 		}
 
@@ -245,14 +227,9 @@ xl::uint32  XmlParser::thread_proc()
 		{
 			for ( int row = r.from; row <= r.to; row++)
 			{
-					try{
-						m_mutexOnPlaylist->lock();
-						m_playlist->at(row-1)->hBitmap = loadImage(m_playlist->at(row-1)->cover.c_str());
-						m_mutexOnPlaylist->unlock();
-					} catch (std::exception)
-					{
-						m_mutexOnPlaylist->unlock();
-					}
+					m_mutexOnPlaylist->lock();
+					m_playlist->at(row-1)->hBitmap = loadImage(m_playlist->at(row-1)->cover.c_str());
+					m_mutexOnPlaylist->unlock();
 					if(funPostMessageToUIThread && m_callbackOnSingleDataReady)
 					{
 						PostUIThreadUserData *u1 = new PostUIThreadUserData(this, row, 1, PostUIThreadUserData::SingleDataReady);
@@ -274,19 +251,14 @@ xl::uint32  XmlParser::thread_proc()
 		{
 			for (int row = r.from; row <= r.to; row++)
 			{
-				try{
-					m_mutexOnPlaylist->lock();
-					if(m_playlist->at(row-1)->hBitmap != NULL)
-					{
-						///! 创建资源的对象释放资源
-						XL_ReleaseBitmap(m_playlist->at(row-1)->hBitmap);
-						m_playlist->at(row-1)->hBitmap = NULL;
-					}
-					m_mutexOnPlaylist->unlock();
-				} catch (std::exception)
+				m_mutexOnPlaylist->lock();
+				if(m_playlist->at(row-1)->hBitmap != NULL)
 				{
-					m_mutexOnPlaylist->unlock();
+					///! 创建资源的对象释放资源
+					XL_ReleaseBitmap(m_playlist->at(row-1)->hBitmap);
+					m_playlist->at(row-1)->hBitmap = NULL;
 				}
+				m_mutexOnPlaylist->unlock();
 			}
 		}
 	}// while true
@@ -353,35 +325,29 @@ void XmlParser::FireDataBatchReadyEvent(int from, int to)
 bool XmlParser::GetDataBatch(int from, int to, void **dataBatch,  char **types)
 {
 	bool ret = false;
-	try{
-		if (m_mutexOnPlaylist->try_lock(1000))
-		{
-			if (types)
-			{
-				types[0] = "bitmap";
-				types[1] = "char";
-				types[2] = "char";
-				if (from < 1) from = 1;
-				if (to > (int)m_playlist->size()) to = m_playlist->size();
-				if (from <= to)
-				{
-					for ( int row = from; row <= to; row++)
-					{
-						char *name = const_cast<char*>(m_playlist->at(row - 1)->name.c_str());
-						char* source = const_cast<char*>(m_playlist->at(row - 1)->source.c_str());
-						dataBatch[3*(row-from)] = new XL_BITMAP_HANDLE(m_playlist->at(row - 1)->hBitmap);
-						dataBatch[3*(row-from)+1] = name;
-						dataBatch[3*(row-from)+2] = source;
-					}
-					ret = true;
-				}
-			}
-			m_mutexOnPlaylist->unlock();
-		}
-	} catch(std::exception)
+	if (m_mutexOnPlaylist->try_lock(1000))
 	{
+		if (types)
+		{
+			types[0] = "bitmap";
+			types[1] = "char";
+			types[2] = "char";
+			if (from < 1) from = 1;
+			if (to > (int)m_playlist->size()) to = m_playlist->size();
+			if (from <= to)
+			{
+				for ( int row = from; row <= to; row++)
+				{
+					char *name = const_cast<char*>(m_playlist->at(row - 1)->name.c_str());
+					char* source = const_cast<char*>(m_playlist->at(row - 1)->source.c_str());
+					dataBatch[3*(row-from)] = new XL_BITMAP_HANDLE(m_playlist->at(row - 1)->hBitmap);
+					dataBatch[3*(row-from)+1] = name;
+					dataBatch[3*(row-from)+2] = source;
+				}
+				ret = true;
+			}
+		}
 		m_mutexOnPlaylist->unlock();
-		ret = false;
 	}
 	return ret;
 }
@@ -389,45 +355,39 @@ bool XmlParser::GetDataBatch(int from, int to, void **dataBatch,  char **types)
 bool XmlParser::GetDataAtIndex(int row, int column, void **itemData, char** dataType)
 {
 	bool ret = false;
-	try {
-		if (m_mutexOnPlaylist->try_lock(1000))
-		{
-			if (row >= 1 && row <= m_playlist->size())
-			{
-				if (column == COVER_COL)
-				{
-					if(m_playlist->at(row-1)->hBitmap == NULL)
-					{
-						m_playlist->at(row-1)->hBitmap = loadImage(m_playlist->at(row-1)->cover.c_str());
-					}
-					*itemData = m_playlist->at(row-1)->hBitmap;
-					*dataType = "bitmap";
-					ret = true;
-				}
-				else if (column == NAME_COL)
-				{
-					std::string name = m_playlist->at(row-1)->name;
-					*itemData = new char[name.length()+1];
-					strcpy((char*)(*itemData), name.c_str());
-					//sprintf((char*)(*itemData), "%i", row);
-					*dataType = "char";
-					ret = true;
-				}
-				else if (column == SOURCE_COL)
-				{
-					std::string source = m_playlist->at(row-1)->source;
-					*itemData = new char[source.length()+1];
-					strcpy((char*)(*itemData), source.c_str());
-					*dataType = "char";
-					ret = true;
-				}
-			}
-			m_mutexOnPlaylist->unlock();
-		}
-	} catch(std::exception) 
+	if (m_mutexOnPlaylist->try_lock(1000))
 	{
+		if (row >= 1 && row <= m_playlist->size())
+		{
+			if (column == COVER_COL)
+			{
+				if(m_playlist->at(row-1)->hBitmap == NULL)
+				{
+					m_playlist->at(row-1)->hBitmap = loadImage(m_playlist->at(row-1)->cover.c_str());
+				}
+				*itemData = m_playlist->at(row-1)->hBitmap;
+				*dataType = "bitmap";
+				ret = true;
+			}
+			else if (column == NAME_COL)
+			{
+				std::string name = m_playlist->at(row-1)->name;
+				*itemData = new char[name.length()+1];
+				strcpy((char*)(*itemData), name.c_str());
+				//sprintf((char*)(*itemData), "%i", row);
+				*dataType = "char";
+				ret = true;
+			}
+			else if (column == SOURCE_COL)
+			{
+				std::string source = m_playlist->at(row-1)->source;
+				*itemData = new char[source.length()+1];
+				strcpy((char*)(*itemData), source.c_str());
+				*dataType = "char";
+				ret = true;
+			}
+		}
 		m_mutexOnPlaylist->unlock();
-		ret = false;
 	}
 	return ret;
 }

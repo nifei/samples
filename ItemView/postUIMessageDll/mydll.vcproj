@@ -198,7 +198,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\include\UIThreadDll.h"
+				RelativePath="..\xl_include\UIThreadDll.h"
 				>
 			</File>
 		</Filter>

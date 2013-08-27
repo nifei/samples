@@ -84,7 +84,7 @@ bool LoadMainXAR()
     result = XLUE_LoadXAR("TreeView");
     if(result != 0)
     {
-        return false;
+        return false;	
     }
     return true;
 }

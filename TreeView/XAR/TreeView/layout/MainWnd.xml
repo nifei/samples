@@ -141,25 +141,16 @@
 					<enabledrop>1</enabledrop>
 				</attr>
 				<children>
-					<obj id="node.test" class="TreeView.Node">
+					<obj id="treeview" class="TreeView">
 						<attr>
 							<left>0</left>
-							<top>0</top>	
-							<width>50</width>
-							<height>50</height>
-						</attr>
-					</obj>
-					<obj id="layout.rect" class="RectangleObject">
-						<attr>
+							<top>0</top>
 							<width>father.width</width>
 							<height>father.height</height>
-							<srcpt>0,0</srcpt>
-							<destpt>width,height</destpt>
-							<pen>pen.dot</pen>
-							<brush>brush.null</brush>
-							<pencolor>system.blue</pencolor>
-							<visible>1</visible>
 						</attr>
+						<eventlist>
+							<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitControlTree" />
+						</eventlist>
 					</obj>
 				</children>
 			</obj>			
@@ -196,7 +187,6 @@
 		</attr>
 		<eventlist>
 			<event name="OnSize" file="MainWnd.xml.lua" func="OnMainWndSize"/>
-			<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitControl"/>
 		</eventlist>
 </hostwndtemplate>
 </xlue>

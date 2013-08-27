@@ -11,7 +11,7 @@
 #include <Shlwapi.h>
 #include <assert.h>
 #include <windows.h>
-
+#include "datamodel.h"
 using namespace std;
 
 const WCHAR* GetResDir()
@@ -89,6 +89,28 @@ bool LoadMainXAR()
     return true;
 }
 
+bool RegisterLogClass()
+{
+	HINSTANCE hmod;
+	hmod =::LoadLibrary(L"log.dll");
+	typedef bool (*Fun)(void);
+	Fun lpproc = (Fun)GetProcAddress (hmod,"RegisterLogClass");
+	if (lpproc != 0)
+		return lpproc();
+	return false;
+}
+
+bool RegisterDataModelClass()
+{
+	HINSTANCE hmod;
+	hmod =::LoadLibrary(L"dataModel.dll");
+	typedef bool (*Fun)(void);
+	Fun lpproc = (Fun)GetProcAddress (hmod,"RegisterDataModelClass");
+	if (lpproc != 0)
+		return lpproc();
+	return false;
+}
+
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
@@ -101,8 +123,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
         return 1;
     }
 
-	LoadLibrary(TEXT("log.dll"));
-	LoadLibrary(TEXT("dataModel.dll"));
+	RegisterLogClass();
+	RegisterDataModelClass();
 
     if(!LoadMainXAR())
     {

@@ -24,8 +24,37 @@ function Check(value, name, warnmessage)
 	end
 end
 
+local prepend=""
+function LogTableTree(_table)
+	if _table == nil then return nil end
+	if type(_table) ~= "table" then
+		Log(prepend.._table)
+	end
+	if type(_table) == "table" then
+		for k,v in pairs(_table) do
+			local oldPrepend = prepend
+			prepend=prepend..k.."-"
+			LogTableTree(v)
+			prepend=oldPrepend
+		end
+	end
+end
+
+-- in:Node
+function LogNodeTree(node)
+	Log(prepend.."Key:"..(node.Key).." Count:"..(#(node.Children)))
+	local op = prepend
+	prepend = prepend.."---"
+	for k,v in pairs(node.Children) do
+		LogNodeTree(v)
+	end
+	prepend = op
+end
+
 function RegisterGlobal()
 	XLSetGlobal("Log", Log)
 	XLSetGlobal("Warn", Warn)
 	XLSetGlobal("Check", Check)
+	XLSetGlobal("LogTableTree", LogTableTree)
+	XLSetGlobal("LogNodeTree", LogNodeTree)
 end

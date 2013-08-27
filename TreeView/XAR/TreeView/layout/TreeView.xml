@@ -1,0 +1,27 @@
+<xlue>
+	<control class="TreeView">
+		<attr_def>
+		</attr_def>
+		<method_def>
+			<RenderTreeFromDataTable file="TreeView.lua" func="RenderTreeFromDataTable" />
+		</method_def>
+		<objtemplate id="TreeView.Template">
+			<children>
+				<obj id="tree.layout" class="RectangleObject">
+					<attr>
+						<left>0</left>
+						<top>0</top>
+						<width>father.width</width>
+						<height>father.height</height>
+						<srcpt>0, 0</srcpt>
+						<pen>pen.dot</pen>
+						<destpt>width,height</destpt>
+						<pencolor>system.black</pencolor>
+						<brush>brush.null</brush>
+						<visible>1</visible>
+					</attr>
+				</obj>
+			</children>
+		</objtemplate>
+	</control>
+</xlue>
