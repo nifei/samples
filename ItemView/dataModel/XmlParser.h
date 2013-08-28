@@ -24,6 +24,19 @@ struct StrSongInfo
 		:cover(_cover),
 		name(_name),
 		source(_source){}
+	StrSongInfo(const StrSongInfo &other)
+		:cover(other.cover), 
+		name(other.name),
+		source(other.source),
+		hBitmap(other.hBitmap){}
+	const StrSongInfo operator= (const StrSongInfo & rhs)
+	{
+		cover = rhs.cover;
+		name = rhs.name;
+		source = rhs.source;
+		hBitmap = rhs.hBitmap;
+		return *this;
+	}
 };
 
 class XmlParser : public xl::xml::expat_parser<XmlParser>
@@ -31,7 +44,7 @@ class XmlParser : public xl::xml::expat_parser<XmlParser>
 public:
 	XmlParser();
 	~XmlParser();
-	bool LoadPlaylist(std::vector<StrSongInfo*> & playlist, const char* fileName);
+	bool LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName);
 
 public:
 	// expat_parser methods
@@ -49,7 +62,7 @@ public:
 
 private:
 	char * attrNamesOfColumn[MAX_COL];
-	std::vector<StrSongInfo*> *m_playlist;
+	std::vector<StrSongInfo> *m_playlist;
 };
 
 #endif

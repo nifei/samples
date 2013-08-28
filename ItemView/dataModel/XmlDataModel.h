@@ -24,7 +24,7 @@ public:
 	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void FireDataReadyEvent(int , int );
-	void FireDataReadyEvent(int from, std::vector<StrSongInfo*> playlist);
+	void FireDataReadyEvent(int from, std::vector<StrSongInfo> playlist);
 	void FireDataReadyEvent(int row, StrSongInfo* song);
 	static void UIThreadCallbackOnDataBatch(void *userData);
 	static void UIThreadCallbackOnSingleData(void *userData);
@@ -40,5 +40,5 @@ public:
 private:
 	CallbackOnDataReady *m_callbackOnDataReady;
 	XmlDataLoader *m_loader;
-	std::vector<StrSongInfo*> m_playlist;
+	std::vector<StrSongInfo> m_playlist;
 };

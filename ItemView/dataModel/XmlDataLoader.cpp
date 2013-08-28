@@ -7,7 +7,7 @@ struct XmlDataLoader::range
 {
 	int from;
 	int type;
-	std::vector<StrSongInfo*> *playlist;
+	std::vector<StrSongInfo> *playlist;
 	enum{Prepare, Release, Invalid};
 	XmlDataLoader::range(int _type)
 		:type(_type){}
@@ -38,7 +38,7 @@ XmlDataLoader::~XmlDataLoader()
 	UnInitUIThread();
 }
 
-bool XmlDataLoader::LoadPlaylist(std::vector<StrSongInfo*> & playlist, const char* fileName)
+bool XmlDataLoader::LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName)
 {
 	return m_parser->LoadPlaylist(playlist, fileName);
 }
@@ -47,7 +47,7 @@ bool XmlDataLoader::LoadPlaylist(std::vector<StrSongInfo*> & playlist, const cha
 这是一个简单的示例, 在ItemView调用DataModel的PrepareData时, 应该准备加载数据. 
 在实际应用中, DataModel在PrepareData是才真正加载数据, 而不是像Demo中这样直接从list中读取.
 */
-bool XmlDataLoader::PrepareData(int from, std::vector<StrSongInfo*> *list)
+bool XmlDataLoader::PrepareData(int from, std::vector<StrSongInfo> *list)
 {
 	m_mutexOnRangeList->lock();
 	range r(range::Prepare);
@@ -58,7 +58,7 @@ bool XmlDataLoader::PrepareData(int from, std::vector<StrSongInfo*> *list)
 	return true;
 }
 
-bool XmlDataLoader::ReleaseData(int from, std::vector<StrSongInfo*> *list)
+bool XmlDataLoader::ReleaseData(int from, std::vector<StrSongInfo> *list)
 {
 	m_mutexOnRangeList->lock();
 	range r(range::Release);
@@ -106,12 +106,12 @@ xl::uint32  XmlDataLoader::thread_proc()
 		{
 			for (int i = 0; i < r.playlist->size(); i++)
 			{
-					r.playlist->at(i)->hBitmap = LoadImage(r.playlist->at(i)->cover.c_str());
+					r.playlist->at(i).hBitmap = LoadImage(r.playlist->at(i).cover.c_str());
 					if(PostMessageToUIThread && m_callbackToDataModelOnSingleDataReady)
 					{
 						PostSingleDataMessageToUIThreadUserData *u = new PostSingleDataMessageToUIThreadUserData();
 						u->row = r.from+i;
-						u->songInfo = r.playlist->at(i);
+						u->songInfo = &(r.playlist->at(i));
 						u->ptrCaller = m_callbackToDataModelOnSingleDataReady->ptrCaller;
 						PostMessageToUIThread((void*)u, m_callbackToDataModelOnSingleDataReady->funCallback);
 						//! 此处并没有特别耗资源的操作,为了在界面看到一行一行FireDataReadyEvent()的效果,停顿50msec再操作下一行.
@@ -130,10 +130,10 @@ xl::uint32  XmlDataLoader::thread_proc()
 		{
 			for (int i = 0; i < r.playlist->size(); i++)
 			{
-				if(r.playlist->at(i)->hBitmap != NULL)
+				if(r.playlist->at(i).hBitmap != NULL)
 				{
-					XL_ReleaseBitmap(r.playlist->at(i)->hBitmap);
-					r.playlist->at(i)->hBitmap = NULL;
+					XL_ReleaseBitmap(r.playlist->at(i).hBitmap);
+					r.playlist->at(i).hBitmap = NULL;
 				}
 			}
 		}

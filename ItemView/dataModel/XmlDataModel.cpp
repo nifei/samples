@@ -50,9 +50,9 @@ bool XmlDataModel::GetDataBatch(int from, int to, void **dataBatch, char** types
 		{
 			for ( int row = from; row <= to; row++)
 			{
-				char *name = const_cast<char*>(m_playlist.at(row - 1)->name.c_str());
-				char* source = const_cast<char*>(m_playlist.at(row - 1)->source.c_str());
-				dataBatch[3*(row-from)] = new XL_BITMAP_HANDLE(m_playlist.at(row - 1)->hBitmap);
+				char *name = const_cast<char*>(m_playlist.at(row - 1).name.c_str());
+				char* source = const_cast<char*>(m_playlist.at(row - 1).source.c_str());
+				dataBatch[3*(row-from)] = new XL_BITMAP_HANDLE(m_playlist.at(row - 1).hBitmap);
 				dataBatch[3*(row-from)+1] = name;
 				dataBatch[3*(row-from)+2] = source;
 			}
@@ -72,23 +72,23 @@ char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **itemData)
 	{
 		if (column == COVER_COL)
 		{
-			if(m_playlist.at(row-1)->hBitmap == NULL)
+			if(m_playlist.at(row-1).hBitmap == NULL)
 			{
-				m_playlist.at(row-1)->hBitmap = m_loader->LoadImage(m_playlist.at(row-1)->cover.c_str());
+				m_playlist.at(row-1).hBitmap = m_loader->LoadImage(m_playlist.at(row-1).cover.c_str());
 			}
-			*itemData = m_playlist.at(row-1)->hBitmap;
+			*itemData = m_playlist.at(row-1).hBitmap;
 			dataType = "bitmap";
 		}
 		else if (column == NAME_COL)
 		{
-			std::string name = m_playlist.at(row-1)->name;
+			std::string name = m_playlist.at(row-1).name;
 			*itemData = new char[name.length()+1];
 			strcpy((char*)(*itemData), name.c_str());
 			dataType = "char";
 		}
 		else if (column == SOURCE_COL)
 		{
-			std::string source = m_playlist.at(row-1)->source;
+			std::string source = m_playlist.at(row-1).source;
 			*itemData = new char[source.length()+1];
 			strcpy((char*)(*itemData), source.c_str());
 			dataType = "char";
@@ -102,10 +102,10 @@ void XmlDataModel::PrepareData(int from, int to)
 	//准备的数据在m_playlist中的索引是from-1~to-1
 	if (from <= 0) from = 1;
 	if (to > m_playlist.size()) to = m_playlist.size();
-	std::vector<StrSongInfo*> *playlist = new std::vector<StrSongInfo*>(to-from+1);
-	std::vector<StrSongInfo*>::const_iterator it = m_playlist.begin();
-	std::vector<StrSongInfo*>::const_iterator itBegin = it + from-1;
-	std::vector<StrSongInfo*>::const_iterator itEnd = it + to;//最后一个不包括在内
+	std::vector<StrSongInfo> *playlist = new std::vector<StrSongInfo>(to-from+1);
+	std::vector<StrSongInfo>::const_iterator it = m_playlist.begin();
+	std::vector<StrSongInfo>::const_iterator itBegin = it + from-1;
+	std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
 	playlist->assign(itBegin, itEnd);
 	m_loader->PrepareData(from, playlist);
 }
@@ -117,10 +117,10 @@ void XmlDataModel::ReleaseData(int from, int to)
 	if (to > m_playlist.size()) to = m_playlist.size();
 	if (from <= to)
 	{
-		std::vector<StrSongInfo*> *playlist = new std::vector<StrSongInfo*>(to-from+1);
-		std::vector<StrSongInfo*>::const_iterator it = m_playlist.begin();
-		std::vector<StrSongInfo*>::const_iterator itBegin = it + from-1;
-		std::vector<StrSongInfo*>::const_iterator itEnd = it + to;//最后一个不包括在内
+		std::vector<StrSongInfo> *playlist = new std::vector<StrSongInfo>(to-from+1);
+		std::vector<StrSongInfo>::const_iterator it = m_playlist.begin();
+		std::vector<StrSongInfo>::const_iterator itBegin = it + from-1;
+		std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
 		playlist->assign(itBegin, itEnd);
 		m_loader->ReleaseData(from, playlist);
 	}
@@ -134,7 +134,7 @@ void XmlDataModel::FireDataReadyEvent(int row, int column)
 	}
 }
 
-void XmlDataModel::FireDataReadyEvent(int from, std::vector<StrSongInfo*> playlist)
+void XmlDataModel::FireDataReadyEvent(int from, std::vector<StrSongInfo> playlist)
 {
 	for (int i = 0; i < playlist.size(); i++)
 	{
@@ -145,7 +145,7 @@ void XmlDataModel::FireDataReadyEvent(int from, std::vector<StrSongInfo*> playli
 
 void XmlDataModel::FireDataReadyEvent(int row, StrSongInfo* song)
 {
-	m_playlist[row-1] = song;
+	m_playlist[row-1] = *song;
 	for (int col = 1; col <= GetColumnCount(); col++)
 	{
 		FireDataReadyEvent(row, col);

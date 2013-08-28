@@ -23,7 +23,7 @@ struct CallbackToDataModelOnDataReady
 struct PostDataBatchMessageToUIThreadUserData
 {	
 	int from;
-	std::vector<StrSongInfo*> list;
+	std::vector<StrSongInfo> list;
 	void *ptrCaller;
 };
 
@@ -40,12 +40,12 @@ public:
 	XmlDataLoader();
 	~XmlDataLoader();
 
-	bool LoadPlaylist(std::vector<StrSongInfo*> & playlist, const char* fileName);
+	bool LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName);
 
 	XL_BITMAP_HANDLE LoadImage(const char* lpFile);
 
-	bool PrepareData(int from, std::vector<StrSongInfo*> *list);
-	bool ReleaseData(int from, std::vector<StrSongInfo*> *list);
+	bool PrepareData(int from, std::vector<StrSongInfo> *list);
+	bool ReleaseData(int from, std::vector<StrSongInfo> *list);
 	void SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 
@@ -58,7 +58,7 @@ private:
 	XL_BITMAP_HANDLE LoadPng( const wchar_t* lpFile );
 
 	XmlParser *m_parser;
-	std::vector<StrSongInfo*> *m_playlist;
+	std::vector<StrSongInfo> *m_playlist;
 	struct range;
 	std::vector<range> m_dataRangesWaitingForExecute;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnDataBatchReady;

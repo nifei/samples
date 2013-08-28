@@ -15,7 +15,7 @@ XmlParser::~XmlParser()
 	delete m_playlist;
 }
 
-bool XmlParser::LoadPlaylist(std::vector<StrSongInfo*> & playlist, const char* fileName)
+bool XmlParser::LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName)
 {
 	std::wstring wplaylistName;
 	xl::text::transcode::UTF8_to_Unicode(fileName, strlen(fileName), wplaylistName);
@@ -87,7 +87,7 @@ void XmlParser::OnStartElement(const XML_Char *pszName, const XML_Char **papszAt
 			attrInd++;
 			attr = papszAttrs[attrInd];
 		}
-		m_playlist->push_back(info);
+		m_playlist->push_back(*info);
 	}
 }
 
