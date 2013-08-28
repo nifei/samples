@@ -52,10 +52,6 @@ public:
 	   if (ptrFun)
 	   {
 		   ptrFun(userData);
-			;//MessageBox( L"Message handled" ); //弹出个对话框
-	   } else
-	   {
-			;//MessageBox( L"Invalid function pointer" ); //弹出个对话框
 	   }
        return 0;
    }

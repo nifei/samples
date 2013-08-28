@@ -1,5 +1,6 @@
 #pragma once
-#include "XmlParser.h"
+
+#include "XmlDataLoader.h"
 #include "LuaDataModelClass.h"
 #include "stdafx.h"
 
@@ -20,10 +21,19 @@ public:
 	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void FireDataReadyEvent(int row, int column);
+	void FireDataReadyEvent(int from, std::vector<StrSongInfo*> playlist);
+	static void UIThreadCallbackOnDataBatch(void *userData);
+	enum {
+		MEDIA_TAG = 0,
+		COVER_COL = 1,
+		NAME_COL = 2,
+		SOURCE_COL = 3,
+		MAX_COL
+	} COL_NAMES;
 
 private:
-	/* 0 is reserved for "this is a song element" tag */
 	void initialize();
 	CallbackOnDataReady *m_callbackOnDataReady;
-	XmlParser *m_parser;
+	XmlDataLoader *m_loader;
+	std::vector<StrSongInfo*> m_playlist;
 };

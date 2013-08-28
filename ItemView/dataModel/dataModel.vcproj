@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\XmlDataLoader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\XmlDataModel.cpp"
 				>
 			</File>
@@ -218,6 +222,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\XmlDataLoader.h"
 				>
 			</File>
 			<File
