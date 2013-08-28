@@ -103,6 +103,7 @@ void XmlDataModel::PrepareData(int from, int to)
 	if (from <= 0) from = 1;
 	if (to > m_playlist.size()) to = m_playlist.size();
 	m_loader->PrepareData(from, to, m_playlist);
+
 }
 
 void XmlDataModel::ReleaseData(int from, int to)

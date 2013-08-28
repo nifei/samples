@@ -1,6 +1,5 @@
 #include "XmlDataLoader.h"
 #include "xl_lib/text/transcode.h"
-#include "xl_lib/multithread/mutex.h"
 #include "PostMessageToUIThread.h"
 
 struct XmlDataLoader::range
@@ -19,11 +18,11 @@ XmlDataLoader::XmlDataLoader()
 :m_parser(0), 
 m_callbackToDataModelOnDataBatchReady(0),
 m_callbackToDataModelOnSingleDataReady(0),
-m_mutexOnRangeList(0)
+m_lockOnRangeList(0)
 {
 	InitUIThread();
 	m_parser = new XmlParser();
-	m_mutexOnRangeList= new xl::win32::multithread::mutex(false, L"RangeListMutex");
+	m_lockOnRangeList= new xl::win32::multithread::critical_section();
 }
 
 XmlDataLoader::~XmlDataLoader()
@@ -33,10 +32,10 @@ XmlDataLoader::~XmlDataLoader()
 		delete m_parser;
 		m_parser = 0;
 	}
-	if (m_mutexOnRangeList)
+	if (m_lockOnRangeList)
 	{
-		delete m_mutexOnRangeList;
-		m_mutexOnRangeList = 0;
+		delete m_lockOnRangeList;
+		m_lockOnRangeList = 0;
 	}
 	UnInitUIThread();
 }
@@ -58,12 +57,13 @@ bool XmlDataLoader::PrepareData(int from, int to, const std::vector<StrSongInfo>
 	std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
 	playlist->assign(itBegin, itEnd);
 
-	m_mutexOnRangeList->lock();
+	m_lockOnRangeList->lock();
 	range r(range::Prepare);
 	r.from = from;
 	r.playlist = playlist;
+
 	m_dataRangesWaitingForExecute.push_back(r);
-	m_mutexOnRangeList->unlock();
+	m_lockOnRangeList->unlock();
 	return true;
 }
 
@@ -75,12 +75,12 @@ bool XmlDataLoader::ReleaseData(int from, int to, const std::vector<StrSongInfo>
 	std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
 	list->assign(itBegin, itEnd);
 
-	m_mutexOnRangeList->lock();
+	m_lockOnRangeList->lock();
 	range r(range::Release);
 	r.from = from;
 	r.playlist = list;
 	m_dataRangesWaitingForExecute.push_back(r);
-	m_mutexOnRangeList->unlock();
+	m_lockOnRangeList->unlock();
 	return true;
 }
 
@@ -108,14 +108,14 @@ xl::uint32  XmlDataLoader::thread_proc()
 	{
 		range r;
 		r.type = range::Invalid;
-		if (m_mutexOnRangeList->try_lock(1000))
+		if (m_lockOnRangeList->try_lock())
 		{
 			if (m_dataRangesWaitingForExecute.empty()==false)
 			{
 				r= m_dataRangesWaitingForExecute.front();
 				m_dataRangesWaitingForExecute.erase(m_dataRangesWaitingForExecute.begin());
 			}
-			m_mutexOnRangeList->unlock();
+			m_lockOnRangeList->unlock();
 		}
 		if (r.type == range::Prepare)
 		{

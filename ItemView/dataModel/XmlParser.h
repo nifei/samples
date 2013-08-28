@@ -5,8 +5,6 @@
 #include <xl_lib/xml/expat_parser.h>
 #include <vector>
 #include "stdafx.h"
-#include "xl_lib/multithread/thread.h"
-#include "xl_lib/multithread/mutex.h"
 
 struct StrSongInfo
 {

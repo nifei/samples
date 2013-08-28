@@ -6,6 +6,8 @@
 #include <vector>
 #include "stdafx.h"
 #include "xl_lib/multithread/thread.h"
+#include "xl_lib/multithread/mutex.h"
+#include "xl_lib/multithread/critical_section.h"
 #include "PostMessageToUIThread.h"
 
 struct StrSongInfo;
@@ -50,7 +52,6 @@ public:
 	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 
 protected:
-	//thread
 	xl::uint32  thread_proc();
 
 private:
@@ -62,7 +63,7 @@ private:
 	std::vector<range> m_dataRangesWaitingForExecute;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnDataBatchReady;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnSingleDataReady;
-	xl::win32::multithread::mutex *m_mutexOnRangeList;
+	xl::win32::multithread::critical_section *m_lockOnRangeList;
 };
 
 #endif
