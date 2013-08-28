@@ -2,11 +2,11 @@
 #include "string.h"
 #include "XmlParser.h"
 
-using namespace std;
-
-const char* MY_SOURCE=("src");
-const char* MY_COVER=("cover");
-const char* MY_NAME=("name");
+struct CallbackOnDataReady{
+	funcDataReadyCallback pfnCallback;
+	DWORD dwUserData1;
+	DWORD dwUserData2;
+};
 
 XmlDataModel::XmlDataModel(int argc, const char *argv[])
 :m_callbackOnDataReady(NULL), m_loader(NULL)

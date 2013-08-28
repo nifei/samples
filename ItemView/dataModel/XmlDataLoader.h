@@ -10,18 +10,9 @@
 
 struct StrSongInfo;
 
-typedef void (*funcDataReadyCallback) (DWORD dwUserData1,DWORD dwUserData2,int row, int column);
-
-struct CallbackOnDataReady
-{
-	funcDataReadyCallback pfnCallback;
-	DWORD dwUserData1;
-	DWORD dwUserData2;
-};
-
-typedef void (*funSingleDataReadyCallback) (int row, StrSongInfo song);
-
-struct CallbackOnDataReadyUnion
+// when data is ready, data model expected to be called through ptrCaller->funCallback()
+// no distinguish between databatch ready or single data ready, data model class assign different funCallback when set listener
+struct CallbackToDataModelOnDataReady
 {
 	MainThreadCallbackFun funCallback;
 	void *ptrCaller;
@@ -55,21 +46,14 @@ public:
 
 	bool PrepareData(int from, std::vector<StrSongInfo*> *list);
 	bool ReleaseData(int from, std::vector<StrSongInfo*> *list);
-
-	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
-
-	static void UIThreadCallback(void* msg);
 
 protected:
 	//thread
 	xl::uint32  thread_proc();
 
 private:
-	void FireDataReadyEvent(int row, int column){}
-	void FireDataBatchReadyEvent(int from, std::vector<StrSongInfo*> playlist);
-
 	XL_BITMAP_HANDLE loadImage( const wchar_t* lpFile );
 	XL_BITMAP_HANDLE LoadPng( const wchar_t* lpFile );
 
@@ -77,9 +61,8 @@ private:
 	std::vector<StrSongInfo*> *m_playlist;
 	struct range;
 	std::vector<range> m_dataRangesWaitingForExecute;
-	CallbackOnDataReady *m_callbackOnSingleDataReady;
-	CallbackOnDataReadyUnion *m_callbackToDataModelOnDataBatchReady;
-	CallbackOnDataReadyUnion *m_callbackToDataModelOnSingleDataReady;
+	CallbackToDataModelOnDataReady *m_callbackToDataModelOnDataBatchReady;
+	CallbackToDataModelOnDataReady *m_callbackToDataModelOnSingleDataReady;
 	xl::win32::multithread::mutex *m_mutexOnPlaylist;
 	xl::win32::multithread::mutex *m_mutexOnRangeList;
 };

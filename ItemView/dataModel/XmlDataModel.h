@@ -4,7 +4,11 @@
 #include "LuaDataModelClass.h"
 #include "stdafx.h"
 
+// call back to LuaDataModelClass info: fun + args
 struct CallbackOnDataReady;
+
+// fun type stored in CallbackOnDataReady
+typedef void (*funcDataReadyCallback) (DWORD dwUserData1,DWORD dwUserData2,int row, int column);
 
 class XmlDataModel : public DataModelInterface
 {
@@ -24,6 +28,7 @@ public:
 	void FireDataReadyEvent(int row, StrSongInfo* song);
 	static void UIThreadCallbackOnDataBatch(void *userData);
 	static void UIThreadCallbackOnSingleData(void *userData);
+
 	enum {
 		MEDIA_TAG = 0,
 		COVER_COL = 1,

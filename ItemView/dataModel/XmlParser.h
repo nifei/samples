@@ -49,7 +49,6 @@ public:
 
 private:
 	char * attrNamesOfColumn[MAX_COL];
-	struct range;
 	std::vector<StrSongInfo*> *m_playlist;
 };
 

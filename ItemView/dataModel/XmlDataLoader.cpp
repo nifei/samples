@@ -15,22 +15,8 @@ struct XmlDataLoader::range
 		:type(Invalid){}
 };
 
-struct XmlPostUIThreadUserData
-{
-	enum{SingleDataReady, DataBatchReady};
-	int type;
-	XmlDataLoader *loader;
-	int arg1;
-	int arg2;
-	std::vector<StrSongInfo *> playlist;
-	XmlPostUIThreadUserData(XmlDataLoader *_loader, int _arg1, int _arg2, int _type)
-		:loader(_loader), arg1(_arg1), arg2(_arg2), type(_type){}
-};
-
-
 XmlDataLoader::XmlDataLoader()
 :m_parser(0), 
-m_callbackOnSingleDataReady(0),
 m_callbackToDataModelOnDataBatchReady(0),
 m_callbackToDataModelOnSingleDataReady(0),
 m_mutexOnPlaylist(0), 
@@ -72,9 +58,6 @@ bool XmlDataLoader::PrepareData(int from, std::vector<StrSongInfo*> *list)
 	return true;
 }
 
-/*!
-注意: PrepareData和ReleaseData要在同一线程中操作m_playlist; 否则会有问题
-*/
 bool XmlDataLoader::ReleaseData(int from, std::vector<StrSongInfo*> *list)
 {
 	m_mutexOnRangeList->lock();
@@ -86,21 +69,11 @@ bool XmlDataLoader::ReleaseData(int from, std::vector<StrSongInfo*> *list)
 	return true;
 }
 
-void XmlDataLoader::SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
-{
-	if (m_callbackOnSingleDataReady)
-		delete m_callbackOnSingleDataReady;
-	m_callbackOnSingleDataReady = new CallbackOnDataReady();
-	m_callbackOnSingleDataReady->dwUserData1 = dwUserData1;
-	m_callbackOnSingleDataReady->dwUserData2 = dwUserData2;
-	m_callbackOnSingleDataReady->pfnCallback = pfnCallback;
-}
-
 void XmlDataLoader::SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void *ptrCaller)
 {
 	if (m_callbackToDataModelOnSingleDataReady)
 		delete m_callbackToDataModelOnSingleDataReady;
-	m_callbackToDataModelOnSingleDataReady = new CallbackOnDataReadyUnion();
+	m_callbackToDataModelOnSingleDataReady = new CallbackToDataModelOnDataReady();
 	m_callbackToDataModelOnSingleDataReady->funCallback = pfnCallback;
 	m_callbackToDataModelOnSingleDataReady->ptrCaller = ptrCaller;
 }
@@ -109,7 +82,7 @@ void XmlDataLoader::SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback,
 {
 	if (m_callbackToDataModelOnDataBatchReady)
 		delete m_callbackToDataModelOnDataBatchReady;
-	m_callbackToDataModelOnDataBatchReady = new CallbackOnDataReadyUnion();
+	m_callbackToDataModelOnDataBatchReady = new CallbackToDataModelOnDataReady();
 	m_callbackToDataModelOnDataBatchReady->funCallback = pfnCallback;
 	m_callbackToDataModelOnDataBatchReady->ptrCaller = ptrCaller;
 }
@@ -166,31 +139,6 @@ xl::uint32  XmlDataLoader::thread_proc()
 		}
 	}// while true
 	return 1;
-}
-
-void XmlDataLoader::UIThreadCallback(void* _userData)
-{
-	if (XmlPostUIThreadUserData *userData = (XmlPostUIThreadUserData*)_userData)
-	{
-		if (userData->type == XmlPostUIThreadUserData::SingleDataReady)
-		{
-			XmlDataLoader *loader = userData->loader;
-			int row = userData->arg1;
-			int column = userData->arg2;
-			loader->FireDataReadyEvent(row, column);
-		} else if (userData->type == XmlPostUIThreadUserData::DataBatchReady)
-		{
-			XmlDataLoader *loader = userData->loader;
-			int from = userData->arg1;
-			int to = userData->arg2;
-			loader->FireDataBatchReadyEvent(from, userData->playlist);
-		}
-		delete _userData;
-	}
-}
-
-void XmlDataLoader::FireDataBatchReadyEvent(int from, std::vector<StrSongInfo*> playlist)
-{
 }
 
 XL_BITMAP_HANDLE XmlDataLoader::LoadPng( const wchar_t* lpFile )
