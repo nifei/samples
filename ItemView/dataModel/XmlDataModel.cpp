@@ -102,12 +102,7 @@ void XmlDataModel::PrepareData(int from, int to)
 	//准备的数据在m_playlist中的索引是from-1~to-1
 	if (from <= 0) from = 1;
 	if (to > m_playlist.size()) to = m_playlist.size();
-	std::vector<StrSongInfo> *playlist = new std::vector<StrSongInfo>(to-from+1);
-	std::vector<StrSongInfo>::const_iterator it = m_playlist.begin();
-	std::vector<StrSongInfo>::const_iterator itBegin = it + from-1;
-	std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
-	playlist->assign(itBegin, itEnd);
-	m_loader->PrepareData(from, playlist);
+	m_loader->PrepareData(from, to, m_playlist);
 }
 
 void XmlDataModel::ReleaseData(int from, int to)
@@ -117,12 +112,7 @@ void XmlDataModel::ReleaseData(int from, int to)
 	if (to > m_playlist.size()) to = m_playlist.size();
 	if (from <= to)
 	{
-		std::vector<StrSongInfo> *playlist = new std::vector<StrSongInfo>(to-from+1);
-		std::vector<StrSongInfo>::const_iterator it = m_playlist.begin();
-		std::vector<StrSongInfo>::const_iterator itBegin = it + from-1;
-		std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
-		playlist->assign(itBegin, itEnd);
-		m_loader->ReleaseData(from, playlist);
+		m_loader->ReleaseData(from, to, m_playlist);
 	}
 }
 
@@ -143,9 +133,9 @@ void XmlDataModel::FireDataReadyEvent(int from, std::vector<StrSongInfo> playlis
 	FireDataReadyEvent(from, from+playlist.size()-1);
 }
 
-void XmlDataModel::FireDataReadyEvent(int row, StrSongInfo* song)
+void XmlDataModel::FireDataReadyEvent(int row, const StrSongInfo& song)
 {
-	m_playlist[row-1] = *song;
+	m_playlist[row-1] = song;
 	for (int col = 1; col <= GetColumnCount(); col++)
 	{
 		FireDataReadyEvent(row, col);
@@ -185,6 +175,7 @@ void XmlDataModel::UIThreadCallbackOnDataBatch(void *userData)
 			dataModel->FireDataReadyEvent(myData->from, myData->list);
 		}
 	}
+	delete userData;
 }
 
 void XmlDataModel::UIThreadCallbackOnSingleData(void *userData)
@@ -193,7 +184,8 @@ void XmlDataModel::UIThreadCallbackOnSingleData(void *userData)
 	{
 		if (XmlDataModel *dataModel = (XmlDataModel*)myData->ptrCaller)
 		{
-			dataModel->FireDataReadyEvent(myData->row, myData->songInfo);
+			dataModel->FireDataReadyEvent(myData->row, myData->song);
 		}
 	}
+	delete userData;
 }

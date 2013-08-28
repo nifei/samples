@@ -25,7 +25,7 @@ public:
 	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void FireDataReadyEvent(int , int );
 	void FireDataReadyEvent(int from, std::vector<StrSongInfo> playlist);
-	void FireDataReadyEvent(int row, StrSongInfo* song);
+	void FireDataReadyEvent(int row, const StrSongInfo& song);
 	static void UIThreadCallbackOnDataBatch(void *userData);
 	static void UIThreadCallbackOnSingleData(void *userData);
 

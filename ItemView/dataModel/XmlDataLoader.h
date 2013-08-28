@@ -30,7 +30,7 @@ struct PostDataBatchMessageToUIThreadUserData
 struct PostSingleDataMessageToUIThreadUserData
 {
 	int row;
-	StrSongInfo *songInfo;
+	StrSongInfo song;
 	void *ptrCaller;
 };
 
@@ -44,8 +44,8 @@ public:
 
 	XL_BITMAP_HANDLE LoadImage(const char* lpFile);
 
-	bool PrepareData(int from, std::vector<StrSongInfo> *list);
-	bool ReleaseData(int from, std::vector<StrSongInfo> *list);
+	bool PrepareData(int from, int to, const std::vector<StrSongInfo>& allList);
+	bool ReleaseData(int from, int to, const std::vector<StrSongInfo>& allList );
 	void SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 
@@ -58,12 +58,10 @@ private:
 	XL_BITMAP_HANDLE LoadPng( const wchar_t* lpFile );
 
 	XmlParser *m_parser;
-	std::vector<StrSongInfo> *m_playlist;
 	struct range;
 	std::vector<range> m_dataRangesWaitingForExecute;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnDataBatchReady;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnSingleDataReady;
-	xl::win32::multithread::mutex *m_mutexOnPlaylist;
 	xl::win32::multithread::mutex *m_mutexOnRangeList;
 };
 
