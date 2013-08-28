@@ -32,6 +32,7 @@ XmlDataLoader::XmlDataLoader()
 :m_parser(0), 
 m_callbackOnSingleDataReady(0),
 m_callbackToDataModelOnDataBatchReady(0),
+m_callbackToDataModelOnSingleDataReady(0),
 m_mutexOnPlaylist(0), 
 m_mutexOnRangeList(0)
 {
@@ -95,6 +96,15 @@ void XmlDataLoader::SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserDa
 	m_callbackOnSingleDataReady->pfnCallback = pfnCallback;
 }
 
+void XmlDataLoader::SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void *ptrCaller)
+{
+	if (m_callbackToDataModelOnSingleDataReady)
+		delete m_callbackToDataModelOnSingleDataReady;
+	m_callbackToDataModelOnSingleDataReady = new CallbackOnDataReadyUnion();
+	m_callbackToDataModelOnSingleDataReady->funCallback = pfnCallback;
+	m_callbackToDataModelOnSingleDataReady->ptrCaller = ptrCaller;
+}
+
 void XmlDataLoader::SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* ptrCaller)
 {
 	if (m_callbackToDataModelOnDataBatchReady)
@@ -124,27 +134,19 @@ xl::uint32  XmlDataLoader::thread_proc()
 			for (int i = 0; i < r.playlist->size(); i++)
 			{
 					r.playlist->at(i)->hBitmap = LoadImage(r.playlist->at(i)->cover.c_str());
-					if(PostMessageToUIThread && m_callbackOnSingleDataReady)
+					if(PostMessageToUIThread && m_callbackToDataModelOnSingleDataReady)
 					{
-						XmlPostUIThreadUserData *u1 = new XmlPostUIThreadUserData(this, r.from+i, 1, XmlPostUIThreadUserData::SingleDataReady);
-						u1->playlist.push_back(r.playlist->at(i));
-						XmlPostUIThreadUserData *u2 = new XmlPostUIThreadUserData(this, r.from+i, 2, XmlPostUIThreadUserData::SingleDataReady);
-						u2->playlist.push_back(r.playlist->at(i));
-						XmlPostUIThreadUserData *u3 = new XmlPostUIThreadUserData(this, r.from+i, 3, XmlPostUIThreadUserData::SingleDataReady);
-						u3->playlist.push_back(r.playlist->at(i));
-						PostMessageToUIThread((void*)u1, XmlDataLoader::UIThreadCallback);
-						PostMessageToUIThread((void*)u2, XmlDataLoader::UIThreadCallback);
-						PostMessageToUIThread((void*)u3, XmlDataLoader::UIThreadCallback);
+						PostSingleDataMessageToUIThreadUserData *u = new PostSingleDataMessageToUIThreadUserData();
+						u->row = r.from+i;
+						u->songInfo = r.playlist->at(i);
+						u->ptrCaller = m_callbackToDataModelOnSingleDataReady->ptrCaller;
+						PostMessageToUIThread((void*)u, m_callbackToDataModelOnSingleDataReady->funCallback);
 						//! 此处并没有特别耗资源的操作,为了在界面看到一行一行FireDataReadyEvent()的效果,停顿50msec再操作下一行.
 						Sleep(50);
 					}
 			}
 			if (PostMessageToUIThread && m_callbackToDataModelOnDataBatchReady)
 			{
-				//int to = r.from + r.playlist->size()-1;
-				//XmlPostUIThreadUserData *u = new XmlPostUIThreadUserData(this, r.from, to, XmlPostUIThreadUserData::DataBatchReady);
-				//u->playlist.assign(r.playlist->begin(), r.playlist->end());
-				//PostMessageToUIThread((void*)u, XmlDataLoader::UIThreadCallback);
 				PostDataBatchMessageToUIThreadUserData *u = new PostDataBatchMessageToUIThreadUserData();
 				u->list.assign(r.playlist->begin(), r.playlist->end());
 				u->from = r.from;

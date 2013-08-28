@@ -19,10 +19,6 @@ XmlDataModel::XmlDataModel(int argc, const char *argv[])
 	}
 }
 
-void XmlDataModel::initialize()
-{
-}
-
 XmlDataModel::~XmlDataModel()
 {
 	if (m_loader)
@@ -147,9 +143,25 @@ void XmlDataModel::FireDataReadyEvent(int from, std::vector<StrSongInfo*> playli
 	FireDataReadyEvent(from, from+playlist.size()-1);
 }
 
+void XmlDataModel::FireDataReadyEvent(int row, StrSongInfo* song)
+{
+	m_playlist[row-1] = song;
+	for (int col = 1; col <= GetColumnCount(); col++)
+	{
+		FireDataReadyEvent(row, col);
+	}
+}
+
 void XmlDataModel::SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
 {
-	m_loader->SetSingleDataReadyListener(dwUserData1, dwUserData2, pfnCallback);
+	if (m_callbackOnDataReady != 0)
+		delete m_callbackOnDataReady;
+	m_callbackOnDataReady = new CallbackOnDataReady();
+	m_callbackOnDataReady->dwUserData1 = dwUserData1;
+	m_callbackOnDataReady->dwUserData2 = dwUserData2;
+	m_callbackOnDataReady->pfnCallback = pfnCallback;
+
+	m_loader->SetSingleDataReadyListener(XmlDataModel::UIThreadCallbackOnSingleData, (void*)this);
 }
 
 void XmlDataModel::SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
@@ -171,6 +183,17 @@ void XmlDataModel::UIThreadCallbackOnDataBatch(void *userData)
 		if (XmlDataModel *dataModel = (XmlDataModel*)myData->ptrCaller)
 		{
 			dataModel->FireDataReadyEvent(myData->from, myData->list);
+		}
+	}
+}
+
+void XmlDataModel::UIThreadCallbackOnSingleData(void *userData)
+{
+	if (PostSingleDataMessageToUIThreadUserData *myData = (PostSingleDataMessageToUIThreadUserData*)userData)
+	{
+		if (XmlDataModel *dataModel = (XmlDataModel*)myData->ptrCaller)
+		{
+			dataModel->FireDataReadyEvent(myData->row, myData->songInfo);
 		}
 	}
 }

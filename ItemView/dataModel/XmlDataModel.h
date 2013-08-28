@@ -11,7 +11,6 @@ class XmlDataModel : public DataModelInterface
 public:
 	XmlDataModel(int argc = 0, const char **argv = NULL);
 	virtual ~XmlDataModel();
-
 	char* GetItemAtIndex(int row,int column, void **itemData = 0);
 	bool GetDataBatch(int from, int to, void **dataBatch, char** types);
 	int GetCount()const;
@@ -20,9 +19,11 @@ public:
 	void ReleaseData(int from, int to);
 	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void FireDataReadyEvent(int row, int column);
+	void FireDataReadyEvent(int , int );
 	void FireDataReadyEvent(int from, std::vector<StrSongInfo*> playlist);
+	void FireDataReadyEvent(int row, StrSongInfo* song);
 	static void UIThreadCallbackOnDataBatch(void *userData);
+	static void UIThreadCallbackOnSingleData(void *userData);
 	enum {
 		MEDIA_TAG = 0,
 		COVER_COL = 1,
@@ -32,7 +33,6 @@ public:
 	} COL_NAMES;
 
 private:
-	void initialize();
 	CallbackOnDataReady *m_callbackOnDataReady;
 	XmlDataLoader *m_loader;
 	std::vector<StrSongInfo*> m_playlist;

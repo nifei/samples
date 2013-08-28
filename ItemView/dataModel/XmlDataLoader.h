@@ -36,6 +36,13 @@ struct PostDataBatchMessageToUIThreadUserData
 	void *ptrCaller;
 };
 
+struct PostSingleDataMessageToUIThreadUserData
+{
+	int row;
+	StrSongInfo *songInfo;
+	void *ptrCaller;
+};
+
 class XmlDataLoader : public xl::win32::multithread::thread
 {
 public:
@@ -50,8 +57,8 @@ public:
 	bool ReleaseData(int from, std::vector<StrSongInfo*> *list);
 
 	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
 	void SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
+	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 
 	static void UIThreadCallback(void* msg);
 
@@ -72,6 +79,7 @@ private:
 	std::vector<range> m_dataRangesWaitingForExecute;
 	CallbackOnDataReady *m_callbackOnSingleDataReady;
 	CallbackOnDataReadyUnion *m_callbackToDataModelOnDataBatchReady;
+	CallbackOnDataReadyUnion *m_callbackToDataModelOnSingleDataReady;
 	xl::win32::multithread::mutex *m_mutexOnPlaylist;
 	xl::win32::multithread::mutex *m_mutexOnRangeList;
 };
