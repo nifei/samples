@@ -32,21 +32,21 @@ XmlDataModel::~XmlDataModel()
 		delete m_callbackOnDataReady;
 }
 
-int XmlDataModel::GetCount(const char* view)const
+int XmlDataModel::GetCount()const
 {return m_parser->GetCount();}
 
-int XmlDataModel::GetColumnCount(const char *view)const
+int XmlDataModel::GetColumnCount()const
 {
 	return m_parser->GetColumnCount();
 }
 
-bool XmlDataModel::GetDataBatch(int from, int to, const char* view, void **dataBatch, char** types)
+bool XmlDataModel::GetDataBatch(int from, int to, void **dataBatch, char** types)
 {
 	m_parser->GetDataBatch(from, to, dataBatch, types);
 	return true;
 }
 
-char* XmlDataModel::GetItemAtIndex(int irow,int icolumn,const char*view, void **itemData)
+char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **itemData)
 {
 	size_t row(irow);
 	size_t column(icolumn);
@@ -59,12 +59,12 @@ char* XmlDataModel::GetItemAtIndex(int irow,int icolumn,const char*view, void **
 	return "nil";
 }
 
-void XmlDataModel::PrepareData(int from, int to, const char *userdata)
+void XmlDataModel::PrepareData(int from, int to)
 {
 	m_parser->PrepareData(from, to);
 }
 
-void XmlDataModel::ReleaseData(int from, int to, const char* userdata)
+void XmlDataModel::ReleaseData(int from, int to)
 {
 	m_parser->ReleaseData(from, to);
 }

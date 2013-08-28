@@ -1,5 +1,5 @@
 local mdDataModel = XLLoadModule(lua_code_dir.."TestDataModel.lua")
-local GetTestDataModelObject = mdDataModel.GetTestDataModelObject
+local GetXmlDataModelObject = mdDataModel.GetXmlDataModelObject
 
 local mdItemFactory = XLLoadModule(lua_code_dir.."ItemFactory.lua")
 local GetItemFactory = mdItemFactory.GetItemFactory
@@ -11,7 +11,7 @@ function OnInitControl_ItemView(self)
 
 	-- Setup data model,  by default lua table is applied. 
 	-- -- 示例代码 Custom data model import by "require"
-	local dataModelUserData, dataModelCallbackTable = GetTestDataModelObject("simple.xml")
+	local dataModelUserData, dataModelCallbackTable = GetXmlDataModelObject("XmlDataModel", "simple.xml")
 	self:SetDataModel(dataModelUserData, dataModelCallbackTable)
 	
 	-- -- user can: 1. specify another lua table as data model;  

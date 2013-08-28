@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LuaDataModelClass.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\XmlDataModel.cpp"
 				>
 			</File>
