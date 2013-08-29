@@ -1,4 +1,4 @@
-function GetCount(self)
+function GetDataCount(self)
 	return self:GetAttribute().ScrollArea:GetRowCount()
 end
 
@@ -128,11 +128,11 @@ function SetScrollBarV(self, scrollObjV)
 	-- attach listeners
 	-- 两个AttachListener都是在scrollbar存在的前提下建立的，scrollbar为空时没有互相通知的必要。
 	-- Todo, remove listener via cookie
-	local onVSPosChange = function(self)
+	local onScrollBarVPosChange = function(self)
 		local pos = self:GetScrollPos()
 		attr.ScrollArea:SetScrollPosV(math.floor(pos))
 		end
-	local cookie, ret = attr.ScrollBarAttrs.VScrollBar:AttachListener("OnScrollPosChange", true, onVSPosChange)
+	local cookie, ret = attr.ScrollBarAttrs.VScrollBar:AttachListener("OnScrollPosChange", true, onScrollBarVPosChange)
 	if ret == true then
 		attr.ScrollBarAttrs.CookieScrollAreaListenToScrollBar = cookie
 	end
@@ -176,6 +176,22 @@ function OnInitControl(self)
 	local attr = self:GetAttribute()
 	local scrollArea = self:GetControlObject("itemview.scrollarea")
 	attr.ScrollArea = scrollArea
+	if attr.ScrollArea ~= nil then 
+		local function OnScrollAreaVPosChanged(saObj, eventName, oldPos, newPos)
+			self:FireExtEvent("VerticalScrollPosChanged", oldPos, newPos)
+		end
+		attr.ScrollArea:AttachListener("VerticalScrollPosChanged", true, OnScrollAreaVPosChanged)
+		
+		local function OnScrollAreaHPosChanged(saObj, eventName, oldPos, newPos)
+			self:FireExtEvent("HorizontalScrollPosChanged", oldPos, newPos)
+		end
+		attr.ScrollArea:AttachListener("HorizontalScrollPosChanged", true, OnScrollAreaHPosChanged)
+		
+		attr.ScrollArea:AttachListener("VisibleItemChanged", true, 
+			function (saObj, eventName, newFirst, newLast)
+				self:FireExtEvent("VisibleItemChanged", newFirst, newLast)
+			end)
+	end
 	
 	attr.ScrollBarAttrs = {}
 	attr.ScrollBarAttrs.VsbVisible = false
@@ -192,22 +208,24 @@ function OnInitControl(self)
 		end
 	end
 
+	local itemViewId = self:GetID()
+	if itemViewId==nil then itemViewId="" end
 	-- Allow user to assign nil or specify another scrollbar later
 	if attr.ScrollBarClassNameV then
 		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local scrollObjV = objFactory:CreateUIObject("scrollbarV", attr.ScrollBarClassNameV)
+		local scrollObjV = objFactory:CreateUIObject(itemViewId..".scrollbarV", attr.ScrollBarClassNameV)
 		self:SetScrollBarV(scrollObjV)
 	end
 	
 	if attr.ScrollBarClassNameH then
 		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local scrollObjH = objFactory:CreateUIObject("scrollbarH", attr.ScrollBarClassNameH)
+		local scrollObjH = objFactory:CreateUIObject(itemViewId..".scrollbarH", attr.ScrollBarClassNameH)
 		self:SetScrollBarH(scrollObjH)
 	end
 	
 	if attr.HeaderClassName then
 		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local headerObj = objFactory:CreateUIObject("header", attr.HeaderClassName)
+		local headerObj = objFactory:CreateUIObject(itemViewId..".header", attr.HeaderClassName)
 		self:SetHeader(headerObj)
 	end
 	

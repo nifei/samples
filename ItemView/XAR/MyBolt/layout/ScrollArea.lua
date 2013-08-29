@@ -15,7 +15,9 @@ function OnInitControl(self)
 		["MaximumScrollPosV"] = 0,
 		["ScrollPosV"] = 0, 
 		["MaximumScrollPosH"] = 0,
-		["ScrollPosH"] = 0
+		["ScrollPosH"] = 0, 
+		["FirstVisibleIndex"] = 1,
+		["LastVisibleIndex"] = 1
 	}
 	
 	-- 鼠标是否按下，鼠标上一次移动到什么位置，什么时间
@@ -25,12 +27,11 @@ function OnInitControl(self)
 	self:GetAttribute().PrivateMethods.getVisibleItemObject = getVisibleItemObject
 	
 	self:GetAttribute().HeaderWidths = {}
+	self:GetAttribute().RowHeight = nil
 end
 
 function GetFirstVisibleIndex(self)
-	local scrollPos = self:GetScrollPosV()
-	local index = math.ceil(scrollPos/rh)
-	return index+1
+	return self:GetAttribute().ScrollAttributes["FirstVisibleIndex"]
 end
 
 function getVisibleItemObject(self, row, column)
@@ -265,12 +266,14 @@ function GetScrollPosH(self)
 end
 
 function SetScrollPosH(self, pos)
+	local oldPos = self:GetAttribute().ScrollAttributes.ScrollPosH
 	self:GetAttribute().ScrollAttributes.ScrollPosH = pos
 	local innerLayout = self:GetControlObject("scrollarea.layout")
 	local l,t,r,b = self:GetObjPos()
 	local il, it, ir, ib = innerLayout:GetObjPos()
-	if pos>=0 and pos<=self:GetAttribute().ScrollAttributes.MaximumScrollPosH then
+	if pos>=0 and pos<=self:GetAttribute().ScrollAttributes.MaximumScrollPosH and pos~=oldPos then
 		innerLayout:SetObjPos(0-pos,it,r-l-pos,ib)
+		self:FireExtEvent("HorizontalScrollPosChanged", oldPos, pos)
 	end
 end
 
@@ -338,10 +341,23 @@ end
 function SetScrollPosV(self,newValue)
 	if newValue ~= self:GetAttribute().ScrollAttributes["ScrollPosV"] then
 		if newValue <= self:GetAttribute().ScrollAttributes["MaximumScrollPosV"] and newValue >= 0 then
+			local oldValue = self:GetAttribute().ScrollAttributes["ScrollPosV"]
 			local distanceV = newValue-self:GetAttribute().ScrollAttributes["ScrollPosV"]
 			self:GetAttribute().ScrollAttributes["ScrollPosV"]= newValue
 			move(self, -distanceV)
 			self:FireExtEvent("OnScrollPosChange")
+			-- 触发ScrollArea自定义事件, 带参数的方法
+			-- 监听事件的方法见ItemView.lua, 搜索VerticalScrollPosChanged
+			-- 也看, HorizontalScrollPosChanged
+			self:FireExtEvent("VerticalScrollPosChanged", oldValue, newValue)
+			local rh = getRowHeight(self)
+			local first = math.floor(newValue/rh)+1
+			local last = math.floor((newValue+getPageHeight(self))/rh)+1
+			if first ~= self:GetAttribute().ScrollAttributes["FirstVisibleIndex"] or last ~= self:GetAttribute().ScrollAttributes["LastVisibleIndex"] then
+				self:GetAttribute().ScrollAttributes["FirstVisibleIndex"] = first
+				self:GetAttribute().ScrollAttributes["LastVisibleIndex"] = last
+				self:FireExtEvent("VisibleItemChanged", first, last)
+			end
 		end
 	end
 end
@@ -469,14 +485,15 @@ function getPageHeight(self)
 end
 
 function getRowHeight(self)
-	local attr = self:GetAttribute()
-	local callbackTable = attr.itemFactoryCallbackTable
-	local rowHeight = 0
-	if callbackTable ~= nil then
-		local funGetRowHeight = callbackTable.GetRowHeight
-			rowHeight = funGetRowHeight(attr.itemFactoryUserData)
+	if self:GetAttribute().RowHeight ==  nil then
+		local attr = self:GetAttribute()
+		local callbackTable = attr.itemFactoryCallbackTable
+		if callbackTable ~= nil then
+			local funGetRowHeight = callbackTable.GetRowHeight
+				self:GetAttribute().RowHeight = funGetRowHeight(attr.itemFactoryUserData)
+		end
 	end
-	return rowHeight
+	return self:GetAttribute().RowHeight
 end
 
 function GetColumnWidthList(self)

@@ -21,6 +21,16 @@ function OnInitControl_ItemView(self)
 	
 	-- 示例代码set header data
 	self:SetHeaderNameList({"Cover", "Name", "Dir"})
+	
+	local function OnItemViewHorizontalScrollPosChanged(itemViewObject, itemViewEventName, oldPos, newPos)
+		-- 监听自定义控件自定义事件方法二:
+		-- 这样做的好处是不想继续监听的时候可以根据AttachListener返回的cookie移除监听
+	end
+	local cookie, ret = self:AttachListener("HorizontalScrollPosChanged", true, OnItemViewHorizontalScrollPosChanged)
+	if ret then
+		-- 移除对事件HorizontalScrollPosChanged的监听, 所以上面的AttachListener不再有效
+		self:RemoveListener("HorizontalScrollPosChanged", cookie)
+	end
 end
 
 function scroll_down_OnLButtonDown(self)

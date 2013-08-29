@@ -71,7 +71,7 @@ bool XmlDataLoader::ReleaseData(int from, int to, const std::vector<StrSongInfo>
 
 	appendRange(r);
 	return true;
-}
+}	
 
 void XmlDataLoader::SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void *ptrCaller)
 {

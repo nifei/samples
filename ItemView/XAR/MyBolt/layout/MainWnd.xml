@@ -14,7 +14,6 @@
 			<top>0</top>
 			<width>429</width>
 			<height>720</height>
-			<!--资源相关的属性使用资源定义xml中设置的资源名-->
 			<image>app.bkg</image>
 			<drawmode>1</drawmode>
 			<alpha>255</alpha>
@@ -31,7 +30,6 @@
 				<children>
 					<obj id="title.text" class="TextObject">
 						<attr>
-							<!-- 使用表达式局中-->
 							<left>father.width/2-140/2</left> 
 							<top>0</top>
 							<width>140</width>
@@ -148,17 +146,30 @@
 							<width>father.width-20</width>
 							<height>father.height-130</height>
 							<!-- 以下属性如果用户不设置,会用默认值 -->
+							<!-- 以下属性的值就是默认值 -->
 							<BackgroundTexture></BackgroundTexture>
 							<ScrollBarClassNameV>ItemView.ScrollBarV</ScrollBarClassNameV>
 							<ScrollBarClassNameH>ItemView.ScrollBarH</ScrollBarClassNameH>
 							<ScrollBarSize>20</ScrollBarSize>
 							<HeaderClassName>ItemView.Header</HeaderClassName>
 							<HeaderHeight>30</HeaderHeight>
-							<!-- 提前加载数据条数 -->
 							<PreloadDataCount>50</PreloadDataCount>
 						</attr>
 						<eventlist>
 						<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitControl_ItemView" />
+						<event name="VerticalScrollPosChanged">
+							-- 监听自定义控件自定义事件方法一:
+							-- 请注意参数获取及参数顺序
+							local arg={...}
+							local itemViewObj = arg[1]
+							local eventName = arg[2]
+							local oldPos = arg[3]
+							local newPos =arg[4]
+						</event>
+						<event name="VisibleItemChanged">
+							local arg={...}
+							-- Warn("first:"..(arg[3]).." last:"..(arg[4]))
+						</event>
 						</eventlist>
 					</obj>
 				</children>

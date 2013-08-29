@@ -40,20 +40,33 @@
 			<SetHeaderNameList file="ItemView.lua" func="SetHeaderNameList" />
 			<!-- 获取接口 -->
 			<!-- 直接返回DataModel的数据 -->
-			<!-- return int -->
-			<GetCount file="ItemView.lua" func="GetCount" />
-			<!-- return int -->
+			<GetDataCount file="ItemView.lua" func="GetDataCount" />
 			<GetColumnCount file="ItemView.lua" func="GetColumnCount" />
 			<!-- 返回当前界面上显示的第一个item的index -->
-			<!-- return int -->
 			<GetFirstVisibleIndex file="ItemView.lua" func="GetFirstVisibleIndex" />
 			<!-- 返回当前可见区域尺寸, 和显示完整表格需要的尺寸 -->
-			<!-- return int width, int height -->
 			<GetViewportSize file="ItemView.lua" func="GetViewportSize" />
-			<!-- return int width, int height -->
 			<GetScrollSize file="ItemView.lua" func="GetScrollSize" />
 		</method_def>
 		<event_def>
+			<VerticalScrollPosChanged>
+				<param>
+					<int name="oldPos"/>
+					<int name="newPos"/>
+				</param>
+			</VerticalScrollPosChanged>
+			<HorizontalScrollPosChanged>
+				<param>
+					<int name="oldPos"/>
+					<int name="newPos"/>
+				</param>
+			</HorizontalScrollPosChanged>
+			<VisibleItemChanged>
+				<param>
+					<int name="firstVisibleItemIndex" />
+					<int name="lastVisibleItemIndex" />
+				</param>
+			</VisibleItemChanged>
 		</event_def>
     <objtemplate>
 	<children>
