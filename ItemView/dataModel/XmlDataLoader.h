@@ -6,7 +6,6 @@
 #include <vector>
 #include "stdafx.h"
 #include "xl_lib/multithread/thread.h"
-#include "xl_lib/multithread/mutex.h"
 #include "xl_lib/multithread/critical_section.h"
 #include "PostMessageToUIThread.h"
 
@@ -50,6 +49,7 @@ public:
 	bool ReleaseData(int from, int to, const std::vector<StrSongInfo>& allList );
 	void SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
 	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
+	static xl::win32::multithread::critical_section m_cs;
 
 protected:
 	xl::uint32  thread_proc();
@@ -57,13 +57,14 @@ protected:
 private:
 	XL_BITMAP_HANDLE loadImage( const wchar_t* lpFile );
 	XL_BITMAP_HANDLE LoadPng( const wchar_t* lpFile );
+	struct range;
+	bool appendRange(range);
+	bool getRange(range&);
 
 	XmlParser *m_parser;
-	struct range;
 	std::vector<range> m_dataRangesWaitingForExecute;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnDataBatchReady;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnSingleDataReady;
-	xl::win32::multithread::critical_section *m_lockOnRangeList;
 };
 
 #endif

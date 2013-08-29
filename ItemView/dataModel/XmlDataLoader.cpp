@@ -14,15 +14,14 @@ struct XmlDataLoader::range
 		:playlist(0), type(Invalid){}
 };
 
+xl::win32::multithread::critical_section XmlDataLoader::m_cs;
+
 XmlDataLoader::XmlDataLoader()
 :m_parser(0), 
 m_callbackToDataModelOnDataBatchReady(0),
-m_callbackToDataModelOnSingleDataReady(0),
-m_lockOnRangeList(0)
+m_callbackToDataModelOnSingleDataReady(0)
 {
-	InitUIThread();
 	m_parser = new XmlParser();
-	m_lockOnRangeList= new xl::win32::multithread::critical_section();
 }
 
 XmlDataLoader::~XmlDataLoader()
@@ -32,12 +31,6 @@ XmlDataLoader::~XmlDataLoader()
 		delete m_parser;
 		m_parser = 0;
 	}
-	if (m_lockOnRangeList)
-	{
-		delete m_lockOnRangeList;
-		m_lockOnRangeList = 0;
-	}
-	UnInitUIThread();
 }
 
 bool XmlDataLoader::LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName)
@@ -57,13 +50,11 @@ bool XmlDataLoader::PrepareData(int from, int to, const std::vector<StrSongInfo>
 	std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
 	playlist->assign(itBegin, itEnd);
 
-	m_lockOnRangeList->lock();
 	range r(range::Prepare);
 	r.from = from;
 	r.playlist = playlist;
 
-	m_dataRangesWaitingForExecute.push_back(r);
-	m_lockOnRangeList->unlock();
+	appendRange(r);
 	return true;
 }
 
@@ -74,13 +65,11 @@ bool XmlDataLoader::ReleaseData(int from, int to, const std::vector<StrSongInfo>
 	std::vector<StrSongInfo>::const_iterator itBegin = it + from-1;
 	std::vector<StrSongInfo>::const_iterator itEnd = it + to;//最后一个不包括在内
 	list->assign(itBegin, itEnd);
-
-	m_lockOnRangeList->lock();
 	range r(range::Release);
 	r.from = from;
 	r.playlist = list;
-	m_dataRangesWaitingForExecute.push_back(r);
-	m_lockOnRangeList->unlock();
+
+	appendRange(r);
 	return true;
 }
 
@@ -108,15 +97,7 @@ xl::uint32  XmlDataLoader::thread_proc()
 	{
 		range r;
 		r.type = range::Invalid;
-		if (m_lockOnRangeList->try_lock())
-		{
-			if (m_dataRangesWaitingForExecute.empty()==false)
-			{
-				r= m_dataRangesWaitingForExecute.front();
-				m_dataRangesWaitingForExecute.erase(m_dataRangesWaitingForExecute.begin());
-			}
-			m_lockOnRangeList->unlock();
-		}
+		getRange(r);
 		if (r.type == range::Prepare)
 		{
 			for (int i = 0; i < r.playlist->size(); i++)
@@ -158,6 +139,26 @@ xl::uint32  XmlDataLoader::thread_proc()
 		}
 	}
 	return 1;
+}
+
+bool XmlDataLoader::appendRange(XmlDataLoader::range r)
+{
+	::EnterCriticalSection(&m_cs);
+	m_dataRangesWaitingForExecute.push_back(r);
+	::LeaveCriticalSection(&m_cs);
+	return true;
+}
+
+bool XmlDataLoader::getRange(XmlDataLoader::range &r)
+{
+	::EnterCriticalSection(&m_cs);
+	if (m_dataRangesWaitingForExecute.empty()==false)
+	{
+		r = m_dataRangesWaitingForExecute.front();
+		m_dataRangesWaitingForExecute.erase(m_dataRangesWaitingForExecute.begin());
+	}
+	::LeaveCriticalSection(&m_cs);
+	return true;
 }
 
 XL_BITMAP_HANDLE XmlDataLoader::LoadPng( const wchar_t* lpFile )

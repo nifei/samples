@@ -13,7 +13,9 @@ XmlDataModel::XmlDataModel(int argc, const char *argv[])
 {
 	if (argc && argv)
 	{
+		InitUIThread();
 		m_loader = new XmlDataLoader();
+		InitializeCriticalSection(&(XmlDataLoader::m_cs));
 		m_loader->LoadPlaylist(m_playlist, argv[0]);
 		m_loader->start();
 	}
@@ -26,8 +28,13 @@ XmlDataModel::~XmlDataModel()
 		delete m_loader;
 		m_loader = 0;
 	}
+	::DeleteCriticalSection(&(XmlDataLoader::m_cs));
+	UnInitUIThread();
 	if (m_callbackOnDataReady)
+	{
 		delete m_callbackOnDataReady;
+		m_callbackOnDataReady = 0;
+	}
 }
 
 int XmlDataModel::GetCount()const
@@ -103,7 +110,6 @@ void XmlDataModel::PrepareData(int from, int to)
 	if (from <= 0) from = 1;
 	if (to > m_playlist.size()) to = m_playlist.size();
 	m_loader->PrepareData(from, to, m_playlist);
-
 }
 
 void XmlDataModel::ReleaseData(int from, int to)
@@ -114,6 +120,10 @@ void XmlDataModel::ReleaseData(int from, int to)
 	if (from <= to)
 	{
 		m_loader->ReleaseData(from, to, m_playlist);
+		for(int i = from; i <= to; i++)
+		{
+			m_playlist[i-1].hBitmap = 0;
+		}
 	}
 }
 

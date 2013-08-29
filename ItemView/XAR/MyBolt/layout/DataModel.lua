@@ -53,13 +53,16 @@ function SetDataModel(self, userdata, callbackTable)
 					-- GetDataBatch返回一个以row, column为索引的二维数组
 					local dataBatch = funGetDataBatch(attr.dataModelUserData, from, to)
 					for row, rowTable in pairs(dataBatch) do
-						for column, itemData in pairs(rowTable) do
-							local itemObj = self:GetAttribute().PrivateMethods.getVisibleItemObject(self, row, column)
-							attr.ItemDataTable[row][column] = itemData
-							if itemData and itemObj then
-								funSetItemData(attr.itemFactoryUserData, itemObj, itemData, row, column)
-							end -- valid itemdata
-						end -- for column
+						if type(rowTable) ~= "table" then Warn("row table is not table") 
+						else
+							for column, itemData in pairs(rowTable) do
+								local itemObj = self:GetAttribute().PrivateMethods.getVisibleItemObject(self, row, column)
+								attr.ItemDataTable[row][column] = itemData
+								if itemData and itemObj then
+									funSetItemData(attr.itemFactoryUserData, itemObj, itemData, row, column)
+								end -- valid itemdata
+							end -- for column
+						end -- if rowTable type is table
 					end -- for row, rowTable
 				else
 					local funGetItemAtIndex=attr.dataModelCallbackTable.GetItemAtIndex
@@ -109,6 +112,8 @@ end
 -- 如果用户提供了PrepareData方法, 就调用PrepareData方法加载数据, 如果没有提供, 就直接调用GetItemAtIndex
 -- 如果用户提供了ReleaseData方法, 就调用ReleaseData方法在不再需要的时候释放数据, 如果没有提供, 就什么都不做
 function preload(self, from, to)
+	if from <= 1 then from = 1 end
+	if to >= self:GetRowCount() then to = self:GetRowCount() end
 	local attr = self:GetAttribute()
 	local funGetItemAtIndex = attr.dataModelCallbackTable["GetItemAtIndex"]
 	local funPrepareData = attr.dataModelCallbackTable["PrepareData"]
