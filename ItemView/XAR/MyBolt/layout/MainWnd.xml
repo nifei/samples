@@ -135,7 +135,7 @@
 					<left>8</left>
 					<top>8</top>
 					<width>father.width-16</width>
-					<height>father.height-16</height>
+					<height>father.height-50</height>
 					<enabledrop>1</enabledrop>
 				</attr>
 				<children>
@@ -153,7 +153,7 @@
 							<ScrollBarSize>20</ScrollBarSize>
 							<HeaderClassName>ItemView.Header</HeaderClassName>
 							<HeaderHeight>30</HeaderHeight>
-							<PreloadDataCount>50</PreloadDataCount>
+							<PreloadDataCount>0</PreloadDataCount>
 						</attr>
 						<eventlist>
 						<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitControl_ItemView" />
@@ -171,6 +171,52 @@
 							-- Warn("first:"..(arg[3]).." last:"..(arg[4]))
 						</event>
 						</eventlist>
+					</obj>
+					<obj id="buttons.layout" class="LayoutObject">
+						<attr>
+							<left>10</left>
+							<top>father.height-30</top>
+							<width>(father.width-20)</width>
+							<height>20</height>
+						</attr>
+						<children>
+							<obj id="insert" class="BaseUI.Button">
+								<attr>
+									<left>10</left>
+									<top>father.height-30</top>
+									<width>(father.width-20)/3</width>
+									<height>20</height>
+									<Text>insert</Text>
+								</attr>
+								<eventlist>
+									<event name="OnClick" file="MainWnd.xml.lua" func="insert" />
+								</eventlist>
+							</obj>
+							<obj id="remove" class="BaseUI.Button">
+								<attr>
+									<left>10+(father.width-20)/3</left>
+									<top>father.height-30</top>
+									<width>(father.width-20)/3</width>
+									<height>20</height>
+									<Text>remove</Text>
+								</attr>
+								<eventlist>
+									<event name="OnClick" file="MainWnd.xml.lua" func="remove_" />
+								</eventlist>
+							</obj>
+							<obj id="update" class="BaseUI.Button">
+								<attr>
+									<left>10+(father.width-20)/3+(father.width-20)/3</left>
+									<top>father.height-30</top>
+									<width>(father.width-20)/3</width>
+									<height>20</height>
+									<Text>update</Text>
+								</attr>
+								<eventlist>
+									<event name="OnClick" file="MainWnd.xml.lua" func="update" />
+								</eventlist>
+							</obj>
+						</children>
 					</obj>
 				</children>
 			</obj>

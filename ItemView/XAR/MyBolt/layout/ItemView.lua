@@ -191,6 +191,11 @@ function OnInitControl(self)
 			function (saObj, eventName, newFirst, newLast)
 				self:FireExtEvent("VisibleItemChanged", newFirst, newLast)
 			end)
+		attr.ScrollArea:AttachListener("DataChanged", true, 
+			function(saObj, eventName)
+				updateScrollRange(self)
+				saObj:UpdateItems()
+			end)
 	end
 	
 	attr.ScrollBarAttrs = {}

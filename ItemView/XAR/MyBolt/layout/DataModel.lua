@@ -107,10 +107,18 @@ function SetDataModel(self, userdata, callbackTable)
 		preload(self, 0, preloadDataCount-1)
 	end
 	
+	if attr.dataModelCallbackTable.SetDataChangeListener then	
+		function onDataChanged(from, to)
+			self:FireExtEvent("DataChanged")
+			self:UpdateItems()
+		end
+		attr.dataModelCallbackTable.SetDataChangeListener(attr.dataModelUserData, onDataChanged)
+	end
 end
 
 -- 如果用户提供了PrepareData方法, 就调用PrepareData方法加载数据, 如果没有提供, 就直接调用GetItemAtIndex
 -- 如果用户提供了ReleaseData方法, 就调用ReleaseData方法在不再需要的时候释放数据, 如果没有提供, 就什么都不做
+
 function preload(self, from, to)
 	if from <= 1 then from = 1 end
 	if to >= self:GetRowCount() then to = self:GetRowCount() end
@@ -118,6 +126,7 @@ function preload(self, from, to)
 	local funGetItemAtIndex = attr.dataModelCallbackTable["GetItemAtIndex"]
 	local funPrepareData = attr.dataModelCallbackTable["PrepareData"]
 	local funReleaseData = attr.dataModelCallbackTable["ReleaseData"]
+	local funSetItemData = attr.itemFactoryCallbackTable.SetItemData
 	local colCount = self:GetColumnCount()
 	
 	if attr.PreloadFrom ~= nil and attr.PreloadFrom < from then
@@ -221,6 +230,7 @@ function GetRowCount(self)
 end
 
 function GetItemAtIndex(self, row, column)
+	if row > self:GetRowCount() or column > self:GetColumnCount() then return nil end
 	local attr = self:GetAttribute()
 	if attr.dataModelCallbackTable then
 	-- 先看看有没有在预加载的table里, 如果在的话直接返回, 如果不在的话, 就加载preloadDataCount个.

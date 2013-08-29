@@ -87,6 +87,12 @@
 					<int name="lastVisibleItemIndex" />
 				</param>
 			</VisibleItemChanged>
+			<DataChanged>
+				<param>
+				</param>
+				<return>
+				</return>
+			</DataChanged>
 		</event_def>
     <objtemplate>
 	<children>

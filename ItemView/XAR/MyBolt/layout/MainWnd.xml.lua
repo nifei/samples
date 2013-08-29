@@ -1,10 +1,47 @@
 local mdDataModel = XLLoadModule(lua_code_dir.."TestDataModel.lua")
 local GetXmlDataModelObject = mdDataModel.GetXmlDataModelObject
+local GetSimpleDataModelObject = mdDataModel.GetSimpleDataModelObject
 
 local mdItemFactory = XLLoadModule(lua_code_dir.."ItemFactory.lua")
 local GetItemFactory = mdItemFactory.GetItemFactory
 
+local mdTextItemFactory = XLLoadModule(lua_code_dir.."SimpleItemFactory.lua")
+local GetTextItemFactory = mdTextItemFactory.GetTextItemFactory
+
 function OnInitControl_ItemView(self)
+	initItemViewWithSimpleModel(self)
+end
+
+local SimpleDataModelOperation = nil
+function initItemViewWithSimpleModel(self)
+	local itemFactoryUserData, itemFactoryCallbackTable = GetTextItemFactory()
+	self:SetItemFactory(itemFactoryUserData, nil, itemFactoryCallbackTable)
+	
+	local dataModelUserData, dataModelCallbackTable, operation = GetSimpleDataModelObject()
+	self:SetDataModel(dataModelUserData, dataModelCallbackTable)
+	SimpleDataModelOperation = operation
+end
+
+function insert()
+	if SimpleDataModelOperation ~= nil then
+		SimpleDataModelOperation.Add(nil, os.date())
+	end
+end
+
+function remove_()
+	if SimpleDataModelOperation ~= nil then
+		SimpleDataModelOperation.Sub(nil)
+	end
+end
+
+function update()
+	if SimpleDataModelOperation ~= nil then
+		SimpleDataModelOperation.Change(nil, "update")
+	end
+end
+
+
+function initItemViewWithCppModel(self)
 	-- Setup item factory
 	local itemFactoryUserData, itemFactoryCallbackTable = GetItemFactory()
 	self:SetItemFactory(itemFactoryUserData, nil, itemFactoryCallbackTable)
@@ -19,7 +56,7 @@ function OnInitControl_ItemView(self)
 	-- local dt = {{"cats"},{"eats"},{"fish"}}
 	-- self:SetDataTable(dt)
 	
-	-- 示例代码set header data
+	-- 示例代码 set header data
 	self:SetHeaderNameList({"Cover", "Name", "Dir"})
 	
 	local function OnItemViewHorizontalScrollPosChanged(itemViewObject, itemViewEventName, oldPos, newPos)

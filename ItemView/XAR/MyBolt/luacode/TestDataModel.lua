@@ -1,3 +1,61 @@
+function GetSimpleDataModelObject()
+	local dataTable = {{":)", "T.T"}}
+	local callbackTable = {}
+	local operation = {}
+	callbackTable.GetCount = 
+		function (userdata)
+			return #dataTable
+		end
+	callbackTable.GetColumnCount=
+		function (userdata)
+			if dataTable[1] ~= nil then return #(dataTable[1]) 
+			else return 1 end
+		end
+	callbackTable.GetItemAtIndex = 
+		function (userdata, row, column)
+			if dataTable[row] ~= nil then
+				return dataTable[row][column]
+			else
+				return nil
+			end
+		end
+	callbackTable.SetDataChangeListener = 
+		function (userdata, dataChangedListener)
+			callbackTable.DataChangeListener = dataChangedListener
+		end
+	operation.Add = 
+		function (userdata, data)
+			local count = #dataTable
+			dataTable[count+1]={"inserted:", data}
+			if callbackTable.DataChangeListener ~= nil then
+				callbackTable.DataChangeListener(count+1, count+1)
+			end
+		end
+	
+	operation.Sub = 
+		function (userdata)
+			local count = #dataTable
+			if count > 0 then
+				for row=1,count do
+					dataTable[row] = dataTable[row+1]
+				end
+			end
+			if callbackTable.DataChangeListener ~= nil then
+				callbackTable.DataChangeListener(1, 1)
+			end
+		end
+	
+	operation.Change = 
+		function (userdata, data)
+			local count = #dataTable
+			dataTable[1]= {"update:", data}
+			if callbackTable.DataChangeListener ~= nil then
+				callbackTable.DataChangeListener(1, 1)
+			end
+		end
+	return nil, callbackTable, operation
+end
+
 function GetXmlDataModelObject(dataModelClassName, playlistFileName)
 	local xmlClassFactory = XLGetObject(dataModelClassName..".Factory"..".Object")
 	local xmlClass = xmlClassFactory:CreateInstance(dataModelClassName, playlistFileName)
