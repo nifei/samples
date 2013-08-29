@@ -1,49 +1,22 @@
-function OnInitControl(self)
-	local attr = self:GetAttribute()
-	local scrollArea = self:GetControlObject("itemview.scrollarea")
-	attr.ScrollArea = scrollArea
-	
-	attr.ScrollBarAttrs = {}
-	attr.ScrollBarAttrs.VsbVisible = false
-	attr.ScrollBarAttrs.HsbVisible = false
-	
-	attr.HeaderAttrs = {}
-	attr.HeaderAttrs.Visible = true
-	attr.HeaderAttrs.Header = nil
-	
-	if attr.BackgroundTexture then
-		local textureObj = self:GetControlObject("itemview.bkg")
-		if textureObj then
-			textureObj:SetTextureID(attr.BackgroundTexture)
-		end
-	end
-
-	-- Allow user to assign nil or specify another scrollbar later
-	if attr.ScrollBarClassNameV then
-		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local scrollObjV = objFactory:CreateUIObject("scrollbarV", attr.ScrollBarClassNameV)
-		self:SetScrollBarV(scrollObjV)
-	end
-	
-	if attr.ScrollBarClassNameH then
-		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local scrollObjH = objFactory:CreateUIObject("scrollbarH", attr.ScrollBarClassNameH)
-		self:SetScrollBarH(scrollObjH)
-	end
-	
-	if attr.HeaderClassName then
-		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local headerObj = objFactory:CreateUIObject("header", attr.HeaderClassName)
-		self:SetHeader(headerObj)
-	end
-	
-	if attr.PreloadDataCount then
-		attr.ScrollArea:GetAttribute().PreloadDataCount = attr.PreloadDataCount
-	end
+function GetCount(self)
+	return self:GetAttribute().ScrollArea:GetRowCount()
 end
 
-function OnMouseWheel(self)
-	local attr = self:GetAttribute()
+function GetColumnCount(self)
+	return self:GetAttribute().ScrollArea:GetColumnCount()
+end
+
+function GetFirstVisibleIndex(self)
+	return self:GetAttribute().ScrollArea:GetFirstVisibleIndex()
+end
+
+function GetViewportSize(self)
+	local l,t,r,b = self:GetAttribute().ScrollArea:GetObjPos()
+	return r-l, b-t
+end
+
+function GetScrollSize(self)
+	return self:GetAttribute().ScrollArea:GetScrollAreaSize()
 end
 
 function SetDataTable(self, dataTable)
@@ -65,33 +38,6 @@ function SetDataModel(self, userdata, callbackTable)
 	updateScrollRange(self)
 	self:GetAttribute().ScrollArea:UpdateItems()
 	updateHeader(self)
-end
-
-function updateScrollRange(self)
--- 先重新计算一下滚动区域是否需要滚动条
-	self:GetAttribute().ScrollArea:UpdateScrollAreaSize()
-	-- Todo: 是否支持自适应
-	local l,t,r,b = self:GetObjPos()
-	local attr = self:GetAttribute()
-	local headerHeight = attr.HeaderHeight
-	local scrollWidth, scrollHeight = attr.ScrollArea:GetScrollAreaSize()
-	
-	if attr.ScrollBarAttrs.VScrollBar ~= nil then
-		setScrollBarVVisible(self, scrollHeight>(b-t-headerHeight))
-		attr.ScrollBarAttrs.VScrollBar:SetScrollRange(0, 
-			scrollHeight>(b-t-headerHeight) and scrollHeight-(b-t-headerHeight) or 0)
-	end
-	
-	if attr.ScrollBarAttrs.VsbVisible then
-		r = r - attr.ScrollBarSize
-	end
-	
-	if attr.ScrollBarAttrs.HScrollBar ~= nil then
-		setScrollBarHVisible(self, scrollWidth>(r-l))
-		attr.ScrollBarAttrs.HScrollBar:SetScrollRange(0,
-			scrollWidth>(r-l) and scrollWidth-(r-l) or 0)
-	end
-	alignObjects(self)
 end
 
 function SetItemFactory(self, userdata, name, callbackTable)
@@ -224,6 +170,80 @@ function SetHeader(self, headerObj)
 	alignObjects(self)
 	-- Todo: attach listeners
 	-- 先不做交互
+end
+
+function OnInitControl(self)
+	local attr = self:GetAttribute()
+	local scrollArea = self:GetControlObject("itemview.scrollarea")
+	attr.ScrollArea = scrollArea
+	
+	attr.ScrollBarAttrs = {}
+	attr.ScrollBarAttrs.VsbVisible = false
+	attr.ScrollBarAttrs.HsbVisible = false
+	
+	attr.HeaderAttrs = {}
+	attr.HeaderAttrs.Visible = true
+	attr.HeaderAttrs.Header = nil
+	
+	if attr.BackgroundTexture then
+		local textureObj = self:GetControlObject("itemview.bkg")
+		if textureObj then
+			textureObj:SetTextureID(attr.BackgroundTexture)
+		end
+	end
+
+	-- Allow user to assign nil or specify another scrollbar later
+	if attr.ScrollBarClassNameV then
+		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
+		local scrollObjV = objFactory:CreateUIObject("scrollbarV", attr.ScrollBarClassNameV)
+		self:SetScrollBarV(scrollObjV)
+	end
+	
+	if attr.ScrollBarClassNameH then
+		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
+		local scrollObjH = objFactory:CreateUIObject("scrollbarH", attr.ScrollBarClassNameH)
+		self:SetScrollBarH(scrollObjH)
+	end
+	
+	if attr.HeaderClassName then
+		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
+		local headerObj = objFactory:CreateUIObject("header", attr.HeaderClassName)
+		self:SetHeader(headerObj)
+	end
+	
+	if attr.PreloadDataCount then
+		attr.ScrollArea:GetAttribute().PreloadDataCount = attr.PreloadDataCount
+	end
+end
+
+function OnMouseWheel(self)
+end
+
+function updateScrollRange(self)
+-- 先重新计算一下滚动区域是否需要滚动条
+	self:GetAttribute().ScrollArea:UpdateScrollAreaSize()
+	-- Todo: 是否支持自适应
+	local l,t,r,b = self:GetObjPos()
+	local attr = self:GetAttribute()
+	local headerHeight = attr.HeaderHeight
+	local scrollWidth, scrollHeight = attr.ScrollArea:GetScrollAreaSize()
+	
+	if attr.ScrollBarAttrs.VScrollBar ~= nil then
+		setScrollBarVVisible(self, scrollHeight>(b-t-headerHeight))
+		attr.ScrollBarAttrs.VScrollBar:SetScrollRange(0, 
+			scrollHeight>(b-t-headerHeight) and scrollHeight-(b-t-headerHeight) or 0)
+	end
+	
+	if attr.ScrollBarAttrs.VsbVisible then
+		r = r - attr.ScrollBarSize
+	end
+	
+	if attr.ScrollBarAttrs.HScrollBar ~= nil then
+		setScrollBarHVisible(self, scrollWidth>(r-l))
+		attr.ScrollBarAttrs.HScrollBar:SetScrollRange(0,
+			scrollWidth>(r-l) and scrollWidth-(r-l) or 0)
+	end
+	alignObjects(self)
 end
 
 function updateHeader(self)

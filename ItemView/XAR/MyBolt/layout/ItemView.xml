@@ -27,6 +27,7 @@
 			</attr>
 		</attr_def>
 		<method_def>
+			<!-- 设置接口 -->
 			<SetDataTable file="ItemView.lua" func="SetDataTable" />
 			<SetDataModel file="ItemView.lua" func="SetDataModel" />
 			<AppendItem file="ItemView.lua" func="AppendItem" />
@@ -37,6 +38,20 @@
 			<SetScrollBarV file="ItemView.lua" func="SetScrollBarV" />
 			<SetHeader file="ItemView.lua" func="SetHeader" />
 			<SetHeaderNameList file="ItemView.lua" func="SetHeaderNameList" />
+			<!-- 获取接口 -->
+			<!-- 直接返回DataModel的数据 -->
+			<!-- return int -->
+			<GetCount file="ItemView.lua" func="GetCount" />
+			<!-- return int -->
+			<GetColumnCount file="ItemView.lua" func="GetColumnCount" />
+			<!-- 返回当前界面上显示的第一个item的index -->
+			<!-- return int -->
+			<GetFirstVisibleIndex file="ItemView.lua" func="GetFirstVisibleIndex" />
+			<!-- 返回当前可见区域尺寸, 和显示完整表格需要的尺寸 -->
+			<!-- return int width, int height -->
+			<GetViewportSize file="ItemView.lua" func="GetViewportSize" />
+			<!-- return int width, int height -->
+			<GetScrollSize file="ItemView.lua" func="GetScrollSize" />
 		</method_def>
 		<event_def>
 		</event_def>

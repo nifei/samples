@@ -27,6 +27,12 @@ function OnInitControl(self)
 	self:GetAttribute().HeaderWidths = {}
 end
 
+function GetFirstVisibleIndex(self)
+	local scrollPos = self:GetScrollPosV()
+	local index = math.ceil(scrollPos/rh)
+	return index+1
+end
+
 function getVisibleItemObject(self, row, column)
 	if #(self:GetAttribute().ViewToSourceMap) == 0 then 
 		return nil 
@@ -167,8 +173,6 @@ function syncViewToSourceTable(self)
 	local innerLayoutTopIsAtScrollPos = scrollPos+it
 	local rowHeight = getRowHeight(self)
 	local zeroItem = math.ceil((innerLayoutTopIsAtScrollPos+rowHeight)/rowHeight)
-	-- Log("zeroItem:"..zeroItem)
-	-- Log("innerlayout top:"..innerLayoutTopIsAtScrollPos)
 	for i=0,math.ceil(self:GetAttribute().ScrollAttributes["Capacity"]+1) do
 			self:GetAttribute().ViewToSourceMap[i]=i+zeroItem
 	end
@@ -376,6 +380,7 @@ end
 function GetScrollPosV(self)
 	return self:GetAttribute().ScrollAttributes["ScrollPosV"]
 end
+
 function PageUp(self)
 	local attr = self:GetAttribute()
 	local pageHeight = getPageHeight(self)

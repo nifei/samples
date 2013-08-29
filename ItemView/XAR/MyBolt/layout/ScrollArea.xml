@@ -53,6 +53,7 @@
 			<SetScrollPosH file="ScrollArea.lua" func="SetScrollPosH" />
 			<GetScrollPosH file="ScrollArea.lua" func="GetScrollPosH" />
 			<GetScrollAreaSize file="ScrollArea.lua" func="GetScrollAreaSize" />
+			<GetFirstVisibleIndex file="ScrollArea.lua" func="GetFirstVisibleIndex" />
 			<UpdateScrollAreaSize file="ScrollArea.lua" func="UpdateScrollAreaSize" />
 			<UpdateItems file="ScrollArea.lua" func="UpdateItems" />
 			<GetRowCount file="DataModel.lua" func="GetRowCount" />
