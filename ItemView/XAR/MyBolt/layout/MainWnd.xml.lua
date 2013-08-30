@@ -1,45 +1,26 @@
 local mdDataModel = XLLoadModule(lua_code_dir.."TestDataModel.lua")
 local GetXmlDataModelObject = mdDataModel.GetXmlDataModelObject
-local GetSimpleDataModelObject = mdDataModel.GetSimpleDataModelObject
 
 local mdItemFactory = XLLoadModule(lua_code_dir.."ItemFactory.lua")
 local GetItemFactory = mdItemFactory.GetItemFactory
 
-local mdTextItemFactory = XLLoadModule(lua_code_dir.."SimpleItemFactory.lua")
-local GetTextItemFactory = mdTextItemFactory.GetTextItemFactory
+local mdSimple = XLLoadModule(lua_code_dir.."SimpleItemFactoryAndDataModel.lua")
+local GetTextItemFactory = mdSimple.GetTextItemFactory
+local GetSimpleDataModelObject = mdSimple.GetSimpleDataModelObject
 
+local GlobalItemView = nil 
 function OnInitControl_ItemView(self)
-	initItemViewWithSimpleModel(self)
+	GlobalItemView = self
+	initItemViewWithCppModel(self)
 end
 
-local SimpleDataModelOperation = nil
 function initItemViewWithSimpleModel(self)
 	local itemFactoryUserData, itemFactoryCallbackTable = GetTextItemFactory()
 	self:SetItemFactory(itemFactoryUserData, nil, itemFactoryCallbackTable)
 	
-	local dataModelUserData, dataModelCallbackTable, operation = GetSimpleDataModelObject()
+	local dataModelUserData, dataModelCallbackTable = GetSimpleDataModelObject()
 	self:SetDataModel(dataModelUserData, dataModelCallbackTable)
-	SimpleDataModelOperation = operation
 end
-
-function insert()
-	if SimpleDataModelOperation ~= nil then
-		SimpleDataModelOperation.Add(nil, os.date())
-	end
-end
-
-function remove_()
-	if SimpleDataModelOperation ~= nil then
-		SimpleDataModelOperation.Sub(nil)
-	end
-end
-
-function update()
-	if SimpleDataModelOperation ~= nil then
-		SimpleDataModelOperation.Change(nil, "update")
-	end
-end
-
 
 function initItemViewWithCppModel(self)
 	-- Setup item factory
@@ -67,6 +48,18 @@ function initItemViewWithCppModel(self)
 	if ret then
 		-- 移除对事件HorizontalScrollPosChanged的监听, 所以上面的AttachListener不再有效
 		self:RemoveListener("HorizontalScrollPosChanged", cookie)
+	end
+end
+
+function ChangeModel(self)
+	if GlobalItemView ~=  nil then
+		if self:GetText()=="加载Lua Data Model" then
+			initItemViewWithSimpleModel(GlobalItemView)
+			self:SetText("加载C++ Data Model")
+		elseif self:GetText()=="加载C++ Data Model" then
+			initItemViewWithCppModel(GlobalItemView)
+			self:SetText("加载Lua Data Model")
+		end
 	end
 end
 

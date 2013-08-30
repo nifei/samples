@@ -72,7 +72,7 @@ bool XmlDataLoader::ReleaseData(int from, int to, const std::vector<StrSongInfo>
 	appendRange(r);
 	return true;
 }	
-
+	
 void XmlDataLoader::SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void *ptrCaller)
 {
 	if (m_callbackToDataModelOnSingleDataReady)
@@ -95,12 +95,12 @@ xl::uint32  XmlDataLoader::thread_proc()
 {
 	while(true)
 	{
-		range r;
+		range r;	
 		r.type = range::Invalid;
 		getRange(r);
 		if (r.type == range::Prepare)
 		{
-			for (int i = 0; i < r.playlist->size(); i++)
+			for (int i = 0; i < r.playlist->size(); i++)	
 			{
 					r.playlist->at(i).hBitmap = LoadImage(r.playlist->at(i).cover.c_str());
 					if(PostMessageToUIThread && m_callbackToDataModelOnSingleDataReady)

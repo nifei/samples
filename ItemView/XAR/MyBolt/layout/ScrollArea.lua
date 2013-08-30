@@ -49,6 +49,7 @@ end
 function SetItemFactory(self, userdata, name, callbackTable)
 -- 会影响到：行高，列宽，所以会影响scroll area size，所以需要重新计算尺寸+refresh
 
+	self:SetScrollPosV(0)
 	local attr = self:GetAttribute()
 	attr.itemFactoryCallbackTable = callbackTable
 	attr.itemFactoryUserData = userdata
@@ -81,7 +82,7 @@ function SetItemFactory(self, userdata, name, callbackTable)
 				local template = templateManager:GetTemplate(name, "ObjectTemplate")
 				itemObj = template:CreateInstance("ob2j"..column)
 				if itemObj then
-					return itemObj
+					return itemObj 
 				else
 					local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 					local itemObj = objFactory:CreateUIObject(nil,name)
@@ -98,6 +99,10 @@ function SetItemFactory(self, userdata, name, callbackTable)
 	end
 	
 	local containAllRequiredMethod = CheckMethodWithAlert(expected, attr.itemFactoryCallbackTable, "ItemFactory")
+	
+	local innerLayout = self:GetControlObject("scrollarea.layout")
+	innerLayout:RemoveAllChild()
+	self:GetAttribute().ItemContainers = {}
 end
 
 -- 创建足够多的container和itemobj, 更新它们的内容
@@ -113,11 +118,19 @@ function refreshItems(self)
 	local funSetItemData = self:GetAttribute().itemFactoryCallbackTable.SetItemData
 	for i = 0,self:GetAttribute().ScrollAttributes["Capacity"]+1 do
 		local container = self:GetAttribute().ItemContainers[i]
-		for col = 1, colCount do
-			local itemData = self:GetItemAtIndex(self:GetAttribute().ViewToSourceMap[i], col, i)
-			local children = container:GetAttribute().Children
-			local itemObj = children[col]
-			funSetItemData(self:GetAttribute().itemFactoryUserData, itemObj, itemData, self:GetAttribute().ViewToSourceMap[i], col)
+		local row=self:GetAttribute().ViewToSourceMap[i]
+		if row <= self:GetRowCount() then
+			container:SetVisible(true)
+			container:SetChildrenVisible (true)
+			for col = 1, colCount do
+				local itemData = self:GetItemAtIndex(row, col, i)
+				local children = container:GetAttribute().Children
+				local itemObj = children[col]
+				funSetItemData(self:GetAttribute().itemFactoryUserData, itemObj, itemData, row, col)
+			end
+		else
+			container:SetVisible(false)
+			container:SetChildrenVisible (false)
 		end
 	end
 end
@@ -143,7 +156,6 @@ function resizeInnerLayout(self)
 	end
 	local innerLayout = self:GetControlObject("scrollarea.layout")
 	local il, it, ir, ib = innerLayout:GetObjPos()
-	-- innerLayout:SetObjPos(0,0-rowHeight,width,b-t+rowHeight)
 	innerLayout:SetObjPos(0,it,width,it+b-t+rowHeight+rowHeight)
 end
 
@@ -175,7 +187,7 @@ function syncViewToSourceTable(self)
 	local rowHeight = getRowHeight(self)
 	local zeroItem = math.ceil((innerLayoutTopIsAtScrollPos+rowHeight)/rowHeight)
 	for i=0,math.ceil(self:GetAttribute().ScrollAttributes["Capacity"]+1) do
-			self:GetAttribute().ViewToSourceMap[i]=i+zeroItem
+		self:GetAttribute().ViewToSourceMap[i]=i+zeroItem
 	end
 end
 
@@ -200,6 +212,7 @@ function createEnoughItems(self)
 		for i = 0,self:GetAttribute().ScrollAttributes["Capacity"]+1 do
 			if self:GetAttribute().ItemContainers[i] == nil then
 				local container = objFactory:CreateUIObject("container"..i,"ItemView.ItemContainer")
+				container:SetLimitChild(true)
 				top = getRowHeight(self)*i
 				container:SetObjPos2(0, top, right-left, getRowHeight(self))
 				self:GetAttribute().ItemContainers[i]=container
@@ -219,8 +232,7 @@ function createEnoughItems(self)
 					containerLayout:AddChild(itemObj)
 					children[col] = itemObj
 				end
-				local containerAttr = container:GetAttribute()
-				containerAttr.Children = children
+				container:GetAttribute().Children = children
 			end
 		end
 	end

@@ -207,7 +207,6 @@ int LuaDataModelClass::GetColumnCount(lua_State *luaState)
 	return 1;
 }
 
-
 int LuaDataModelClass::DeleteSelf(lua_State *luaState)
 {
 	if(DataModelInterface *pDataModelClass = GetDataModelClassObject(luaState))

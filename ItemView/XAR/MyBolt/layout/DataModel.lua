@@ -104,12 +104,20 @@ function SetDataModel(self, userdata, callbackTable)
 		end
 		attr.PreloadFrom = -1
 		attr.PreloadTo = -1
-		preload(self, 0, preloadDataCount-1)
+		prepare(self, 0, preloadDataCount-1)
 	end
 	
 	if attr.dataModelCallbackTable.SetDataChangeListener then	
 		function onDataChanged(from, to)
 			self:FireExtEvent("DataChanged")
+			if attr.PreloadDataCount > 0 then
+				local intersectionFrom = math.max(from, attr.PreloadFrom)
+				local intersectionTo = math.min(to, attr.PreloadTo)
+				if intersectionFrom <=intersectionTo then 
+					releaseDataClip(self, intersectionFrom, intersectionTo)
+					preloadDataClip(self, intersectionFrom, intersectionTo)
+				end
+			end
 			self:UpdateItems()
 		end
 		attr.dataModelCallbackTable.SetDataChangeListener(attr.dataModelUserData, onDataChanged)
@@ -119,70 +127,65 @@ end
 -- 如果用户提供了PrepareData方法, 就调用PrepareData方法加载数据, 如果没有提供, 就直接调用GetItemAtIndex
 -- 如果用户提供了ReleaseData方法, 就调用ReleaseData方法在不再需要的时候释放数据, 如果没有提供, 就什么都不做
 
-function preload(self, from, to)
+function releaseDataClip(self, from, to)
+	local attr = self:GetAttribute()
+	local funReleaseData = attr.dataModelCallbackTable["ReleaseData"]
+	for row=from, to do
+		attr.ItemDataTable[row] = nil
+	end
+	if funReleaseData ~= nil then
+		funReleaseData(attr.dataModelUserData, attr.PreloadFrom, from-1)
+	end
+end
+
+function preloadDataClip(self, from, to)
+	local attr = self:GetAttribute()
+	local funGetItemAtIndex = attr.dataModelCallbackTable["GetItemAtIndex"]
+	local funPrepareData = attr.dataModelCallbackTable["PrepareData"]
+	local colCount = self:GetColumnCount()
+	if funPrepareData ~= nil then
+		for row=from, to do
+			attr.ItemDataTable[row] = {}
+		end
+		funPrepareData(attr.dataModelUserData, from, to)
+	else
+		for row=from,to do
+			attr.ItemDataTable[row] = {}
+			for col=1,colCount do
+				attr.ItemDataTable[row][col] = funGetItemAtIndex(attr.dataModelUserData, row, col)
+			end
+		end
+	end
+end
+
+function prepare(self, from, to)
 	if from <= 1 then from = 1 end
 	if to >= self:GetRowCount() then to = self:GetRowCount() end
 	local attr = self:GetAttribute()
 	local funGetItemAtIndex = attr.dataModelCallbackTable["GetItemAtIndex"]
 	local funPrepareData = attr.dataModelCallbackTable["PrepareData"]
 	local funReleaseData = attr.dataModelCallbackTable["ReleaseData"]
-	local funSetItemData = attr.itemFactoryCallbackTable.SetItemData
-	local colCount = self:GetColumnCount()
 	
 	if attr.PreloadFrom ~= nil and attr.PreloadFrom < from then
-		for row=attr.PreloadFrom, from-1 do
-			attr.ItemDataTable[row] = nil
-		end
-		if funReleaseData ~= nil then
-			funReleaseData(attr.dataModelUserData, attr.PreloadFrom, from-1)
-		end
+		releaseDataClip(self, attr.PreloadFrom, from-1)
 	end
 
 	if attr.PreloadFrom ~= nil and attr.PreloadFrom > from then
-		if funPrepareData ~= nil then
-			for row=from, attr.PreloadFrom-1 do
-				attr.ItemDataTable[row] = {}
-			end
-			funPrepareData(attr.dataModelUserData, from, attr.PreloadFrom-1)
-		else
-			for row=from, attr.PreloadFrom-1 do
-				attr.ItemDataTable[row] = {}
-				for col=1,colCount do
-					attr.ItemDataTable[row][col] = funGetItemAtIndex(attr.dataModelUserData, row, col)
-				end
-			end
-		end
+		preloadDataClip(self, from, attr.PreloadFrom-1)
 	end
 	
 	if attr.PreloadTo ~= nil and attr.PreloadTo > to then
-		for row=to+1, attr.PreloadTo do
-			attr.ItemDataTable[row] = nil
-		end
-		if funReleaseData ~= nil then
-			funReleaseData(attr.dataModelUserData, to+1, attr.PreloadTo)
-		end
+		releaseDataClip(self, to+1, attr.PreloadTo)
 	end
 	if attr.PreloadTo ~= nil and attr.PreloadTo < to then
-		if funPrepareData ~= nil then
-			for row=attr.PreloadTo+1, to do
-				attr.ItemDataTable[row] = {}
-			end
-			funPrepareData(attr.dataModelUserData, attr.PreloadTo+1, to)
-		else
-			for row=attr.PreloadTo+1, to do
-				attr.ItemDataTable[row] = {}
-				for col=1,colCount do
-					attr.ItemDataTable[row][col] = funGetItemAtIndex(attr.dataModelUserData, row, col)
-				end
-			end
-		end
+		preloadDataClip(self, attr.PreloadTo+1, to)
 	end
-	
 	attr.PreloadFrom = from
 	attr.PreloadTo = to
 end
 
 function SetDataTable(self, dataTable)
+	self:SetScrollPosV(0)
 	local attr = self:GetAttribute()
 	attr.dataModelUserData = nil
 	attr.dataModelCallbackTable = nil
@@ -239,7 +242,7 @@ function GetItemAtIndex(self, row, column)
 			if attr.ItemDataTable[row] == nil then
 				local from = row-attr.PreloadDataCount/2>0 and math.ceil(row-attr.PreloadDataCount/2) or 0
 				local to = from + attr.PreloadDataCount-1
-				preload(self, from, to)
+				prepare(self, from, to)
 			end
 			local itemRow = attr.ItemDataTable[row]
 			if itemRow ~= nil then item = itemRow[column] end
