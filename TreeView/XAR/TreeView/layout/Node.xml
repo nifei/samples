@@ -13,8 +13,8 @@
 					<attr>
 						<left>0</left>
 						<top>0</top>
-						<width>father.width</width>
-						<height>father.height</height>
+						<width>60</width>
+						<height>20</height>
 						<srcpt>0, 0</srcpt>
 						<pen>pen.dot</pen>
 						<destpt>width,height</destpt>

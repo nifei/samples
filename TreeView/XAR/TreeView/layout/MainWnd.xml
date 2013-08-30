@@ -141,13 +141,20 @@
 					<enabledrop>1</enabledrop>
 				</attr>
 				<children>
-					<obj id="treeview" class="TreeView">
+					<obj id="treeview" class="BaseUI.ScrollBarPanel">
 						<attr>
 							<left>0</left>
 							<top>0</top>
 							<width>father.width</width>
 							<height>father.height</height>
+							<DefaultInnerClass>TreeView</DefaultInnerClass>
+							<DefaultInnerClassWidth>2000</DefaultInnerClassWidth>
+							<DefaultInnerClassHeight>1000</DefaultInnerClassHeight>
 						</attr>
+						<style>
+							<set_inner_animation_enable>false</set_inner_animation_enable>
+							<set_inner_animation></set_inner_animation>
+						</style>
 						<eventlist>
 							<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitControlTree" />
 						</eventlist>

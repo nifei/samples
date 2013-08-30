@@ -28,5 +28,5 @@ end
 
 function OnInitControlTree(self)
 	local dataTable = createDataTreeTable()
-	self:RenderTreeFromDataTable(dataTable)
+	--self:RenderTreeFromDataTable(dataTable)
 end
