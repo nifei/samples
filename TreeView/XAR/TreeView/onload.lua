@@ -12,10 +12,6 @@ local cmDir = folderDir.."CheckMethod.lua"
 local mdCheckMethod = XLLoadModule(cmDir)
 mdCheckMethod.RegisterGlobal()
 
-local cmDir = rootDir.."layout/".."AnimationHelper.lua"
-local mdAni = XLLoadModule(cmDir)
-mdAni.RegisterAnimationHelper()
-
 local templateManager = XLGetObject("Xunlei.UIEngine.TemplateManager")
 local frameHostWndTemplate = templateManager:GetTemplate("MyBolt.Wnd","HostWndTemplate")
 local frameHostWnd = frameHostWndTemplate:CreateInstance("MainFrame")

@@ -1,209 +1,221 @@
-local function UpdateRes(self, state, ani)
-	local style = self:GetStyle()
-	local attr = self:GetAttribute()
-	local bkgTexture, textFont, textColor
-	--if state ~= attr.Status then
-		if state == "hover" then
-			bkgTexture = style.bkg_hover_texture
-			textFont = style.text_hover_font
-			textColor = style.text_hover_color
-		elseif state == "down" then
-			bkgTexture = style.bkg_down_texture
-			textFont = style.text_down_font
-			textColor = style.text_down_color
-		elseif state == "disable" then
-			bkgTexture = style.bkg_disable_texture
-			textFont = style.text_disable_font
-			textColor = style.text_disable_color
-		else
-			bkgTexture = style.bkg_normal_texture
-			textFont = style.text_normal_font
-			textColor = style.text_normal_color
-		end
-	
-		local bkgObj = self:GetControlObject("ctrl")
-		local textObj = self:GetControlObject("text")
-		local oldObj = self:GetControlObject("button.oldbkg")
-		old_texture_id = bkgObj:GetTextureID()
-		if bkgTexture and bkgTexture ~= "" then
-			bkgObj:SetTextureID(bkgTexture)
-			if textFont and textFont ~= "" then
-				textObj:SetTextFontResID(textFont)
-			end
-			if textColor and textColor ~= "" then
-				textObj:SetTextColorResID(textColor)
-			end
-			if old_texture_id ~= "" and old_texture_id ~= bkgTexture and ani ~= true then
-				oldObj:SetTextureID(old_texture_id)
-				local animationHelper = XLGetGlobal("xunlei.LuaThunderAnimationHelper")
-				if animationHelper then
-					animationHelper:AppearDestObjDisappearSrcObj(bkgObj, false, oldObj, false, nil, nil, "")
-				end
-			end
-		end
-		attr.status = state
-	--end
-	
-	local left,top,right,bottom = self:GetObjPos()
-
-	local left,top,right,bottom = textObj:GetObjPos()
-	textObj:SetObjPos(style.text_pos_left,style.text_pos_top,"father.width - "..style.text_pos_left, "father.height -".. style.text_pos_top)
-	
-end
-
-function UpdateUI(self)
+function SetState(self, newState, forceUpdate)
     local attr = self:GetAttribute()
-    UpdateRes(self, attr.status, true)
-end
-
-function OnUpdateStyle(self)
-	UpdateUI(self)
-end
-
-function OnInitControl(self)
-	local attr = self:GetAttribute()
-	local bkgObj = self:GetControlObject("ctrl")
-	if not self:GetVisible() then
-		bkgObj:SetVisible(false)
-		bkgObj:SetChildrenVisible(false)
-	end
-	
-	local newState = nil
-	
-	if not self:GetEnable() then
-		bkgObj:SetEnable(false)
-		bkgObj:SetChildrenEnable(false)
+    if forceUpdate or newState ~= attr.NowState then
+        local ownerTree = self:GetOwner()
+        local oldBkg = self:GetControlObject("button.oldbkg")
+        local bkg = self:GetControlObject("button.bkg")
+		local text = self:GetControlObject("button.text")
 		
-		newState = "disable"
-	else
-	    newState = "normal"
-	end
-	
-	local textObj = self:GetControlObject("text")
-	if attr.Text ~= nil and attr.Text ~= "" then
-		textObj:SetText(attr.Text)
-	end
-	
+        oldBkg:SetTextureID(bkg:GetTextureID())
+        oldBkg:SetAlpha(255)
+		text:SetTextColorResID("system.black")
+        if newState == 0 then
+            bkg:SetTextureID(attr.NormalBkgID)
+        elseif newState == 1 then
+            bkg:SetTextureID(attr.DownBkgID)
+        elseif newState == 2 then
+            bkg:SetTextureID(attr.DisableBkgID)
+			text:SetTextColorResID("button.disable.color")
+        elseif newState == 3 then
+            bkg:SetTextureID(attr.HoverBkgID)
+        end
 
-	UpdateRes(self, newState)	
-	if attr.IsDefaultButton then
-	    local animationHelper = XLGetGlobal("xunlei.LuaThunderAnimationHelper")
-		if animationHelper then
-			animationHelper:FocusLight(bkgObj, "")
-		end
-	end
+
+        local aniFactory = XLGetObject("Xunlei.UIEngine.AnimationFactory")	
+        local aniAlpha = aniFactory:CreateAnimation("AlphaChangeAnimation")
+        aniAlpha:BindRenderObj(oldBkg)
+        aniAlpha:SetTotalTime(200)
+        aniAlpha:SetKeyFrameAlpha(255,0)
+        ownerTree:AddAnimation(aniAlpha)
+        aniAlpha:Resume()
+        attr.NowState = newState
+    end
 end
 
-function ChangeStatus(self, newStatus)
-	local attr = self:GetAttribute()	
-	if attr.Status == newStatus then
-		return
-	end	
-	attr.Status = newStatus	
-	UpdateRes(self, newStatus)	
+function SetBitmap( self, nor, down, hover, disable )
+	local attr = self:GetAttribute()
+	attr.NormalBkgID = ""
+	if nor ~= nil then
+		attr.NormalBkgID = nor
+	end
+	attr.DownBkgID = ""
+	if down ~= nil then
+		attr.DownBkgID = down
+	end
+	attr.DisableBkgID = ""
+	if disable ~= nil then
+		attr.DisableBkgID = disable
+	end
+	attr.HoverBkgID = ""
+	if hover ~= nil then
+		attr.HoverBkgID = hover
+	end
 end
 
 function SetText(self, text)
-	local attr = self:GetAttribute()
-	attr.Text = text
-	
-	local textObj = self:GetControlObject("text")
-	textObj:SetText(text)
-	
+    if text == nil then
+        return
+    end
+    local textObj = self:GetControlObject("button.text")
+    textObj:SetText(text)
+    local attr = self:GetAttribute()
+    attr.Text = text
 end
 
 function GetText(self)
-	local textObj = self:GetControlObject("text")
-	return textObj:GetText()	
+    local attr = self:GetAttribute()
+	return attr.Text
 end
 
-function SetTextPos(self,leftparam,topparam)
-	local textObj = self:GetControlObject("text")
-	local left,top,right,bottom = textObj:GetObjPos()
-	textObj:SetObjPos(leftparam,topparam,right-left,bottom-top)
-	local style = self:GetStyle()
-	style.text_pos_left,style.text_pos_top = left,top
+function SetEnable(self, enable)
+    local attr = self:GetAttribute()
+    attr.Enable = enable
+    local bkg = self:GetControlObject("button.bkg")
+	local text = self:GetControlObject("button.text")
+    if enable then
+		bkg:SetTextureID(attr.NormalBkgID)
+		attr.NowState = 0
+		text:SetTextColorResID(attr.TextColor)
+    else
+		bkg:SetTextureID(attr.DisableBkgID)
+		attr.NowState = 2
+		text:SetTextColorResID("button.disable.color")
+    end
 end
 
-function OnVisibleChange(self, visible)
-	local bkgObj = self:GetControlObject("ctrl")
-	if bkgObj then
-		bkgObj:SetVisible(visible)
-		bkgObj:SetChildrenVisible(visible)
-	end
+function GetEnable(self)
+    local attr = self:GetAttribute()
+    return attr.Enable
 end
 
-function OnEnableChange(self, enable)
-	local bkgObj = self:GetControlObject("ctrl")
-	bkgObj:SetEnable(enable)
-	bkgObj:SetChildrenEnable(enable)
-	
-	if enable then
-		self:ChangeStatus("normal")
-	else
-		self:ChangeStatus("disable")
-	end
+function OnLButtonDown(self, x, y)
+    local attr = self:GetAttribute()
+    local left, top, right, bottom = self:GetObjPos()
+    local width, height = right - left, bottom - top
+    if not attr.UseValidPos then
+        attr.ValidWidth = width
+        attr.ValidHeight = height
+    end
+    if attr.Enable then
+        if ((x >= attr.ValidLeft) and (x <= attr.ValidLeft + attr.ValidWidth) and (y >= attr.ValidTop) and (y <= attr.ValidTop + attr.ValidHeight)) then
+            self:SetState(1)
+            self:SetCaptureMouse(true)
+            attr.BtnDown = true
+        end
+    end
+    return 0, true
 end
 
-function OnLButtonDown(self)
-	local attr = self:GetAttribute()	
-	self:SetCaptureMouse(true)
-	attr.Capture = true	
-	self:ChangeStatus("down")	
-	return 0, false
-end
-
-function OnLButtonUp(self, x, y)
-	local attr = self:GetAttribute()	
-	if attr.Capture then
-		self:SetCaptureMouse(false)
-		attr.Capture = false
-	end
-	
-	local left, top, right, bottom = self:GetObjPos()
-	if x >= 0 and x < (right - left) and y >= 0 and y < (bottom - top) then
-		self:ChangeStatus("hover")
-	else
-		self:ChangeStatus("normal")
-	end
-	
-	self:FireExtEvent("OnClick")
-	
-	return 0, false
+function OnLButtonUp(self)
+    local attr = self:GetAttribute()
+    if attr.Enable then
+        if attr.NowState==1 then
+			self:SetState(0)
+            self:FireExtEvent("OnClick")
+        end
+        self:SetCaptureMouse(false)
+        attr.BtnDown = false
+    end
+    return 0, true
 end
 
 function OnMouseMove(self, x, y)
-	local attr = self:GetAttribute()
-	
-	if attr.Capture then		
-		local left, top, right, bottom = self:GetObjPos()
-		if x >= 0 and x < (right- left) and y >= 0 and y < (bottom - top) then
-			self:ChangeStatus("down")
-		else
-			self:ChangeStatus("hover")
-		end		
-	else	
-		self:ChangeStatus("hover")		
-	end
-	return 0, false
+    local left, top, right, bottom = self:GetObjPos()
+    local width, height = right - left, bottom - top
+    
+    local attr = self:GetAttribute()
+    if not attr.UseValidPos then
+        attr.ValidWidth = width
+        attr.ValidHeight = height
+    end
+    if attr.Enable then
+        if ((x >= attr.ValidLeft) and (x <= attr.ValidLeft + attr.ValidWidth) and (y >= attr.ValidTop) and (y <= attr.ValidTop + attr.ValidHeight)) then
+            if attr.NowState==0 then
+                if attr.BtnDown then
+                    self:SetState(1)
+                else
+                    self:SetState(3)
+                end
+            end
+        else
+            if attr.ChangeStateWhenLeave then
+                self:SetState(0)
+            end
+        end
+        self:FireExtEvent("OnButtonMouseMove", x, y)
+    end
+    return 0, true
 end
 
-function OnMouseLeave(self)
-	self:ChangeStatus("normal")	
-	return 0, false
+function OnMouseLeave(self, x, y)
+    local attr = self:GetAttribute()
+    if attr.Enable then
+        self:SetState(0)
+    else
+        self:SetState(2)
+    end
+    self:FireExtEvent("OnButtonMouseLeave", x, y)
+    return 0, true
 end
 
-function OnKeyDown(self, uChar, uRepeatCount, uFlags )
-	if uChar == 13 or uChar == 32 then
-		self:FireExtEvent("OnClick")
-	end
+function OnInitControl(self)
+    local attr = self:GetAttribute()
+    self:SetText(attr.Text)
+	self:SetTextColor(attr.TextColor)
+	self:SetTextFont(attr.TextFont)
+    attr.NowState=0
+    local bkg = self:GetControlObject("button.bkg")
+    if attr.NormalBkgID == nil then
+        return
+    end
+    bkg:SetTextureID(attr.NormalBkgID)
+    self:SetEnable(attr.Enable)
+    if attr.BtnLight then
+        local light = self:GetControlObject("button.light")
+        light:SetResID(attr.BtnLight)
+    end
+    
+    local left, top, right, bottom = self:GetObjPos()
+    
+    if not attr.ValidLeft then
+        attr.ValidLeft = 0
+    end
+    if not attr.ValidTop then
+        attr.ValidTop = 0
+    end
+    if not attr.ValidWidth then
+        attr.ValidWidth = right - left
+    end
+    if not attr.ValidHeight then
+        attr.ValidHeight = bottom - top
+    end
+    self:Show(attr.Visible)
 end
 
-function OnFocusChange(self, focus)
-	local attr = self:GetAttribute()
-	if attr.HasFocusLine and focus then
-		self:GetControlObject("focusrectangle"):SetVisible(true)
-	else
-		self:GetControlObject("focusrectangle"):SetVisible(false)
-	end
+function SetTextColor(self, color)
+    if color == nil then
+        return
+    end
+    local textObj = self:GetControlObject("button.text")
+    textObj:SetTextColorResID(color)
+end
+
+function SetTextFont(self, font)
+    if font == nil then
+        return
+    end
+    local textObj = self:GetControlObject("button.text")
+    textObj:SetTextFontResID(font)
+end
+
+function Show(self, visible)
+    local attr = self:GetAttribute()
+    attr.Visible = visible
+    self:SetVisible(visible)
+    self:SetChildrenVisible(visible)
+end
+
+function IsShow(self)
+    local attr = self:GetAttribute()
+    return attr.Visible
 end

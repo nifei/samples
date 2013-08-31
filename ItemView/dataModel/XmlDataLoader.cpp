@@ -85,7 +85,7 @@ void XmlDataLoader::SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback
 void XmlDataLoader::SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* ptrCaller)
 {
 	if (m_callbackToDataModelOnDataBatchReady)
-		delete m_callbackToDataModelOnDataBatch5Ready;
+		delete m_callbackToDataModelOnDataBatchReady;
 	m_callbackToDataModelOnDataBatchReady = new CallbackToDataModelOnDataReady();
 	m_callbackToDataModelOnDataBatchReady->funCallback = pfnCallback;
 	m_callbackToDataModelOnDataBatchReady->ptrCaller = ptrCaller;
