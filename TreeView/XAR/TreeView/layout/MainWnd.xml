@@ -37,16 +37,16 @@
 							<width>140</width>
 							<height>30</height>			
 							<text>TreeView Demo</text>
-							<textcolor>system.white</textcolor>
+							<textcolor>system.black</textcolor>
 							<font>default.font.bold</font>
 						</attr>
 					</obj>
 					<obj id="close.btn" class="LayoutObject">
 						<attr>
-							<left>father.width-30</left>
+							<left>father.width-20</left>
 							<top>0</top>
-							<width>30</width>
-							<height>30</height>
+							<width>20</width>
+							<height>20</height>
 						</attr>
 						<children>
 							<obj id="close.btn.bkg" class="ImageObject">
