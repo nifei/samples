@@ -26,7 +26,7 @@ function createDataTreeTable()
 	return tree
 end
 
-function OnInitControlTree(self)
+function OnInitTree(tree)
 	local dataTable = createDataTreeTable()
-	--self:RenderTreeFromDataTable(dataTable)
+	tree:RenderTreeFromDataTable(dataTable)
 end

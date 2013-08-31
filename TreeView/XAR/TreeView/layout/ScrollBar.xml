@@ -80,11 +80,12 @@
 			<SetEnable file="ScrollBar.xml.lua" func="SetEnable"/>
 			<GetEnable file="ScrollBar.xml.lua" func="GetEnable"/>
 			<SetState file="ScrollBar.xml.lua" func="SetState"/>
-			
 			<OnMouseWheel file="ScrollBar.xml.lua" func="OnMouseWheel"/>
 		</method_def>
-		
 		<event_def>
+			<OnScrollPosChange>
+				<param />
+			</OnScrollPosChange>
 			<OnHScroll>
 				<param>
 					<int/>

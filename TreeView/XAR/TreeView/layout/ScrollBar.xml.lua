@@ -205,6 +205,7 @@ function SetThumbPos(self, newPos)
     else
         self:FireExtEvent("OnVScroll", 4, newScrollPos)
     end
+	self:FireExtEvent("OnScrollPosChange", newScrollPos)
 end
 
 function SetScrollPos(self, newPos, update)

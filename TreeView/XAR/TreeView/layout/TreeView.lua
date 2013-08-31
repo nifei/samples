@@ -7,6 +7,8 @@
 -- Node.Father?		Node
 -- Node.Data?		userdata
 
+-- event oninitcontrol --
+
 -- TreeView method
 function createNode(key, data)
 	local Node={}
@@ -41,26 +43,18 @@ function createNodeTreeFromTable(key, nodeTable)
 	end
 end
 
-function RenderTreeFromDataTable(self, dataTable)
+function RenderTreeFromDataTable(tree, dataTable)
 	local root = createNodeTreeFromTable("virtual root", dataTable)
-	self:GetAttribute().RootNode = root
-	RenderTreeFromNode(self, self:GetAttribute().RootNode)
+	tree:GetAttribute().RootNode = root
+	RenderTreeFromNode(tree, tree:GetAttribute().RootNode)
 end
 
-function RenderTreeFromNode(self, rootNode)
-	local layout = self:GetControlObject("tree.layout")
+function RenderTreeFromNode(tree, rootNode)
 	rootNode = initNode(rootNode)
-	if rootNode.Layout ~= nil then
-		local layout = self:GetControlObject("tree.layout")
-		layout:AddChild(rootNode.Layout)
-		local l, t, r, b = rootNode.Layout:GetObjPos()
-		rootNode.Layout:SetObjPos2(10, 100, r-l, b-t)
-	elseif rootNode.Object ~= nil then
-		local layout = self:GetControlObject("tree.layout")
-		layout:AddChild(rootNode.Object)
-		local l, t, r, b =rootNode.Object:GetObjPos()
-		rootNode.Object:SetObjPos2(10, 100, r-l, b-t)
-	end
+	local canvas = rootNode.Layout and rootNode.Layout or rootNode.Object
+	local scrollpanel = tree:GetObject("tree.scroll")
+	scrollpanel:SetInnerObject(canvas)
+	canvas:SetObjPos2(0, 0, rootNode.Size.width, rootNode.Size.height)
 end
 
 -- return Node with object and layout
@@ -78,7 +72,7 @@ function initNode(Node)
 			end
 			sizeList[k] = Node.Children[k].Size
 		end
-		local fatherPos, poslist = GetChildrenPosListLeftMidFather(Node.Size, sizeList)
+		local fatherPos, poslist = GetChildrenPosListWindowsStyle(Node.Size, sizeList)
 		local width = Node.Size.width
 		local height = Node.Size.height
 		for k,v in pairs(Node.Children) do
@@ -101,6 +95,7 @@ end
 function createNodeLayout(Node)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local layout = objFactory:CreateUIObject(nil, "LayoutObject")
+	layout:SetVisible(false)
 	return layout
 end
 
@@ -162,4 +157,17 @@ function GetChildrenPosListTopMidFather(fsize, sizelist)
 	end
 	width = width-padding
 	return {left=width/2-fsize.width/2, top=0}, poslist
+end
+
+function GetChildrenPosListWindowsStyle(fsize, sizelist)
+	local poslist = {}
+	local indent = 50 -- todo Style attribute
+	local left = indent
+	local padding = 10
+	local top = padding + fsize.height
+	for k,v in pairs(sizelist) do
+		poslist[k] = {left=left, top=top}
+		top = top + sizelist[k].height+padding
+	end
+	return {left=0,top=0},poslist
 end

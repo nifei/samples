@@ -66,14 +66,14 @@
 				</children>
 			</obj>
 			<obj id="mainwnd.resize.left" class="ResizeObject">
-					<attr>
-						<left>0</left>
-						<top>4</top>
-						<width>4</width>
-						<height>father.height - 8</height>
-						<type>left</type>
-						<zorder>-900</zorder>
-					</attr>
+				<attr>
+					<left>0</left>
+					<top>4</top>
+					<width>4</width>
+					<height>father.height - 8</height>
+					<type>left</type>
+					<zorder>-900</zorder>
+				</attr>
 			</obj>
 			<obj id="mainwnd.resize.right" class="ResizeObject">
 					<attr>
@@ -132,72 +132,17 @@
 						<zorder>-900</zorder>
 					</attr>
 			</obj>
-			<obj id="body" class="LayoutObject">
+			<obj id="tree" class="TreeView" >
 				<attr>
-					<left>0</left>
-					<top>30</top>
-					<width>father.width</width>
-					<height>father.height-30</height>
-					<enabledrop>1</enabledrop>
+					<left>5</left>
+					<top>35</top>
+					<width>father.width-10</width>
+					<height>(father.height-40)</height>
 				</attr>
-				<children>
-					<obj id="treeview" class="LayoutObject">
-						<attr>
-							<left>0</left>
-							<top>0</top>
-							<width>father.width</width>
-							<height>father.height</height>
-						</attr>
-						<eventlist>
-							<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitControlTree" />
-						</eventlist>
-					</obj>
-					<obj id="scrollbar.v" class="Thunder.ScrollBar">
-						<attr>
-							<Type>1</Type>
-							<ThumbBtn_normal>texture.vsb.small.thumb.normal</ThumbBtn_normal>
-							<ThumbBtn_hover>texture.vsb.small.thumb.hover</ThumbBtn_hover>
-							<ThumbBtn_down>texture.vsb.small.thumb.down</ThumbBtn_down>
-							<SideBtnLength>0</SideBtnLength>
-							<PageSize>20</PageSize>
-							<RangeBegin>0</RangeBegin>
-							<RangeEnd>100</RangeEnd>
-							<ScrollPos>0</ScrollPos>
-							<left>father.width-23</left>
-							<top>0</top>
-							<width>23</width>
-							<height>father.height - 4</height>
-							<zorder>600</zorder>
-						</attr>
-						<eventlist>
-						<!-- 	<event name="OnVScroll" file="treectrl.xml.lua" func="TreeCtrl_OnVScroll" />
-							<event name="OnScrollBarMouseWheel" file="treectrl.xml.lua" func="OnScrollBarMouseWheel" />	 -->	
-						</eventlist>
-					</obj>
-					<obj id="scrollbar.h" class="Thunder.ScrollBar">
-						<attr>
-							<Type>0</Type>
-							<ThumbBtn_normal>texture.hsb.small.thumb.normal</ThumbBtn_normal>
-							<ThumbBtn_hover>texture.hsb.small.thumb.hover</ThumbBtn_hover>
-							<ThumbBtn_down>texture.hsb.small.thumb.down</ThumbBtn_down>
-							<SideBtnLength>0</SideBtnLength>
-							<PageSize>20</PageSize>
-							<RangeBegin>0</RangeBegin>
-							<RangeEnd>100</RangeEnd>
-							<ScrollPos>0</ScrollPos>
-							<Visible>false</Visible>
-							<left>0</left>
-							<top>father.height-10</top>
-							<width>father.width-12</width>
-							<height>10</height>
-							<zorder>600</zorder>
-						</attr>
-						<eventlist>
-							<!-- <event name="OnHScroll" file="treectrl.xml.lua" func="TreeCtrl_OnHScroll" /> -->
-						</eventlist>
-					</obj>
-				</children>
-			</obj>			
+				<eventlist>
+					<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitTree" />
+				</eventlist>
+			</obj>
 		</children>
 	</obj>
 </objtreetemplate>

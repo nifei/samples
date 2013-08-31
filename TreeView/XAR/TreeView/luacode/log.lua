@@ -19,8 +19,20 @@ function Check(value, name, warnmessage)
 		end
 		return false
 	else
-		Log("Valid "..name)
+		local type_ = type(value)
+		Log("Valid "..name..":"..type_)
 		return true
+	end
+end
+
+function CheckUIObject(value, name)
+	if value==nil then
+		Warn("Invalid UI "..name)
+		return false
+	else
+		local class = value:GetClass()
+		local id = value:GetID()
+		Log("class:"..class.." id:"..id.." "..name)
 	end
 end
 
@@ -57,4 +69,5 @@ function RegisterGlobal()
 	XLSetGlobal("Check", Check)
 	XLSetGlobal("LogTableTree", LogTableTree)
 	XLSetGlobal("LogNodeTree", LogNodeTree)
+	XLSetGlobal("CheckUIObject", CheckUIObject)
 end
