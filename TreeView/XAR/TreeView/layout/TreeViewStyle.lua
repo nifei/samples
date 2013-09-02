@@ -11,6 +11,7 @@ function GetTreeStyle(tree)
 		style.horizontal_indent = attr.horizontal_indent
 		style.node_size = {width=attr.node_width, height = attr.node_height}
 		style.vertical_padding = attr.vertical_padding
+		style.joint_size = {width=attr.joint_width, height = attr.joint_height}
 		return style
 	end
 end
@@ -39,9 +40,11 @@ function GetWindowsStyle()
 			local jointPosList = {}
 			local left = iconSize.width/2
 			local bottom = frect.top+frect.height
+			local jointLeft = left-style.joint_size.width/2
 			for k, rect in pairs(rectlist) do
 				linePosList[k] = {left = iconSize.width/2 , top = rect.top +rect.height/2, right = rect.left, bottom = rect.top +rect.height/2}
 				bottom = bottom < rect.top + rect.height/2 and rect.top + rect.height/2 or bottom
+				jointPosList[k]= {left=jointLeft, top = rect.top +rect.height/2-style.joint_size.height/2, width = style.joint_size.width, height = style.joint_size.height}
 			end
 			linePosList["main_line"] = {left = left, top = frect.top+frect.height, right = left, bottom = bottom}
 			return linePosList, jointPosList

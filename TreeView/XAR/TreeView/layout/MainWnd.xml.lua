@@ -24,7 +24,7 @@ function createDataTreeTable()
 	subTree2.F = "F"
 	subTree2.G = "G"
 	subTree.H = subTree2
-	return tree
+	return {root=tree}
 end
 
 function OnInitTree(tree)

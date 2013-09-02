@@ -1,0 +1,56 @@
+<xlue>
+	<control class="TreeView.Joint">
+		<attr_def>
+			<attr name="Expand" type="bool">
+				<default>true</default>
+			</attr>
+		</attr_def>
+		<method_def>
+			<SetExpand file="Joint.lua" func="SetExpand" />
+			<IsExpand file="Joint.lua" func="IsExpand" />
+		</method_def>
+		<event_def>
+			<Triggered>
+				<param>
+					<bool name="isExapand" />
+				</param>
+			</Triggered>
+		</event_def>
+		<objtemplate id="TreeView.JointTemplate">
+			<children>
+				<obj id="joint.layout" class="RectangleObject">
+					<attr>
+						<left>0</left>
+						<top>0</top>
+						<width>father.width</width>
+						<height>father.height</height>
+						<srcpt>0, 0</srcpt>
+						<pen>pen.dot</pen>
+						<destpt>width,height</destpt>
+						<pencolor>system.red</pencolor>
+						<brush>brush.solid</brush>
+						<visible>1</visible>
+					</attr>
+					<children>
+						<obj id="text" class="TextObject">
+							<attr>
+								<left>0</left>
+								<top>-1</top>
+								<width>father.width</width>
+								<height>father.height</height>
+								<text>+</text>
+								<font>font.small</font>
+								<valign>center</valign>
+								<halign>center</halign>
+							</attr>
+						</obj>
+					</children>
+				</obj>
+			</children>
+			<eventlist>
+				<event name="OnLButtonUp" file="Joint.lua" func="OnLButtonUp" />
+				<event name="OnInitControl" file="Joint.lua" func="OnInitControl" />
+			</eventlist>
+		</objtemplate>
+	</control>
+</xlue>
