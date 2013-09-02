@@ -139,7 +139,7 @@
 					<enabledrop>1</enabledrop>
 				</attr>
 				<children>
-					<obj id="itemView" class="ItemView">
+					<obj id="itemView" class="ItemView" templateid="WindowsStyle" >
 						<attr>
 							<left>10</left>
 							<top>50 + 30</top>

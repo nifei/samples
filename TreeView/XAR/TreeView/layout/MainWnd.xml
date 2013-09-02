@@ -132,7 +132,7 @@
 						<zorder>-900</zorder>
 					</attr>
 			</obj>
-			<obj id="tree" class="TreeView" >
+			<obj id="tree" class="TreeView" templateid="WindowsStyle">
 				<attr>
 					<left>5</left>
 					<top>35</top>

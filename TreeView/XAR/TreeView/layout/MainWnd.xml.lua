@@ -14,15 +14,16 @@ end
 -- client dataTable Method
 function createDataTreeTable()
 	local tree={}
-	local firstChild = {}
-	firstChild.A = "leafA"
-	firstChild.B = "leafB"
-	tree.root = {}
-	tree.root.firstChild = firstChild
-	local secondChild = {}
-	secondChild.A = "leafA2"
-	secondChild.B = "leafB2"
-	tree.root.secondChild = secondChild
+	tree.A = "A"
+	tree.B = "B"
+	local subTree = {}
+	subTree.C = "C"
+	subTree.D = "D"
+	tree.E = subTree
+	local subTree2 = {}
+	subTree2.F = "F"
+	subTree2.G = "G"
+	subTree.H = subTree2
 	return tree
 end
 

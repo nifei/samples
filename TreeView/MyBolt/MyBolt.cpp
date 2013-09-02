@@ -111,7 +111,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	MSG msg;
 	
-	// 主消息循环:
+	// 主消息循环:	
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
 		TranslateMessage(&msg);

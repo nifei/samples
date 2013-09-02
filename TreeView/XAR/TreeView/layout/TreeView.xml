@@ -1,6 +1,30 @@
 <xlue>
 	<control class="TreeView">
 		<attr_def>
+ 			<attr name="style_name" type="string">
+				<default>WindowsStyle</default>
+			</attr>
+			<attr name="vertical_indent" type="int">
+				<default>0</default>
+			</attr>
+			<attr name="horizontal_indent" type="int">
+				<default>30</default>
+			</attr> 
+			<attr name="icon_width" type="int">
+				<default>30</default>
+			</attr>
+			<attr name="icon_height" type="int">
+				<default>20</default>
+			</attr>
+			<attr name="node_height" type="int">
+				<default>20</default>
+			</attr>
+			<attr name="node_width" type="int">
+				<default>200</default>
+			</attr>
+			<attr name="vertical_padding" type="int">
+				<default>100</default>
+			</attr>
 		</attr_def>
 		<method_def>
 			<RenderTreeFromDataTable file="TreeView.lua" func="RenderTreeFromDataTable" />
@@ -14,12 +38,28 @@
 						<width>father.width</width>
 						<height>father.height</height>
 					</attr>
-					<children>
-					</children>
-					<eventlist>
-					</eventlist>
 				</obj>
 			</children>
+			<eventlist>
+				<event name="OnBind" file="TreeView.lua" func="OnBind" />
+			</eventlist>
 		</objtemplate>
 	</control>
+	
+	<objtemplate id="WindowsStyle">
+		<attr>
+		<!-- todo 想要在模板初始化时读到模板id, 该怎么做 -->
+			<style_name>WindowsStyle</style_name>
+			<vertical_indent>0</vertical_indent>
+			<horizontal_indent>130</horizontal_indent>
+			<icon_width>10</icon_width>
+			<icon_height>20</icon_height>
+			<node_height>20</node_height>
+			<node_width>200</node_width>
+			<vertical_padding>10</vertical_padding>
+		</attr>
+		<eventlist>
+			<!-- <event name="OnPostCreateInstance" file="TreeView.lua" func="OnPostCreateInstance" /> -->
+		</eventlist>
+	</objtemplate>
 </xlue>
