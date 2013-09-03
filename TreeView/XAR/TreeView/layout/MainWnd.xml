@@ -13,7 +13,7 @@
 			<left>0</left>
 			<top>0</top>
 			<width>429</width>
-			<height>720</height>
+			<height>429</height>
 			<!--资源相关的属性使用资源定义xml中设置的资源名-->
 			<image>app.bkg</image>
 			<drawmode>1</drawmode>
@@ -132,7 +132,7 @@
 						<zorder>-900</zorder>
 					</attr>
 			</obj>
-			<obj id="tree" class="TreeView" templateid="WindowsStyle">
+			<obj id="tree" class="TreeView" templateid="LeftMidStyle">
 				<attr>
 					<left>5</left>
 					<top>35</top>
@@ -143,6 +143,17 @@
 					<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitTree" />
 				</eventlist>
 			</obj>
+<!-- 			<obj id="vacant" class="LayoutObject">
+				<attr>
+					<left>0</left>
+					<top>0</top>
+					<width>father.width</width>
+					<height>(father.height)</height>
+				</attr>
+				<eventlist>
+					<event name="OnInitControl" file="MainWnd.xml.lua" func="OnTest" />
+				</eventlist>
+			</obj> -->
 		</children>
 	</obj>
 </objtreetemplate>
@@ -155,7 +166,7 @@
 			<left>200</left> 
 			<top>0</top>
 			<width>429</width>
-			<height>720</height>
+			<height>429</height>
 			<cacheleft>0</cacheleft> 
 			<cachetop>0</cachetop>
 			<cachewidth>1000</cachewidth>

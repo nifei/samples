@@ -14,6 +14,17 @@ function GetTreeStyle(tree)
 		style.joint_size = {width=attr.joint_width, height = attr.joint_height}
 		return style
 	end
+	if styleName == "LeftMidStyle" then 
+		local style=GetLeftMidFatherStyle()
+		style.icon_size = {width=attr.icon_width, height =attr.icon_height}
+		style.horizontal_indent = attr.horizontal_indent
+		style.node_size = {width=attr.node_width, height = attr.node_height}
+		style.vertical_padding = attr.vertical_padding
+		style.horizontal_padding = attr.horizontal_padding
+		style.joint_size = {width=attr.joint_width, height = attr.joint_height}
+		style.joint_node_padding = attr.joint_node_padding and attr.joint_node_padding or 0
+		return style
+	end
 end
 
 function GetWindowsStyle()
@@ -84,7 +95,7 @@ end
 -- client method
 -- in size+sizelist
 -- out pos + poslist
--- 位置是相对fatherObj左上角的
+-- 位置是相对father layout左上角的
 function GetLeftMidFatherStyle()
 	local style={}
 	-- in fatherobjsize, children sub tree layout size list
@@ -92,18 +103,36 @@ function GetLeftMidFatherStyle()
 	style.GetChildrenPosList = 
 		function (fsize, sizelist)
 			local poslist = {}
-			local left = fatherObjSize.width + 10
-			local height = 0
-			for k,v in pairs(sizelist) do
-				height = height + v.height
-			end
+			local left = fsize.width + style.horizontal_padding
 			local top = 0
-			for k,v in pairs(sizelist) do
-				local size = sizelist[k]
+			for k,size in pairs(sizelist) do
 				poslist[k] ={left=left, top=top}
-				top = top+size.height
+				top = top+size.height + style.vertical_padding
 			end
-			return {left=0, top=top/2-fatherObjSize.height/2}, poslist
+			return {left=0, top=(top-style.vertical_padding)/2-fsize.height/2}, poslist
+		end
+	style.GetLinesAndJointPosList = 
+		function (frect, rectlist, virtualRoot)
+			Log(">>  ")
+			local iconSize = style.icon_size and style.icon_size or {width=20, height = 20} -- todo default
+			local linePosList = {}
+			local jointPosList = {}
+			local mid = math.max(style.joint_size.width/2,iconSize.width/2)
+			for k, rect in pairs(rectlist) do
+				local left = rect.left - style.joint_node_padding - style.joint_size.width
+				local top = rect.top
+				jointPosList[k] = {left=left, top=top,width = style.joint_size.width, height = style.joint_size.height}
+				linePosList[k] = {}
+				linePosList[k].left=frect.left+frect.width
+				linePosList[k].top = frect.top
+				linePosList[k].right = rect.left
+				linePosList[k].bottom = top
+			end
+			if virtualRoot then 
+				linePosList = {}
+			end
+			Log("  <<")
+			return linePosList, jointPosList
 		end
 	return style
 end

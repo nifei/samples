@@ -25,11 +25,17 @@
 			<attr name="vertical_padding" type="int">
 				<default>100</default>
 			</attr>
+			<attr name="horizontal_padding" type="int">
+				<default>100</default>
+			</attr>
 			<attr name="joint_width" type="int">
 				<default>10</default>
 			</attr>
 			<attr name="joint_height" type="int">
 				<default>10</default>
+			</attr>
+			<attr name="joint_node_padding" type="int">
+				<default>0</default>
 			</attr>
 		</attr_def>
 		<method_def>
@@ -52,6 +58,26 @@
 		</objtemplate>
 	</control>
 	
+	<objtemplate id="LeftMidStyle">
+		<attr>
+		<!-- todo 想要在模板初始化时读到模板id, 该怎么做 -->
+			<style_name>LeftMidStyle</style_name>
+			<vertical_indent>0</vertical_indent>
+			<horizontal_indent>30</horizontal_indent>
+			<icon_width>20</icon_width>
+			<icon_height>20</icon_height>
+			<node_height>20</node_height>
+			<node_width>100</node_width>
+			<vertical_padding>10</vertical_padding>
+			<horizontal_padding>30</horizontal_padding>
+			<joint_width>10</joint_width>
+			<joint_height>10</joint_height>
+			<joint_node_padding>5</joint_node_padding>
+		</attr>
+		<eventlist>
+			<!-- <event name="OnPostCreateInstance" file="TreeView.lua" func="OnPostCreateInstance" /> -->
+		</eventlist>
+	</objtemplate>
 	<objtemplate id="WindowsStyle">
 		<attr>
 		<!-- todo 想要在模板初始化时读到模板id, 该怎么做 -->
@@ -63,8 +89,8 @@
 			<node_height>20</node_height>
 			<node_width>100</node_width>
 			<vertical_padding>10</vertical_padding>
-			<joint_width>20</joint_width>
-			<joint_height>15</joint_height>
+			<joint_width>10</joint_width>
+			<joint_height>10</joint_height>
 		</attr>
 		<eventlist>
 			<!-- <event name="OnPostCreateInstance" file="TreeView.lua" func="OnPostCreateInstance" /> -->

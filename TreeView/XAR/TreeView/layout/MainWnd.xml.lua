@@ -14,8 +14,8 @@ end
 -- client dataTable Method
 function createDataTreeTable()
 	local tree={}
-	tree.A = "A"
-	tree.B = "B"
+	tree.A1 = "A"
+	tree.B1 = "B"
 	local subTree = {}
 	subTree.C = "C"
 	subTree.D = "D"
@@ -32,4 +32,22 @@ end
 function OnInitTree(tree)
 	local dataTable = createDataTreeTable()
 	tree:RenderTreeFromDataTable(dataTable)
+end
+
+function OnTest(layout)
+	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
+	
+	local line = objFactory:CreateUIObject(nil, "LineObject")
+	layout:AddChild(line)
+	line:SetVisible(true)
+	line:SetLinePenResID("pen.dot")
+	line:SetLineColorResID("system.black")
+	line:SetObjPos(100,100,200,200)
+	local l,t,r,b = line:GetAbsPos()
+	Log("l:"..l.." t:"..t.." r:"..r.." b:"..b)
+	line:SetLinePoint(0,0,"width","height")
+	
+	local rect = objFactory:CreateUIObject(nil, "TreeView.Node")
+	layout:AddChild(rect)
+	rect:SetObjPos(100,100,200,200)
 end

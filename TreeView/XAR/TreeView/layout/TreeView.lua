@@ -76,8 +76,6 @@ function RenderTreeFromNode(tree, rootNode)
 	local scrollpanel = tree:GetObject("tree.scroll")
 	scrollpanel:SetInnerObject(canvas)
 	canvas:SetObjPos2(0, 0, rootNode.LayoutSize.width, rootNode.LayoutSize.height)
-	-- canvas:AddChild(rootNode.JointObject)
-	rootNode.JointObject:SetObjPos(0,0,20,20)
 end
 
 function rmvObj(obj)
@@ -114,7 +112,7 @@ function initNode(Node, treeView)
 		Node.Layout = createNodeLayout(Node)
 		Node.LayoutSize = TVStyle.node_size
 		Node.Layout:AddChild(Node.Object)
-		Node.Object:SetObjPos(0, 0, Node.ObjectSize.width, Node.ObjectSize.height)
+		--Node.Object:SetObjPos(0, 0, Node.ObjectSize.width, Node.ObjectSize.height)
 		if #(Node.Children) > 0 and not Node.JointObject then 
 			Node.JointObject = CreateJointObject()
 			local OnJointTriggered = 
@@ -140,11 +138,15 @@ function initNode(Node, treeView)
 		for k,v in pairs(Node.Children) do
 			Node.Children[k] = initNode(v)
 			sizeList[k] = Node.Children[k].LayoutSize
+			if not Node.Children[k].Layout:GetFather() then 
+				Node.Layout:AddChild(Node.Children[k].Layout)
+			end
 		end
 		local fatherPos, poslist = TVStyle.GetChildrenPosList(Node.ObjectSize, sizeList)
 		local width = Node.ObjectSize.width
 		local height = Node.ObjectSize.height
 		local rectlist = {}
+		Node.Dirty = true
 		for k,v in pairs(Node.Children) do
 			if Node.Children[k].Dirty then
 				Node.Children[k].Dirty = false
@@ -155,45 +157,52 @@ function initNode(Node, treeView)
 				local h = Node.Children[k].LayoutSize.height
 				local pos = poslist[k]
 				Node.Children[k].Layout:SetObjPos2(pos.left, pos.top, w, h)
-				rectlist[k] = {left = pos.left, top = pos.top, width = Node.Children[k].ObjectSize.width, height = Node.Children[k].ObjectSize.height}
+				local l=0; local t=0
+				if Node.Children[k].ObjectPos then 
+					l = Node.Children[k].ObjectPos.left 
+					t = Node.Children[k].ObjectPos.top
+				end
+				rectlist[k] = {left = pos.left + l, 
+								top = pos.top + t, 
+								width = Node.Children[k].ObjectSize.width, 
+								height = Node.Children[k].ObjectSize.height}
+				Log(Node.Children[k].Data..":left:"..rectlist[k].left)
 				if width < pos.left+w then width = pos.left+w end
 				if height < pos.top+h then height = pos.top+h end
-				if not Node.Children[k].Layout:GetFather() then 
-					Node.Layout:AddChild(Node.Children[k].Layout)
-				end
 			end
 		end
 		
-		if Node.Dirty then
-			Node.Object:SetObjPos(fatherPos.left, fatherPos.top, Node.ObjectSize.width, Node.ObjectSize.height)
-			Node.LayoutSize = {width=width, height=height}
-			
-			local frect = {left = fatherPos.left, 
-							top = fatherPos.top, 
-							width = Node.ObjectSize.width, 
-							height = Node.ObjectSize.height}
-			
-			local linePosList, jointPosList = TVStyle.GetLinesAndJointPosList(frect, rectlist, not Node.Father)
-			if Node.Layout then
-				for k,pos in pairs(linePosList) do
-					if Node.Lines[k] == nil then 
-						Node.Lines[k] = CreateLineObject(k)
-						Node.Layout:AddChild(Node.Lines[k])
-					end
-					Node.Lines[k]:SetLinePoint(pos.left, pos.top, pos.right, pos.bottom)
+		Node.Object:SetObjPos2(fatherPos.left, fatherPos.top, Node.ObjectSize.width, Node.ObjectSize.height)
+		Node.ObjectPos = {left = fatherPos.left, top =fatherPos.top}
+		Node.LayoutSize = {width=width, height=height}
+		
+		local frect = {left = fatherPos.left, 
+						top = fatherPos.top, 
+						width = Node.ObjectSize.width, 
+						height = Node.ObjectSize.height}
+		local linePosList, jointPosList = TVStyle.GetLinesAndJointPosList(frect, rectlist, not Node.Father)
+		if Node.Layout then
+			for k,pos in pairs(linePosList) do
+				if Node.Lines[k] == nil then 
+					Node.Lines[k] = CreateLineObject(k)
+					Node.Layout:AddChild(Node.Lines[k])
+					-- Node.Lines[k]:SetObjPos2(pos.left, pos.top, pos.right, pos.bottom)
 				end
-				for k,pos in pairs(jointPosList) do
-					if Node.Children[k].JointObject then
-						if not Node.Children[k].JointObject:GetFather() then
-							Node.Layout:AddChild(Node.Children[k].JointObject)
-						end
-						Node.Children[k].JointObject:SetObjPos(pos.left, pos.top, pos.left+pos.width, pos.top+pos.height)
-						Node.Children[k].JointObject:SetExpand(Node.Children[k].Expand)
+				Node.Lines[k]:SetLinePoint(pos.left, pos.top, pos.right, pos.bottom)
+			end
+			for k,pos in pairs(jointPosList) do
+				if Node.Children[k].JointObject then
+					if not Node.Children[k].JointObject:GetFather() then
+						Node.Layout:AddChild(Node.Children[k].JointObject)
 					end
+					Node.Children[k].JointObject:SetObjPos2(pos.left, pos.top, pos.width, pos.height)
+					Node.Children[k].JointObject:SetExpand(Node.Children[k].Expand)
 				end
 			end
 		end
 	else
+		Node.Object:SetObjPos2(0,0,Node.ObjectSize.width, Node.ObjectSize.height)
+		Node.ObjectPos = {left = 0, top =0}
 		for k, node in pairs(Node.Children) do
 			Node.Children[k] = releaseNode(Node.Children[k])
 		end
@@ -211,6 +220,7 @@ function createNodeLayout(Node)
 end
 
 -- clinet method
+-- expected event :Triggered
 function CreateJointObject(data)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local object = objFactory:CreateUIObject(nil, "TreeView.Joint")
@@ -231,6 +241,7 @@ function CreateNodeObject(data)
 end
 
 -- clinet method
+-- expected method:SetLinePoint
 function CreateLineObject(k)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local line = objFactory:CreateUIObject(nil, "LineObject")
