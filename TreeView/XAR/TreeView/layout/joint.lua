@@ -1,5 +1,6 @@
 function SetExpand(joint, expand)
-	local prevState = joint:GetAttribute().Expand
+	local attr = joint:GetAttribute()
+	local prevState = attr.Expand
 	joint:GetAttribute().Expand = expand
 	local text = joint:GetObject("text")
 	text:SetText(expand and "-" or "+")

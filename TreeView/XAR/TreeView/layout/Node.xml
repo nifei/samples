@@ -32,6 +32,7 @@
 							<top>0</top>
 							<width>father.width - 20</width>
 							<height>father.height</height>
+							<valign>center</valign>
 							<text>node</text>
 							</attr>
 						</obj>
