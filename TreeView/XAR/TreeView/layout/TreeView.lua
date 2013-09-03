@@ -76,6 +76,8 @@ function RenderTreeFromNode(tree, rootNode)
 	local scrollpanel = tree:GetObject("tree.scroll")
 	scrollpanel:SetInnerObject(canvas)
 	canvas:SetObjPos2(0, 0, rootNode.LayoutSize.width, rootNode.LayoutSize.height)
+	-- canvas:AddChild(rootNode.JointObject)
+	rootNode.JointObject:SetObjPos(0,0,20,20)
 end
 
 function rmvObj(obj)
@@ -106,7 +108,9 @@ function initNode(Node, treeView)
 		if Node.ObjectSize == nil then 
 			Node.ObjectSize = TVStyle.node_size
 		end
-		rmvObj(Node.Layout)
+		if not Node.Father then 
+			Node.ObjectSize = {width = 0, height = 0}
+		end
 		Node.Layout = createNodeLayout(Node)
 		Node.LayoutSize = TVStyle.node_size
 		Node.Layout:AddChild(Node.Object)
@@ -124,8 +128,7 @@ function initNode(Node, treeView)
 							father = father.Father
 						end
 						father = initNode(father)
-						local canvas = father.Layout
-						canvas:SetObjPos2(0, 0, father.LayoutSize.width, father.LayoutSize.height)
+						father.Layout:SetObjPos2(0, 0, father.LayoutSize.width, father.LayoutSize.height)
 					end
 				end
 			Node.JointObject:AttachListener("Triggered", true, OnJointTriggered)
@@ -165,9 +168,12 @@ function initNode(Node, treeView)
 			Node.Object:SetObjPos(fatherPos.left, fatherPos.top, Node.ObjectSize.width, Node.ObjectSize.height)
 			Node.LayoutSize = {width=width, height=height}
 			
-			local frect = {left = fatherPos.left, top = fatherPos.top, width = Node.ObjectSize.width, height = Node.ObjectSize.height}
+			local frect = {left = fatherPos.left, 
+							top = fatherPos.top, 
+							width = Node.ObjectSize.width, 
+							height = Node.ObjectSize.height}
 			
-			local linePosList, jointPosList = TVStyle.GetLinesAndJointPosList(frect, rectlist)
+			local linePosList, jointPosList = TVStyle.GetLinesAndJointPosList(frect, rectlist, not Node.Father)
 			if Node.Layout then
 				for k,pos in pairs(linePosList) do
 					if Node.Lines[k] == nil then 
@@ -226,7 +232,6 @@ end
 
 -- clinet method
 function CreateLineObject(k)
-	Log("create line:"..k)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local line = objFactory:CreateUIObject(nil, "LineObject")
 	line:SetVisible(true)

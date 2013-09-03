@@ -21,9 +21,11 @@ function createDataTreeTable()
 	subTree.D = "D"
 	tree.E = subTree
 	local subTree2 = {}
-	subTree2.F = "F"
-	subTree2.G = "G"
+	subTree2.F = "E"
+	subTree2.G = "F"
 	subTree.H = subTree2
+	tree.C = subTree2
+	tree.D = subTree
 	return {root=tree}
 end
 

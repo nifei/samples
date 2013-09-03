@@ -23,7 +23,7 @@ const WCHAR* GetResDir()
 }
 
 int __stdcall LuaErrorHandle(lua_State* luaState,const wchar_t* pExtInfo,const wchar_t* wcszLuaErrorString,PXL_LRT_ERROR_STACK pStackInfo)
-{
+{	
     static bool s_bEnter = false;
     if (!s_bEnter)
     {

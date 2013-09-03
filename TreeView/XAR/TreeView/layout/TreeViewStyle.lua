@@ -31,22 +31,27 @@ function GetWindowsStyle()
 				poslist[k] = {left=left, top=top}
 				top = top + sizelist[k].height+padding
 			end
-			return {left=0,top=0},poslist
+			if style.icon_size.width < style.joint_size.width then 
+				left = (style.joint_size.width - style.icon_size.width )/2
+			else left = 0 end
+			return {left=left,top=0},poslist
 		end
 	style.GetLinesAndJointPosList = 
-		function (frect, rectlist)
+		function (frect, rectlist, virtualRoot)
 			local iconSize = style.icon_size and style.icon_size or {width=20, height = 20} -- todo default
 			local linePosList = {}
 			local jointPosList = {}
-			local left = iconSize.width/2
 			local bottom = frect.top+frect.height
-			local jointLeft = left-style.joint_size.width/2
+			local jointLeft = iconSize.width>style.joint_size.width and (iconSize.width-style.joint_size.width)/2 or 0
+			local mid = math.max(style.joint_size.width/2,iconSize.width/2)
 			for k, rect in pairs(rectlist) do
-				linePosList[k] = {left = iconSize.width/2 , top = rect.top +rect.height/2, right = rect.left, bottom = rect.top +rect.height/2}
+				linePosList[k] = {left = mid , top = rect.top +rect.height/2, right = rect.left, bottom = rect.top +rect.height/2}
 				bottom = bottom < rect.top + rect.height/2 and rect.top + rect.height/2 or bottom
 				jointPosList[k]= {left=jointLeft, top = rect.top +rect.height/2-style.joint_size.height/2, width = style.joint_size.width, height = style.joint_size.height}
 			end
-			linePosList["main_line"] = {left = left, top = frect.top+frect.height, right = left, bottom = bottom}
+			if not virtualRoot then 
+				linePosList["main_line"] = {left = mid, top = frect.top+frect.height, right = mid, bottom = bottom}
+			end
 			return linePosList, jointPosList
 		end
 	return style

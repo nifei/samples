@@ -11,7 +11,7 @@
 				<default>30</default>
 			</attr> 
 			<attr name="icon_width" type="int">
-				<default>30</default>
+				<default>50</default>
 			</attr>
 			<attr name="icon_height" type="int">
 				<default>20</default>
@@ -58,12 +58,12 @@
 			<style_name>WindowsStyle</style_name>
 			<vertical_indent>0</vertical_indent>
 			<horizontal_indent>30</horizontal_indent>
-			<icon_width>10</icon_width>
+			<icon_width>20</icon_width>
 			<icon_height>20</icon_height>
 			<node_height>20</node_height>
 			<node_width>100</node_width>
 			<vertical_padding>10</vertical_padding>
-			<joint_width>15</joint_width>
+			<joint_width>20</joint_width>
 			<joint_height>15</joint_height>
 		</attr>
 		<eventlist>
