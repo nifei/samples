@@ -117,19 +117,38 @@ function GetLeftMidFatherStyle()
 			local iconSize = style.icon_size and style.icon_size or {width=20, height = 20} -- todo default
 			local linePosList = {}
 			local jointPosList = {}
-			local mid = math.max(style.joint_size.width/2,iconSize.width/2)
+			local mainHor = nil
+			local mainTop = nil
+			local mainBottom = nil
 			for k, rect in pairs(rectlist) do
 				local left = rect.left - style.joint_node_padding - style.joint_size.width
-				local top = rect.top
+				local top = rect.top+rect.height/2-style.joint_size.height/2
 				jointPosList[k] = {left=left, top=top,width = style.joint_size.width, height = style.joint_size.height}
-				linePosList[k] = {}
-				linePosList[k].left=frect.left+frect.width
-				linePosList[k].top = frect.top
-				linePosList[k].right = rect.left
-				linePosList[k].bottom = top
+				local line = {}
+				line.left= frect.left+frect.width + (rect.left-frect.left-frect.width-style.joint_size.width)/2 -math.ceil(style.joint_node_padding/2)
+				line.right=rect.left
+				line.top=top+style.joint_size.height/2
+				line.bottom = line.top
+				linePosList[k] = line
+				if not mainHor then mainHor = line.left end
+				if not mainTop or mainTop>line.top then mainTop = line.top end
+				if not mainBottom or mainBottom<line.bottom then mainBottom = line.bottom end
 			end
 			if virtualRoot then 
 				linePosList = {}
+			else
+				local main = {}
+				main.left = mainHor
+				main.right = mainHor
+				main.top = mainTop
+				main.bottom = mainBottom
+				linePosList["main"] = main
+				local knob = {}
+				knob.left = frect.left+frect.width
+				knob.right = main.left
+				knob.top = frect.top+frect.height/2
+				knob.bottom = knob.top
+				linePosList["knob"] = knob
 			end
 			Log("  <<")
 			return linePosList, jointPosList
