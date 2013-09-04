@@ -5,36 +5,45 @@
 #include <xl_lib/xml/expat_parser.h>
 #include <vector>
 #include "stdafx.h"
-#include "xl_lib/multithread/thread.h"
-#include "xl_lib/multithread/mutex.h"
 
-struct StrSongInfo;
-
-typedef void (*funcDataReadyCallback) (DWORD dwUserData1,DWORD dwUserData2,int row, int column);
-
-struct CallbackOnDataReady
+struct StrSongInfo
 {
-	funcDataReadyCallback pfnCallback;
-	DWORD dwUserData1;
-	DWORD dwUserData2;
+	std::string cover;
+	std::string name;
+	std::string source;
+	XL_BITMAP_HANDLE hBitmap;
+
+	StrSongInfo()
+		:cover(std::string()),
+		name(std::string()),
+		source(std::string()),
+		hBitmap(0){}
+	StrSongInfo(std::string _cover, std::string _name, std::string _source)
+		:cover(_cover),
+		name(_name),
+		source(_source){}
+	StrSongInfo(const StrSongInfo &other)
+		:cover(other.cover), 
+		name(other.name),
+		source(other.source),
+		hBitmap(other.hBitmap){}
+	const StrSongInfo operator= (const StrSongInfo & rhs)
+	{
+		cover = rhs.cover;
+		name = rhs.name;
+		source = rhs.source;
+		hBitmap = rhs.hBitmap;
+		return *this;
+	}
 };
 
-class XmlParser : public xl::xml::expat_parser<XmlParser>, public xl::win32::multithread::thread
+class XmlParser : public xl::xml::expat_parser<XmlParser>
 {
 public:
-	XmlParser(wchar_t* fileName);
-	XmlParser(char* fileName);
+	XmlParser();
 	~XmlParser();
-	bool GetDataBatch(int from, int to, void** dataBatch, char** types = NULL);
-	bool GetDataAtIndex(int row, int column, void **itemData, char **type=NULL);
-	int GetCount()const {return m_playlist->size();}
-	int GetColumnCount()const{return MAX_COL-1;}
-	bool PrepareData(int from, int to);
-	bool ReleaseData(int from, int to);
-	void RunInMainThread();
-	void AttachSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void AttachDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	static void UIThreadCallback(void* msg);
+	bool LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName);
+
 public:
 	// expat_parser methods
 	void OnPostCreate();
@@ -49,28 +58,9 @@ public:
 		MAX_COL
 	} COL_NAMES;
 
-protected:
-	//thread
-	xl::uint32  thread_proc();
-
 private:
-	void init();
-	void FireDataReadyEvent(int row, int column);
-	void FireDataBatchReadyEvent(int from, int to);
-	bool loadPlaylist();
-	XL_BITMAP_HANDLE loadImage( const wchar_t* lpFile );
-	XL_BITMAP_HANDLE loadImage(const char* lpFile);
-	XL_BITMAP_HANDLE LoadPng( const wchar_t* lpFile );
-
 	char * attrNamesOfColumn[MAX_COL];
-	struct range;
-	std::vector<range> m_dataRangesWaitingForExecute;
-	wchar_t* m_playlistName;
-	std::vector<StrSongInfo*> *m_playlist;
-	CallbackOnDataReady *m_callbackOnSingleDataReady;
-	CallbackOnDataReady *m_callbackOnDataBatchReady;
-	xl::win32::multithread::mutex *m_mutexOnPlaylist;
-	xl::win32::multithread::mutex *m_mutexOnRangeList;
+	std::vector<StrSongInfo> *m_playlist;
 };
 
 #endif

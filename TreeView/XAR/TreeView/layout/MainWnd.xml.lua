@@ -47,9 +47,11 @@ function OnInitTree(tree)
 	local mdItem = XLLoadModule(itemDir)
 	local itemFactory = mdItem.GetCustomItemFactory(tree)
 	tree:SetItemFactory(itemFactory)
-
-	local dataTable = createDataTreeTable()
-	tree:RenderTreeFromDataTable(dataTable)
+		
+	local modelDir = layoutDir.."TreeModel.lua"
+	local mdModel = XLLoadModule(modelDir)
+	local model = mdModel.GetDirTreeModel()
+	tree:SetTreeModel(model)
 end
 
 function OnTest(layout)
@@ -60,11 +62,11 @@ function OnTest(layout)
 	line:SetVisible(true)
 	line:SetLinePenResID("pen.dot")
 	line:SetLineColorResID("system.black")
-	line:SetObjPos(100,100,200,200)
+	line:SetObjPos(100,100,1000,1000)
 	local l,t,r,b = line:GetAbsPos()
 	line:SetLinePoint(0,0,"width","height")
 	
-	local rect = objFactory:CreateUIObject(nil, "TreeView.Node")
-	layout:AddChild(rect)
-	rect:SetObjPos(100,100,200,200)
+	local path = __document
+	local index = string.find(path, "/[^/]*$")
+	local rootDir = string.sub(path,1,index)
 end

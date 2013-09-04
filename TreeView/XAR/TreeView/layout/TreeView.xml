@@ -48,6 +48,7 @@
 			<RenderTreeFromDataTable file="TreeView.lua" func="RenderTreeFromDataTable" />
 			<SetStyle file="TreeView.lua" func="SetStyle" />
 			<SetItemFactory file="TreeView.lua" func="SetItemFactory" />
+			<SetTreeModel file="TreeView.lua" func="SetTreeModel" />
 		</method_def>
 		<objtemplate id="TreeView.Template">
 			<children>

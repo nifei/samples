@@ -14,7 +14,7 @@ function CreateNodeObject(data,key)
 	if text then 
 		text:SetText(data)
 	end
-	local size = {width=string.len(data)*6,height=20}
+	local size = {width=math.ceil(string.len(data)*6.1),height=20}
 	return object,size
 end
 

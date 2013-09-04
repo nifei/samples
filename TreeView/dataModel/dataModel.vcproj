@@ -179,6 +179,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dllmain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaDataModelClass.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\XmlDataLoader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\XmlDataModel.cpp"
 				>
 			</File>
@@ -193,11 +205,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\xl_include\datamodel.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LuaDataModelClass.h"
 				>
 			</File>
 			<File
+				RelativePath=".\MainFrm.h"
+				>
+			</File>
+			<File
+				RelativePath="..\xl_include\PostMessageToUIThread.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\XmlDataLoader.h"
 				>
 			</File>
 			<File

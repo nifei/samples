@@ -30,6 +30,11 @@ function SetItemFactory(tree, itemFactory)
 	CreateJointObject = itemFactory.CreateJointObject
 end
 
+function SetTreeModel(tree, model)
+	tree:GetAttribute().DataModel = model
+	RenderTree(tree)
+end
+
 -- event OnBind --
 function OnBind(tree)
 	local path = __document
@@ -92,16 +97,6 @@ function RenderTreeFromDataTable(tree, dataTable)
 		function (node)
 			return node.Children
 		end
-	treeModel.SetChildren = 
-		function (node, children)
-			node.Children = children
-			return node
-		end
-	treeModel.SetChild = 
-		function (node, key, child)
-			node.Children[key] = child
-			return node
-		end
 	treeModel.HasChildren = 
 		function (node)
 			for k,v in pairs(node.Children) do
@@ -117,18 +112,26 @@ function RenderTreeFromDataTable(tree, dataTable)
 		function (node, key)
 			return node.Children[key]
 		end
-		
+	treeModel.GetRoot = 
+		function ()
+			return treeModel.Root
+		end
 	treeModel.Root = root
 	tree:GetAttribute().DataModel = treeModel
-	RenderTreeFromNode(tree, root)
+	
+	RenderTree(tree)
 end
 
-function RenderTreeFromNode(tree, rootNode)
+function RenderTree(tree)
+	local rootNode = tree:GetAttribute().DataModel.GetRoot()
 	rootNode = initNode(rootNode, tree)
 	local canvas = rootNode.Layout and rootNode.Layout or rootNode.Object
 	local scrollpanel = tree:GetObject("tree.scroll")
 	scrollpanel:SetInnerObject(canvas)
 	canvas:SetObjPos2(0, 0, rootNode.LayoutSize.width, rootNode.LayoutSize.height)
+end
+
+function RenderTreeFromNode(tree, rootNode)
 end
 
 function rmvObj(obj)
@@ -175,8 +178,8 @@ function initNode(Node, treeView)
 					if prevState ~= expand then 
 						Node = releaseNode(Node)
 						local father = Node
-						while father.Father do
-							father = father.Father
+						while dataModel.GetFather(father) do
+							father = dataModel.GetFather(father)
 						end
 						father = initNode(father, treeView)
 						father.Layout:SetObjPos2(0, 0, father.LayoutSize.width, father.LayoutSize.height)
@@ -188,6 +191,7 @@ function initNode(Node, treeView)
 	end
 	if dataModel.HasChildren(Node) and Node.Expand then
 		local sizeList = {}
+		Node.Children = dataModel.GetChildren(Node)
 		for k,v in pairs(Node.Children) do
 			Node.Children[k] = initNode(v, treeView)
 			sizeList[k] = Node.Children[k].LayoutSize

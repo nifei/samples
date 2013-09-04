@@ -102,6 +102,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     }
 
 	LoadLibrary(TEXT("log.dll"));
+	LoadLibrary(TEXT("dataModel.dll"));
 
     if(!LoadMainXAR())
     {

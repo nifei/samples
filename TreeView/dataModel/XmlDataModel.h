@@ -1,37 +1,44 @@
 #pragma once
-#include "XmlParser.h"
+
+#include "XmlDataLoader.h"
+#include "LuaDataModelClass.h"
 #include "stdafx.h"
 
+// call back to LuaDataModelClass info: fun + args
 struct CallbackOnDataReady;
 
-class XmlDataModel
+// fun type stored in CallbackOnDataReady
+typedef void (*funcDataReadyCallback) (DWORD dwUserData1,DWORD dwUserData2,int row, int column);
+
+class XmlDataModel : public DataModelInterface
 {
 public:
 	XmlDataModel(int argc = 0, const char **argv = NULL);
-	~XmlDataModel();
-	static const char* GetDataModelClassName(){
-		return "XmlDataModel";
-	}
-	static const char* GetDataModelFactoryClassName(){
-		return "XmlDataModel.Factory.Class";
-	}
-	static const char* GetDataModelFactoryObjectName(){
-		return "XmlDataModel.Factory";
-	}
+	virtual ~XmlDataModel();
+	char* GetItemAtIndex(int row,int column, void **itemData = 0);
+	bool GetDataBatch(int from, int to, void **dataBatch, char** types);
+	int GetCount()const;
+	int GetColumnCount()const;
+	void PrepareData(int from, int to);
+	void ReleaseData(int from, int to);
+	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	void FireDataReadyEvent(int , int );
+	void FireDataReadyEvent(int from, std::vector<StrSongInfo> playlist);
+	void FireDataReadyEvent(int row, const StrSongInfo& song);
+	static void UIThreadCallbackOnDataBatch(void *userData);
+	static void UIThreadCallbackOnSingleData(void *userData);
 
-	char* GetItemAtIndex(int row,int column, const char* view, void **itemData = 0);
-	bool GetDataBatch(int from, int to, const char* view, void **dataBatch, char** types);
-	int GetCount(const char *view)const;
-	int GetColumnCount(const char*view)const;
-	void PrepareData(int from, int to, const char* userdata);
-	void ReleaseData(int from, int to, const char* userdata);
-	void AttachSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void AttachDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void FireDataReadyEvent(int row, int column);
+	enum {
+		MEDIA_TAG = 0,
+		COVER_COL = 1,
+		NAME_COL = 2,
+		SOURCE_COL = 3,
+		MAX_COL
+	} COL_NAMES;
 
 private:
-	/* 0 is reserved for "this is a song element" tag */
-	void initialize();
 	CallbackOnDataReady *m_callbackOnDataReady;
-	XmlParser *m_parser;
+	XmlDataLoader *m_loader;
+	std::vector<StrSongInfo> m_playlist;
 };
