@@ -16,6 +16,7 @@ function createDataTreeTable()
 	local tree={}
 	tree.A1 = "A"
 	tree.B1 = "B"
+	tree.C1 = "C1"
 	local subTree = {}
 	subTree.C = "C"
 	subTree.D = "D"
@@ -26,10 +27,27 @@ function createDataTreeTable()
 	subTree.H = subTree2
 	tree.C = subTree2
 	tree.D = subTree
+	local subTree3 = {}
+	subTree3.M = subTree2
+	subTree3.N = subTree
+	tree.subTree3 = subTree3
 	return {root=tree}
 end
 
 function OnInitTree(tree)
+	local path = __document
+	local index = string.find(path, "/[^/]*$")
+	local layoutDir = string.sub(path,1,index)
+	-- local styleFile = layoutDir.."CustomTreeStyle.lua"
+	-- local mdStyle = XLLoadModule(styleFile)
+	-- local myStyle = mdStyle.GetCustomStyle(tree)
+	-- tree:SetStyle(myStyle)
+	
+	local itemDir = layoutDir.."ItemFactory.lua"
+	local mdItem = XLLoadModule(itemDir)
+	local itemFactory = mdItem.GetCustomItemFactory(tree)
+	tree:SetItemFactory(itemFactory)
+
 	local dataTable = createDataTreeTable()
 	tree:RenderTreeFromDataTable(dataTable)
 end
@@ -44,7 +62,6 @@ function OnTest(layout)
 	line:SetLineColorResID("system.black")
 	line:SetObjPos(100,100,200,200)
 	local l,t,r,b = line:GetAbsPos()
-	Log("l:"..l.." t:"..t.." r:"..r.." b:"..b)
 	line:SetLinePoint(0,0,"width","height")
 	
 	local rect = objFactory:CreateUIObject(nil, "TreeView.Node")

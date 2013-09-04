@@ -23,10 +23,10 @@
 				<default>200</default>
 			</attr>
 			<attr name="vertical_padding" type="int">
-				<default>100</default>
+				<default>50</default>
 			</attr>
 			<attr name="horizontal_padding" type="int">
-				<default>100</default>
+				<default>50</default>
 			</attr>
 			<attr name="joint_width" type="int">
 				<default>10</default>
@@ -46,6 +46,8 @@
 		</attr_def>
 		<method_def>
 			<RenderTreeFromDataTable file="TreeView.lua" func="RenderTreeFromDataTable" />
+			<SetStyle file="TreeView.lua" func="SetStyle" />
+			<SetItemFactory file="TreeView.lua" func="SetItemFactory" />
 		</method_def>
 		<objtemplate id="TreeView.Template">
 			<children>

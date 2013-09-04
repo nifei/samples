@@ -1,17 +1,33 @@
 -- TreeView structure
--- Node.Key			string
--- Node.Object		UIObject
--- Node.Children	table of Node
 -- Node.LayoutSize		table{int w, int h}, sub tree rect size
 -- Node.JointObject
--- Node.Expand		bool
--- Node.Father?		Node
+-- Node.Object		UIObject
+-- Node.Key			string
 -- Node.Data?		userdata
+-- Node.Children	table of Node
+-- Node.Expand		bool
+-- Node.Father		Node
 
 local TVStyle=nil	
+local CreateLineObject = nil
+local CreateNodeObject = nil
+local CreateJointObject = nil
 
-function SetStyle(style)
+function SetStyle(tree, style)
 	TVStyle = style
+	local expectedMethod = {"GetChildrenPosList", 
+							"GetLinesAndJointPosList"}
+	CheckMethodWithAlert(expectedMethod, style)
+end
+
+function SetItemFactory(tree, itemFactory)
+	local expectedMethod = {"CreateLineObject",
+							"CreateNodeObject",
+							"CreateJointObject"}
+	CheckMethodWithAlert(expectedMethod, itemFactory)
+	CreateLineObject = itemFactory.CreateLineObject
+	CreateNodeObject = itemFactory.CreateNodeObject
+	CreateJointObject = itemFactory.CreateJointObject
 end
 
 -- event OnBind --
@@ -23,6 +39,7 @@ function OnBind(tree)
 	local mdStyle = XLLoadModule(styleFile)
 	mdStyle.RegisterGlobal()
 	TVStyle=GetTreeStyle(tree)
+	SetStyle(tree, TVStyle)
 	return 0, true
 end
 
@@ -45,33 +62,65 @@ function createNodeTreeFromTable(key, nodeTable)
 	if nodeTable == nil then return nil end
 	if type(nodeTable) == "table" then
 		local Node = createNode(key)
-		local i = 1
 		local nodes = {}
 		for k,v in pairs(nodeTable) do
-			local node=createNodeTreeFromTable(k,v)
+			local newKey = key.."."..k
+			local node=createNodeTreeFromTable(newKey, v)
 			node.Father = Node
-			nodes[i]=node
-			i = i+1
+			nodes[newKey]=node
 		end
 		Node.Children = nodes
 		Node.Data = key
 		return Node
 	end
 	if type(nodeTable) ~= "table" then
-		local Node = createNode(key, nodeTable)
+		local Node = createNode(key, key)
 		return Node
 	end
 end
 
 function RenderTreeFromDataTable(tree, dataTable)
-	local root = createNodeTreeFromTable("o", dataTable)
+	local root = createNodeTreeFromTable("", dataTable)
 	root.Expand = true
+	local i = 1
 	for k,v in pairs(root.Children) do
 		v.Expand = true
 	end
-	root.Children[1].Children[2].Expand = true
-	tree:GetAttribute().RootNode = root
-	RenderTreeFromNode(tree, tree:GetAttribute().RootNode)
+	
+	local treeModel = {}
+	treeModel.GetChildren = 
+		function (node)
+			return node.Children
+		end
+	treeModel.SetChildren = 
+		function (node, children)
+			node.Children = children
+			return node
+		end
+	treeModel.SetChild = 
+		function (node, key, child)
+			node.Children[key] = child
+			return node
+		end
+	treeModel.HasChildren = 
+		function (node)
+			for k,v in pairs(node.Children) do
+				return true
+			end
+			return false
+		end
+	treeModel.GetFather = 
+		function (node)
+			return node.Father
+		end
+	treeModel.GetChild = 
+		function (node, key)
+			return node.Children[key]
+		end
+		
+	treeModel.Root = root
+	tree:GetAttribute().DataModel = treeModel
+	RenderTreeFromNode(tree, root)
 end
 
 function RenderTreeFromNode(tree, rootNode)
@@ -105,6 +154,7 @@ end
 
 -- return Node with object and layout
 function initNode(Node, treeView)
+	local dataModel = treeView:GetAttribute().DataModel
 	if Node.Object ==  nil then 
 		Node.Object, Node.ObjectSize = CreateNodeObject(Node.Data)
 		if Node.ObjectSize == nil then 
@@ -116,8 +166,7 @@ function initNode(Node, treeView)
 		Node.Layout = createNodeLayout(Node)
 		Node.LayoutSize = Node.ObjectSize
 		Node.Layout:AddChild(Node.Object)
-		--Node.Object:SetObjPos(0, 0, Node.ObjectSize.width, Node.ObjectSize.height)
-		if #(Node.Children) > 0 and not Node.JointObject then 
+		if dataModel.HasChildren(Node) and not Node.JointObject then 
 			Node.JointObject = CreateJointObject()
 			local OnJointTriggered = 
 				function (joint, eventName, expand)
@@ -129,7 +178,7 @@ function initNode(Node, treeView)
 						while father.Father do
 							father = father.Father
 						end
-						father = initNode(father)
+						father = initNode(father, treeView)
 						father.Layout:SetObjPos2(0, 0, father.LayoutSize.width, father.LayoutSize.height)
 					end
 				end
@@ -137,16 +186,16 @@ function initNode(Node, treeView)
 		end
 		Node.Dirty = true
 	end
-	if #(Node.Children)>0 and Node.Expand then
+	if dataModel.HasChildren(Node) and Node.Expand then
 		local sizeList = {}
 		for k,v in pairs(Node.Children) do
-			Node.Children[k] = initNode(v)
+			Node.Children[k] = initNode(v, treeView)
 			sizeList[k] = Node.Children[k].LayoutSize
 			if not Node.Children[k].Layout:GetFather() then 
 				Node.Layout:AddChild(Node.Children[k].Layout)
 			end
 		end
-		local fatherPos, poslist = TVStyle.GetChildrenPosList(Node.ObjectSize, sizeList)
+		local fatherPos, poslist = TVStyle.GetChildrenPosList(Node.ObjectSize, sizeList, Node.Key)
 		local width = Node.ObjectSize.width
 		local height = Node.ObjectSize.height
 		local rectlist = {}
@@ -175,6 +224,8 @@ function initNode(Node, treeView)
 			end
 		end
 		
+		if width < fatherPos.left+Node.ObjectSize.width then width = fatherPos.left+Node.ObjectSize.width end
+		
 		Node.Object:SetObjPos2(fatherPos.left, fatherPos.top, Node.ObjectSize.width, Node.ObjectSize.height)
 		Node.ObjectPos = {left = fatherPos.left, top =fatherPos.top}
 		Node.LayoutSize = {width=width, height=height}
@@ -183,13 +234,12 @@ function initNode(Node, treeView)
 						top = fatherPos.top, 
 						width = Node.ObjectSize.width, 
 						height = Node.ObjectSize.height}
-		local linePosList, jointPosList = TVStyle.GetLinesAndJointPosList(frect, rectlist, not Node.Father)
+		local linePosList, jointPosList = TVStyle.GetLinesAndJointPosList(frect, rectlist, not Node.Father, Node.Key)
 		if Node.Layout then
 			for k,pos in pairs(linePosList) do
 				if Node.Lines[k] == nil then 
 					Node.Lines[k] = CreateLineObject(k)
 					Node.Layout:AddChild(Node.Lines[k])
-					-- Node.Lines[k]:SetObjPos2(pos.left, pos.top, pos.right, pos.bottom)
 				end
 				Node.Lines[k]:SetLinePoint(pos.left, pos.top, pos.right, pos.bottom)
 			end
@@ -220,44 +270,4 @@ function createNodeLayout(Node)
 	local layout = objFactory:CreateUIObject(nil, "LayoutObject")
 	layout:SetVisible(false)
 	return layout
-end
-
--- clinet method
--- expected event :Triggered
-function CreateJointObject(data)
-	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-	local object = objFactory:CreateUIObject(nil, "TreeView.Joint")
-	local text = object:GetObject("text")
-	return object
-end
-
--- client Method
-function CreateNodeObject(data)
-	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-	local object = objFactory:CreateUIObject(nil, "TreeView.Node")
-	local text = object:GetObject("text")
-	if text then 
-		text:SetText(data)
-	end
-	local size = {width=0,height=0}
-	if data=="A"or data=="B" then
-		size={width=50, height=30}
-	elseif data=="C" or data=="D" then
-		size={width=120, height=50}
-	else size={width=70, height=15}
-	end
-	return object,size
-end
-
--- clinet method
--- expected method:SetLinePoint
-function CreateLineObject(k)
-	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-	local line = objFactory:CreateUIObject(nil, "LineObject")
-	line:SetVisible(true)
-	--line:SetZorder(1000)
-	line:SetLinePenResID("pen.dot")
-	line:SetLineColorResID("system.black")
-	line:SetObjPos2(0,0, "father.width", "father.height")
-	return line
 end
