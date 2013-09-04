@@ -10,6 +10,10 @@
 
 local TVStyle=nil	
 
+function SetStyle(style)
+	TVStyle = style
+end
+
 -- event OnBind --
 function OnBind(tree)
 	local path = __document
@@ -110,7 +114,7 @@ function initNode(Node, treeView)
 			Node.ObjectSize = {width = 0, height = 0}
 		end
 		Node.Layout = createNodeLayout(Node)
-		Node.LayoutSize = TVStyle.node_size
+		Node.LayoutSize = Node.ObjectSize
 		Node.Layout:AddChild(Node.Object)
 		--Node.Object:SetObjPos(0, 0, Node.ObjectSize.width, Node.ObjectSize.height)
 		if #(Node.Children) > 0 and not Node.JointObject then 
@@ -166,7 +170,6 @@ function initNode(Node, treeView)
 								top = pos.top + t, 
 								width = Node.Children[k].ObjectSize.width, 
 								height = Node.Children[k].ObjectSize.height}
-				Log(Node.Children[k].Data..":left:"..rectlist[k].left)
 				if width < pos.left+w then width = pos.left+w end
 				if height < pos.top+h then height = pos.top+h end
 			end
@@ -234,10 +237,16 @@ function CreateNodeObject(data)
 	local object = objFactory:CreateUIObject(nil, "TreeView.Node")
 	local text = object:GetObject("text")
 	if text then 
-		text:SetMultiline(true)
 		text:SetText(data)
 	end
-	return object
+	local size = {width=0,height=0}
+	if data=="A"or data=="B" then
+		size={width=50, height=30}
+	elseif data=="C" or data=="D" then
+		size={width=120, height=50}
+	else size={width=70, height=15}
+	end
+	return object,size
 end
 
 -- clinet method
