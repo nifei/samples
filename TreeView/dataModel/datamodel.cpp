@@ -1,13 +1,12 @@
 #include "stdafx.h"
-#include "XmlDataModel.h"
 #include "datamodel.h"
-#include "./LuaDataModelClass.h"
+#include "./LuaDir.h"
 
 bool RegisterDataModelClass()
 {
 	XL_LRT_ENV_HANDLE hEnv = XLLRT_GetEnv(NULL);
-	LuaDataModelClass::RegisterClass("XmlDataModel", hEnv);
-	LuaDataModelClassFactory::RegisterObj("XmlDataModel", hEnv);
+	LuaDir::RegisterClass(hEnv);
+	LuaDirFactory::RegisterObj(hEnv);
 	return true;
 }
 

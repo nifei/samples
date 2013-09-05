@@ -149,7 +149,7 @@
 					<width>father.width</width>
 					<height>father.height</height>
 				</attr>
-				<children>
+<!-- 				<children>
 					<obj id = "testLine" class="LineObject" >				
 						<attr>
 							<left>0</left>
@@ -162,10 +162,10 @@
 							<color>system.black</color>
 						</attr>
 					</obj>
-				</children>
 				<eventlist>
 					<event name="OnInitControl" file="MainWnd.xml.lua" func="OnTest" />
 				</eventlist>
+				</children> -->
 			</obj>
 		</children>
 	</obj>

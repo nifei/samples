@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="XLLuaRuntime.lib libexpat.lib XLFSIO.lib XLUE.lib XLGraphic.lib xl_lib_static.lib"
+				AdditionalDependencies="XLLuaRuntime.lib XLFSIO.lib XLUE.lib XLGraphic.lib xl_lib_static.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../../lib;../xl_lib"
 				GenerateDebugInformation="true"
@@ -183,19 +183,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\LuaDataModelClass.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\XmlDataLoader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\XmlDataModel.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\XmlParser.cpp"
+				RelativePath=".\LuaDir.cpp"
 				>
 			</File>
 		</Filter>
@@ -209,7 +197,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\LuaDataModelClass.h"
+				RelativePath=".\LuaDir.h"
 				>
 			</File>
 			<File
@@ -222,18 +210,6 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\XmlDataLoader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\XmlDataModel.h"
-				>
-			</File>
-			<File
-				RelativePath=".\XmlParser.h"
 				>
 			</File>
 		</Filter>

@@ -14,7 +14,7 @@ function CreateNodeObject(data,key)
 	if text then 
 		text:SetText(data)
 	end
-	local size = {width=math.ceil(string.len(data)*6.1),height=20}
+	local size = {width=math.ceil(string.len(data)*6.5),height=20}
 	return object,size
 end
 
@@ -24,7 +24,6 @@ function CreateLineObject(k)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local line = objFactory:CreateUIObject(nil, "LineObject")
 	line:SetVisible(true)
-	--line:SetZorder(1000)
 	line:SetLinePenResID("pen.dot")
 	line:SetLineColorResID("system.black")
 	line:SetObjPos2(0,0, "father.width", "father.height")

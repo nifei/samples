@@ -47,7 +47,7 @@ function OnInitTree(tree)
 	local mdItem = XLLoadModule(itemDir)
 	local itemFactory = mdItem.GetCustomItemFactory(tree)
 	tree:SetItemFactory(itemFactory)
-		
+
 	local modelDir = layoutDir.."TreeModel.lua"
 	local mdModel = XLLoadModule(modelDir)
 	local model = mdModel.GetDirTreeModel()
@@ -65,8 +65,4 @@ function OnTest(layout)
 	line:SetObjPos(100,100,1000,1000)
 	local l,t,r,b = line:GetAbsPos()
 	line:SetLinePoint(0,0,"width","height")
-	
-	local path = __document
-	local index = string.find(path, "/[^/]*$")
-	local rootDir = string.sub(path,1,index)
 end
