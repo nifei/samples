@@ -15,7 +15,6 @@
 						<top>0</top>
 						<width>father.width</width>
 						<height>father.height</height>
-						<image>jellyfish</image>
 						<drawmode>1</drawmode>
 						<visible>1</visible>
 					</attr>
