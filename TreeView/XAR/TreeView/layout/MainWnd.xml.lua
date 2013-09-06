@@ -38,10 +38,6 @@ function OnInitTree(tree)
 	local path = __document
 	local index = string.find(path, "/[^/]*$")
 	local layoutDir = string.sub(path,1,index)
-	-- local styleFile = layoutDir.."CustomTreeStyle.lua"
-	-- local mdStyle = XLLoadModule(styleFile)
-	-- local myStyle = mdStyle.GetCustomStyle(tree)
-	-- tree:SetStyle(myStyle)
 	
 	local itemDir = layoutDir.."ItemFactory.lua"
 	local mdItem = XLLoadModule(itemDir)

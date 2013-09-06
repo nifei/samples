@@ -90,6 +90,7 @@
 			<eventlist>
 				<event name="OnInitControl" file="ScrollPanel.lua" func="OnInitScrollPanel" mergetype="back" />
 				<event name="OnPosChange" file="ScrollPanel.lua" func="OnScrollPanelPosChange" mergetype="back" />
+				<event name="OnMouseWheel" file="ScrollPanel.lua" func="OnMouseWheel" />
 			</eventlist> 
 		</objtemplate>
 	</control>

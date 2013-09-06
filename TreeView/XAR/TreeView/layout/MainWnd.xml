@@ -131,7 +131,7 @@
 						<zorder>-900</zorder>
 					</attr>
 			</obj>
-			<obj id="tree" class="TreeView" templateid="WindowsStyle" >
+			<obj id="tree" class="TreeView" templateid="LeftMidStyle" >
 				<attr>
 					<left>5</left>
 					<top>35</top>
@@ -149,23 +149,6 @@
 					<width>father.width</width>
 					<height>father.height</height>
 				</attr>
-<!-- 				<children>
-					<obj id = "testLine" class="LineObject" >				
-						<attr>
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>100</height>
-							<srcpt>0,0</srcpt>
-							<destpt>1000,1000</destpt>
-							<pen>pen.dot</pen>
-							<color>system.black</color>
-						</attr>
-					</obj>
-				<eventlist>
-					<event name="OnInitControl" file="MainWnd.xml.lua" func="OnTest" />
-				</eventlist>
-				</children> -->
 			</obj>
 		</children>
 	</obj>

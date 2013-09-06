@@ -19,6 +19,14 @@ function OnInitScrollArea(sa)
 	scrollpanel:GetAttribute().ScrollArea = sa
 end
 
+function OnMouseWheel(scrollpanel, x, y, distance)
+	Log("wheel:"..distance)
+	local vsb = scrollpanel:GetAttribute().VScrollBar
+	Log("vsb:"..vsb:GetScrollPos())
+	vsb:SetScrollPos(vsb:GetScrollPos()-math.floor(distance/10), true)
+	vsb:FireExtEvent("OnScrollPosChange", vsb:GetScrollPos())
+end
+
 -- event OnInitControl --
 function OnInitViewport(viewport)
 	local scrollpanel = viewport:GetFather()
