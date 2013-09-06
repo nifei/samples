@@ -48,6 +48,7 @@
 				</obj>
 			</children>
 			<eventlist>
+				<event name="OnLButtonDown" file="Joint.lua" func="OnLButtonDown" />
 				<event name="OnLButtonUp" file="Joint.lua" func="OnLButtonUp" />
 				<event name="OnInitControl" file="Joint.lua" func="OnInitControl" />
 			</eventlist>

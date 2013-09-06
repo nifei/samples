@@ -28,6 +28,11 @@
 			<attr name="horizontal_padding" type="int">
 				<default>50</default>
 			</attr>
+			<attr name="joint_open_icon" type="bitmap">
+				<default>app.bkg</default>
+			</attr>
+			<attr name="joint_close_icon" type="bitmap">
+			</attr>
 			<attr name="joint_width" type="int">
 				<default>10</default>
 			</attr>
