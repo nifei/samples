@@ -28,8 +28,11 @@
 			<attr name="horizontal_padding" type="int">
 				<default>50</default>
 			</attr>
-			<attr name="joint_open_icon" type="bitmap">
-				<default>app.bkg</default>
+			<attr name="joint_open_icon" type="string">
+				<default>open.png</default>
+			</attr>
+			<attr name="joint_close_icon" type="string">
+				<default>close.png</default>
 			</attr>
 			<attr name="joint_close_icon" type="bitmap">
 			</attr>
@@ -57,6 +60,15 @@
 		</method_def>
 		<objtemplate id="TreeView.Template">
 			<children>
+				<obj id="test" class="ImageObject">
+					<attr>
+						<left>0</left>
+						<top>0</top>
+						<width>10</width>
+						<height>10</height>
+						<drawmode>1</drawmode>
+					</attr>
+				</obj>
 				<obj id="tree.scroll" class="ScrollPanel">
 					<attr>
 						<left>0</left>
@@ -68,6 +80,7 @@
 			</children>
 			<eventlist>
 				<event name="OnBind" file="TreeView.lua" func="OnBind" />
+				<event name="OnInitControl" file="TreeView.lua" func="OnInitControl" />
 			</eventlist>
 		</objtemplate>
 	</control>

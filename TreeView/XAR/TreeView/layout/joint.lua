@@ -2,8 +2,17 @@ function SetExpand(joint, expand)
 	local attr = joint:GetAttribute()
 	local prevState = attr.Expand
 	joint:GetAttribute().Expand = expand
-	local text = joint:GetObject("text")
-	text:SetText(expand and "-" or "+")
+	local icon = joint:GetObject("image")
+	if icon then
+		local bitmap = nil
+		if expand == true then
+			bitmap = joint:GetAttribute().ExpandIcon
+		elseif expand == false then
+			bitmap = joint:GetAttribute().CollapseIcon
+		end
+		if bitmap then icon:SetBitmap(bitmap) end
+		icon:SetObjPos(0,0,10,10)
+	end
 	if prevState ~= expand then joint:FireExtEvent("Triggered", expand) end
 end
 

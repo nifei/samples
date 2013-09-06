@@ -6,6 +6,7 @@
 			</attr>
 		</attr_def>
 		<method_def>
+			<SetIcons file="Joint.lua" func="SetIcons" />
 			<SetExpand file="Joint.lua" func="SetExpand" />
 			<IsExpand file="Joint.lua" func="IsExpand" />
 		</method_def>
@@ -28,20 +29,18 @@
 						<pen>pen.dot</pen>
 						<destpt>width,height</destpt>
 						<pencolor>system.red</pencolor>
-						<brush>brush.solid</brush>
+						<brush>brush.null</brush>
 						<visible>1</visible>
 					</attr>
 					<children>
-						<obj id="text" class="TextObject">
+						<obj id="image" class="ImageObject">
 							<attr>
 								<left>0</left>
-								<top>-1</top>
+								<top>0</top>
 								<width>father.width</width>
 								<height>father.height</height>
-								<text>+</text>
-								<font>font.small</font>
-								<valign>center</valign>
-								<halign>center</halign>
+								<drawmode>1</drawmode>
+								<zorder>10000</zorder>
 							</attr>
 						</obj>
 					</children>

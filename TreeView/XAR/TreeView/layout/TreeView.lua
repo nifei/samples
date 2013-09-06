@@ -48,6 +48,20 @@ function OnBind(tree)
 	return 0, true
 end
 
+-- event OnInitControl --
+function OnInitControl(tree)
+	local attr = tree:GetAttribute()
+	local xlgraphic = XLGetObject("Xunlei.XLGraphic.Factory.Object")
+	local openBitmap = xlgraphic:CreateBitmap(attr.joint_open_icon, "ARGB32")
+	local closeBitmap = xlgraphic:CreateBitmap(attr.joint_close_icon, "ARGB32")
+	tree:GetAttribute().joint_open_icon = openBitmap
+	tree:GetAttribute().joint_close_icon = openBitmap
+	local image = tree:GetObject("test")
+	if image then
+		image:SetBitmap(openBitmap)
+	end
+end
+
 -- TreeView method
 function createNode(key, data)
 	local Node={}
@@ -171,6 +185,9 @@ function initNode(Node, treeView)
 		Node.Layout:AddChild(Node.Object)
 		if dataModel.HasChildren(Node) and not Node.JointObject then 
 			Node.JointObject = CreateJointObject()
+			local open = treeView:GetAttribute().joint_open_icon
+			local clse = treeView:GetAttribute().joint_close_icon
+			Node.JointObject:SetIcons(open, clse)
 			local OnJointTriggered = 
 				function (joint, eventName, expand)
 					local prevState = Node.Expand
