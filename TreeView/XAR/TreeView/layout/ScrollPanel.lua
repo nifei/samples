@@ -10,19 +10,12 @@ end
 
 -- event OnInitControl --
 function OnInitScrollArea(sa)
-	if sa:GetClass()=="ImageObject" then
-		local bitmap = sa:GetBitmap()
-		local color, w, h, scan = bitmap:GetInfo()
-		sa:SetObjPos2(0, 0, w, h)
-	end
 	local scrollpanel = sa:GetFather()
 	scrollpanel:GetAttribute().ScrollArea = sa
 end
 
 function OnMouseWheel(scrollpanel, x, y, distance)
-	Log("wheel:"..distance)
 	local vsb = scrollpanel:GetAttribute().VScrollBar
-	Log("vsb:"..vsb:GetScrollPos())
 	vsb:SetScrollPos(vsb:GetScrollPos()-math.floor(distance/10), true)
 	vsb:FireExtEvent("OnScrollPosChange", vsb:GetScrollPos())
 end

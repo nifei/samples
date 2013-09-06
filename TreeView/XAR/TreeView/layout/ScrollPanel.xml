@@ -9,14 +9,12 @@
 		</method_def>
 		<objtemplate>
  			<children>
-				<obj id="scroll.area" class="ImageObject">
+				<obj id="scroll.area" class="LayoutObject">
 					<attr>
 						<left>0</left>
 						<top>0</top>
 						<width>father.width</width>
 						<height>father.height</height>
-						<drawmode>1</drawmode>
-						<visible>1</visible>
 					</attr>
 					<eventlist>
 						<event name="OnInitControl" file="ScrollPanel.lua" func="OnInitScrollArea" />
