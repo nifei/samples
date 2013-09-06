@@ -177,10 +177,14 @@ function initNode(Node, treeView)
 					Node.Expand = expand
 					if prevState ~= expand then 
 						Node = releaseNode(Node)
-						local father = Node
-						while dataModel.GetFather(father) do
-							father = dataModel.GetFather(father)
+						local father = dataModel.GetFather(Node)
+						local son = Node
+						while father do
+							father.Children[son.Key] = son
+							son = father
+							father = dataModel.GetFather(son)
 						end
+						father = son
 						father = initNode(father, treeView)
 						father.Layout:SetObjPos2(0, 0, father.LayoutSize.width, father.LayoutSize.height)
 					end

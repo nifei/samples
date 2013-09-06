@@ -179,10 +179,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\dllmain.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\LuaDir.cpp"
 				>
 			</File>
@@ -198,14 +194,6 @@
 			</File>
 			<File
 				RelativePath=".\LuaDir.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MainFrm.h"
-				>
-			</File>
-			<File
-				RelativePath="..\xl_include\PostMessageToUIThread.h"
 				>
 			</File>
 			<File
