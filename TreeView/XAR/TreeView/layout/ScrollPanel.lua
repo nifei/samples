@@ -79,6 +79,9 @@ function OnScrollAreaPosChange(sa, lo, to, ro, bo, ln, tn, rn, bn)
 	local hsb = scrollpanel:GetAttribute().HScrollBar
 	local vsb = scrollpanel:GetAttribute().VScrollBar
 	alignObjects(viewport, sa, hsb, vsb)
+	local vpos = vsb:GetScrollPos()
+	local hpos = hsb:GetScrollPos()
+	sa:SetObjPos2(0-hpos, 0-vpos, rn-ln, bn-tn)
 	return 0, true
 end
 
@@ -109,16 +112,19 @@ function alignObjects(viewport, sa, hs, vs)
 	if viewport and sa and vs and hs then
 		local lv, tv, rv, bv = viewport:GetObjPos()
 		local lsa, tsa, rsa, bsa = sa:GetObjPos()
-		local wv = rv-lv; local hv = bv-tv; local wsa = rsa-lsa; local hsa = bsa-tsa;
-		if wv < wsa then
-			if 0-lsa>wsa-wv then lsa=wv-wsa end
+		local widthView = rv-lv; 
+		local hv = bv-tv; 
+		local wsa = rsa-lsa; 
+		local hsa = bsa-tsa;
+		if widthView < wsa then
+			if 0-lsa>wsa-widthView then lsa=widthView-wsa end
 			hs:SetVisible(true)
 			hs:SetChildrenVisible(true)
-			hs:SetScrollRange(0, wsa-wv)
+			hs:SetScrollRange(0, wsa-widthView)
 		else
 			lsa=0
-			hs:SetVisible(false) 
-			hs:SetChildrenVisible(false) 
+			hs:SetVisible(false)
+			hs:SetChildrenVisible(false)
 		end
 		if hv < hsa then 
 			if 0-tsa>hsa-hv then tsa=hv-hsa end
