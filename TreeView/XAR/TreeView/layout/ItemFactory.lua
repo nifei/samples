@@ -1,6 +1,4 @@
 local bitmap = {}
-
-local bitmap = {}
 local path = __document
 local index = string.find(path, "/[^/]*$")
 local currentFolder = string.sub(path,1,index)
@@ -23,6 +21,9 @@ bitmap.js = jsIcon
 local dllIconPath = currentFolder.."../res/default/bitmap/dll.png"
 local dllIcon = xlgraphic:CreateBitmap(dllIconPath, "ARGB32")
 bitmap.dll = dllIcon
+local txtIconPath = currentFolder.."../res/default/bitmap/txt.png"
+local txtIcon = xlgraphic:CreateBitmap(txtIconPath, "ARGB32")
+bitmap.txt = txtIcon
 
 function getFileExtention(path)
 	if string.sub(path, -4, -1) == ".exe" then
@@ -37,6 +38,8 @@ function getFileExtention(path)
 		return "rar"
 	elseif string.sub(path, -4, -1) == ".dll" then
 		return "dll"
+	elseif string.sub(path, -4, -1) == ".txt" then
+		return "txt"
 	end
 end
 	
@@ -60,8 +63,7 @@ function CreateNodeObject(data,key)
 		imageObject:SetBitmap(bitmap.dir)
 	else
 		local ext = getFileExtention(text)
-		local icon = bitmap[ext]
-		imageObject:SetBitmap(icon)
+		imageObject:SetBitmap(bitmap[ext])
 	end
 	local size = {width=math.ceil(string.len(text)*10)+20,height=20}
 	return object,size
