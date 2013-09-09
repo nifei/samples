@@ -28,14 +28,22 @@
 					<children>
 						<obj id="text" class="TextObject">
 							<attr>
-							<left>0</left>
+							<left>20</left>
 							<top>0</top>
-							<width>father.width</width>
+							<width>father.width - 20</width>
 							<height>father.height</height>
 							<valign>center</valign>
 							<text>node</text>
 							<halign>center</halign>
 							<autoresize>1</autoresize>
+							</attr>
+						</obj>
+						<obj id="icon" class="ImageObject">
+							<attr>
+							<left>1</left>
+							<top>1</top>
+							<width>20</width>
+							<height>father.height-2</height>
 							</attr>
 						</obj>
 					</children>

@@ -1,11 +1,69 @@
+local bitmap = {}
+
+local bitmap = {}
+local path = __document
+local index = string.find(path, "/[^/]*$")
+local currentFolder = string.sub(path,1,index)
+local xlgraphic = XLGetObject("Xunlei.XLGraphic.Factory.Object")
+local dirIconPath = currentFolder.."../res/default/bitmap/folder.png"
+local dirIcon = xlgraphic:CreateBitmap(dirIconPath, "ARGB32")
+bitmap.dir = dirIcon
+local exeIconPath = currentFolder.."../res/default/bitmap/exe.png"
+local exeIcon = xlgraphic:CreateBitmap(exeIconPath, "ARGB32")
+bitmap.exe = exeIcon
+local luaIconPath = currentFolder.."../res/default/bitmap/lua.png"
+local luaIcon = xlgraphic:CreateBitmap(luaIconPath, "ARGB32")
+bitmap.lua = luaIcon
+local rarIconPath = currentFolder.."../res/default/bitmap/rar.png"
+local rarIcon = xlgraphic:CreateBitmap(rarIconPath, "ARGB32")
+bitmap.rar = rarIcon
+local jsIconPath = currentFolder.."../res/default/bitmap/js.png"
+local jsIcon = xlgraphic:CreateBitmap(jsIconPath, "ARGB32")
+bitmap.js = jsIcon
+local dllIconPath = currentFolder.."../res/default/bitmap/dll.png"
+local dllIcon = xlgraphic:CreateBitmap(dllIconPath, "ARGB32")
+bitmap.dll = dllIcon
+
+function getFileExtention(path)
+	if string.sub(path, -4, -1) == ".exe" then
+		return "exe"
+	elseif string.sub(path, -4, -1) == ".cpp" then
+		return "cpp"
+	elseif string.sub(path, -4, -1) == ".lua" then
+		return "lua"
+	elseif string.sub(path, -3, -1) == ".js" then
+		return "js"
+	elseif string.sub(path, -4, -1) == ".rar" or string.sub(path, -4, -1) == ".zip" then
+		return "rar"
+	elseif string.sub(path, -4, -1) == ".dll" then
+		return "dll"
+	end
+end
+	
+
 function CreateNodeObject(data,key)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local object = objFactory:CreateUIObject(nil, "TreeView.Node")
-	local text = object:GetObject("text")
-	if text then 
-		text:SetText(data)
+	local textObject = object:GetObject("text")
+	local text = ""
+	local isDir = false
+	if type(data) == "table" then
+		text = data.path
+		isDir = data.isDir
+	else
+		text =data
 	end
-	local size = {width=math.ceil(string.len(data)*7),height=20}
+	textObject:SetText(text)
+	
+	local imageObject = object:GetObject("icon")
+	if isDir then
+		imageObject:SetBitmap(bitmap.dir)
+	else
+		local ext = getFileExtention(text)
+		local icon = bitmap[ext]
+		imageObject:SetBitmap(icon)
+	end
+	local size = {width=math.ceil(string.len(text)*10)+20,height=20}
 	return object,size
 end
 

@@ -162,9 +162,6 @@ function RenderTree(tree)
 	canvas:SetObjPos2(0, 0, rootNode.LayoutSize.width, rootNode.LayoutSize.height)
 end
 
-function RenderTreeFromNode(tree, rootNode)
-end
-
 function rmvObj(obj)
 	if obj and obj:GetFather() then
 		obj:GetFather():RemoveChild(obj)
@@ -226,6 +223,7 @@ function initNode(Node, treeView)
 			Node.JointObject:AttachListener("Triggered", true, OnJointTriggered)
 		end
 		Node.Dirty = true
+		Node.Lines = {}
 	end
 	if dataModel.HasChildren(Node) and Node.Expand then
 		local sizeList = {}

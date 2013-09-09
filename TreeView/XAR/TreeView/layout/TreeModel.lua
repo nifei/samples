@@ -1,17 +1,11 @@
 local treeModel = {}
-
 -- TreeView method
 function createNode(key, data)
 	local Node={}
 	Node.Key=key
 	Node.Children={}
-	Node.Object=nil
-	Node.Layout=nil
-	Node.ObjectSize = nil
-	Node.LayoutSize=Node.ObjectSize
 	Node.Data = data
 	Node.Expand =false
-	Node.Lines = {}
 	return Node
 end
 
@@ -93,14 +87,17 @@ function GetDirTreeModel(rootDir)
 				Node.Children = {}
 			else
 				for k,info in pairs(subDirs) do
-					local value = info[2]
-					local key = curDir..value
+					local path = info[2]
+					local key = curDir..path
 					if string.sub(key, -1, -1) ~= "\\" then
 						key = key.."\\"
 					end
 					local node = Node.Children[key]
+					local data ={}
+					data.path = path
+					data.isDir = info[1]
 					if not node then 
-						node = createNode(key, value) 
+						node = createNode(key, data) 
 						node.Father = Node
 					end
 					if info[1] == true then
