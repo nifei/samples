@@ -29,18 +29,16 @@
 				<default>50</default>
 			</attr>
 			<attr name="joint_open_icon" type="string">
-				<default>open.png</default>
+				<default>../res/default/bitmap/open.png</default>
 			</attr>
 			<attr name="joint_close_icon" type="string">
-				<default>close.png</default>
-			</attr>
-			<attr name="joint_close_icon" type="bitmap">
+				<default>../res/default/bitmap/close.png</default>
 			</attr>
 			<attr name="joint_width" type="int">
-				<default>10</default>
+				<default>15</default>
 			</attr>
 			<attr name="joint_height" type="int">
-				<default>10</default>
+				<default>15</default>
 			</attr>
 			<attr name="joint_node_padding" type="int">
 				<default>0</default>
@@ -60,15 +58,6 @@
 		</method_def>
 		<objtemplate id="TreeView.Template">
 			<children>
-				<obj id="test" class="ImageObject">
-					<attr>
-						<left>0</left>
-						<top>0</top>
-						<width>10</width>
-						<height>10</height>
-						<drawmode>1</drawmode>
-					</attr>
-				</obj>
 				<obj id="tree.scroll" class="ScrollPanel">
 					<attr>
 						<left>0</left>
@@ -99,9 +88,6 @@
 			<joint_height>10</joint_height>
 			<joint_node_padding>3</joint_node_padding>
 		</attr>
-		<eventlist>
-			<!-- <event name="OnPostCreateInstance" file="TreeView.lua" func="OnPostCreateInstance" /> -->
-		</eventlist>
 	</objtemplate>
 	<objtemplate id="LeftMidStyle">
 		<attr>
@@ -120,9 +106,6 @@
 			<joint_node_padding>5</joint_node_padding>
 			<knob_size>8</knob_size>
 		</attr>
-		<eventlist>
-			<!-- <event name="OnPostCreateInstance" file="TreeView.lua" func="OnPostCreateInstance" /> -->
-		</eventlist>
 	</objtemplate>
 	<objtemplate id="WindowsStyle">
 		<attr>

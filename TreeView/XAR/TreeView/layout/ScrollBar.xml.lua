@@ -209,15 +209,12 @@ function SetThumbPos(self, newPos)
 end
 
 function SetScrollPos(self, newPos, update)
-	Log("scrollbar:"..newPos)
     local attr = self:GetAttribute()
     
     if newPos < attr.RangeBegin then
         newPos = attr.RangeBegin
-		Log("newpos:"..newPos)
     elseif newPos > attr.RangeEnd then
         newPos = attr.RangeEnd
-		Log("new pos 2:"..newPos)
     end
     
     attr.ScrollPos = newPos

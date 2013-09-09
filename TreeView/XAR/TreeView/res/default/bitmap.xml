@@ -1,7 +1,6 @@
 <XLUE>
 	<resource>	
 		<bitmap id="app.bkg" path="bitmap\bkg.png"/>
-		<bitmap id="jellyfish" path="bitmap\jellyfish.png"/>
 		<imagelist id="bitmap.sysbtn.image" vertical="0" splitter="1" varyblock="0" blocksize="21" image="bitmap\system_button.png"/>
 		<texture id="texture.sysbtn.normal" imagelist="bitmap.sysbtn.image" index="1"/>
 		<texture id="texture.sysbtn.hover" imagelist="bitmap.sysbtn.image" index="2"/>

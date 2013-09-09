@@ -142,14 +142,6 @@
 					<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitTree" />
 				</eventlist>
 			</obj>
-			<obj id="vacant" class="LayoutObject">
-				<attr>
-					<left>0</left>
-					<top>0</top>
-					<width>father.width</width>
-					<height>father.height</height>
-				</attr>
-			</obj>
 		</children>
 	</obj>
 </objtreetemplate>

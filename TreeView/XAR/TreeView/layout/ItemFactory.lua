@@ -1,12 +1,3 @@
--- clinet method
--- expected event :Triggered
-function CreateJointObject(data)
-	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-	local object = objFactory:CreateUIObject(nil, "TreeView.Joint")
-	local text = object:GetObject("text")
-	return object
-end
-
 function CreateNodeObject(data,key)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local object = objFactory:CreateUIObject(nil, "TreeView.Node")
@@ -32,7 +23,6 @@ end
 
 function GetCustomItemFactory(tree)
 	local itemFactory = {}
-	itemFactory.CreateJointObject = CreateJointObject
 	itemFactory.CreateNodeObject = CreateNodeObject
 	itemFactory.CreateLineObject = CreateLineObject
 	return itemFactory

@@ -22,12 +22,16 @@ end
 
 function SetItemFactory(tree, itemFactory)
 	local expectedMethod = {"CreateLineObject",
-							"CreateNodeObject",
-							"CreateJointObject"}
+							"CreateNodeObject"}
 	CheckMethodWithAlert(expectedMethod, itemFactory)
 	CreateLineObject = itemFactory.CreateLineObject
 	CreateNodeObject = itemFactory.CreateNodeObject
-	CreateJointObject = itemFactory.CreateJointObject
+	CreateJointObject = 
+		function ()
+			local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
+			local object = objFactory:CreateUIObject(nil, "TreeView.Joint")
+			return object
+		end
 end
 
 function SetTreeModel(tree, model)
@@ -51,15 +55,16 @@ end
 -- event OnInitControl --
 function OnInitControl(tree)
 	local attr = tree:GetAttribute()
+	local path = __document
+	local index = string.find(path, "/[^/]*$")
+	local currentFolder = string.sub(path,1,index)
+	local open_icon_dir = currentFolder..(attr.joint_open_icon)
+	local close_icon_dir = currentFolder..(attr.joint_close_icon)
 	local xlgraphic = XLGetObject("Xunlei.XLGraphic.Factory.Object")
-	local openBitmap = xlgraphic:CreateBitmap(attr.joint_open_icon, "ARGB32")
-	local closeBitmap = xlgraphic:CreateBitmap(attr.joint_close_icon, "ARGB32")
+	local openBitmap = xlgraphic:CreateBitmap(open_icon_dir, "ARGB32")
+	local closeBitmap = xlgraphic:CreateBitmap(close_icon_dir, "ARGB32")
 	tree:GetAttribute().joint_open_icon = openBitmap
-	tree:GetAttribute().joint_close_icon = openBitmap
-	local image = tree:GetObject("test")
-	if image then
-		image:SetBitmap(openBitmap)
-	end
+	tree:GetAttribute().joint_close_icon = closeBitmap
 end
 
 -- TreeView method

@@ -26,9 +26,6 @@ void ListDirectoryContents(lua_State *L)
 			xl::text::transcode::Unicode_to_ANSI(szDrive, MAX_PATH, atemp);
 			const char* volume = atemp.c_str();
 			UINT uDriveType = GetDriveType(szDrive);
-			if (DRIVE_UNKNOWN == uDriveType)
-			{
-			}
 
 			lua_newtable(L);
 			lua_pushnumber(L, 1);
