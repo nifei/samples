@@ -21,11 +21,23 @@ function SetStyle(tree, style)
 end
 
 function SetItemFactory(tree, itemFactory)
-	local expectedMethod = {"CreateLineObject",
-							"CreateNodeObject"}
+	local expectedMethod = {"CreateNodeObject"}
 	CheckMethodWithAlert(expectedMethod, itemFactory)
-	CreateLineObject = itemFactory.CreateLineObject
 	CreateNodeObject = itemFactory.CreateNodeObject
+	if not itemFactory.CreateLineObject then 
+		CreateLineObject = 
+			function ()
+				local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
+				local line = objFactory:CreateUIObject(nil, "LineObject")
+				line:SetVisible(true)
+				line:SetLinePenResID("pen.solid")
+				line:SetLineColorResID("system.black")
+				line:SetObjPos2(0,0, "father.width", "father.height")
+				return line
+			end
+	else
+		CreateLineObject = itemFactory.CreateLineObject
+	end
 	CreateJointObject = 
 		function ()
 			local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")

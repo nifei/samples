@@ -11,7 +11,7 @@ end
 
 -- clinet method
 -- expected method:SetLinePoint
-function CreateLineObject(k)
+function CreateLineObject()
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
 	local line = objFactory:CreateUIObject(nil, "LineObject")
 	line:SetVisible(true)
