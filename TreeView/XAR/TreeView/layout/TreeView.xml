@@ -46,15 +46,14 @@
 			<attr name="knob_size" type="int">
 				<default>5</default>
 			</attr>
-			<attr name="user_define_1" type="userdata" />
-			<attr name="user_define_2" type="userdata" />
-			<attr name="user_define_3" type="userdata" />
 		</attr_def>
 		<method_def>
 			<RenderTreeFromDataTable file="TreeView.lua" func="RenderTreeFromDataTable" />
 			<SetStyle file="TreeView.lua" func="SetStyle" />
 			<SetItemFactory file="TreeView.lua" func="SetItemFactory" />
 			<SetTreeModel file="TreeView.lua" func="SetTreeModel" />
+			<SetHScrollBar file="TreeView.lua" func="SetHScrollBar" />
+			<SetVScrollBar file="TreeView.lua" func="SetVScrollBar" />
 		</method_def>
 		<objtemplate id="TreeView.Template">
 			<children>

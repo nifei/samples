@@ -311,3 +311,13 @@ function createNodeLayout(Node)
 	layout:SetVisible(false)
 	return layout
 end
+
+function SetHScrollBar(tree, hsb)
+	local scrollpanel = tree:GetObject("tree.scroll")
+	scrollpanel:SetHScrollBar(hsb)
+end
+
+function SetVScrollBar(tree, vsb)
+	local scrollpanel = tree:GetObject("tree.scroll")
+	scrollpanel:SetVScrollBar(vsb)
+end
