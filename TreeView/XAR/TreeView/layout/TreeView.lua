@@ -77,6 +77,20 @@ function OnInitControl(tree)
 	local closeBitmap = xlgraphic:CreateBitmap(close_icon_dir, "ARGB32")
 	tree:GetAttribute().joint_open_icon = openBitmap
 	tree:GetAttribute().joint_close_icon = closeBitmap
+	
+	local scrollpanel = tree:GetObject("tree.scroll")
+	scrollpanel:AttachListener("VerticalScrollPosChanged", true, 
+		function (sp, method, oldPos, newPos)
+			tree:FireExtEvent("VerticalScrollPosChanged", oldPos, newPos)
+		end )
+	scrollpanel:AttachListener("HorizontalScrollPosChanged", true, 
+		function (sp, method, oldPos, newPos)
+			tree:FireExtEvent("HorizontalScrollPosChanged", oldPos, newPos)
+		end )
+	scrollpanel:AttachListener("VisibleRectChanged", true, 
+		function (sp, method, left, top, width, height)
+			tree:FireExtEvent("VisibleRectChanged", left, top, width, height)
+		end )
 end
 
 -- TreeView method

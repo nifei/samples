@@ -7,6 +7,28 @@
 			<SetVScrollBar file="ScrollPanel.lua" func="SetVScrollBar" />
 			<SetInnerObject file="ScrollPanel.lua" func="SetInnerObject" />
 		</method_def>
+		<event_def>
+			<VerticalScrollPosChanged>
+				<param>
+					<int name="oldPos"/>
+					<int name="newPos"/>
+				</param>
+			</VerticalScrollPosChanged>
+			<HorizontalScrollPosChanged>
+				<param>
+					<int name="oldPos"/>
+					<int name="newPos"/>
+				</param>
+			</HorizontalScrollPosChanged>
+			<VisibleRectChanged>
+				<param>
+					<int name="left" />
+					<int name="top" />
+					<int name="width" />
+					<int name="height" />
+				</param>
+			</VisibleRectChanged>
+		</event_def>
 		<objtemplate>
  			<children>
 				<obj id="scroll.area" class="LayoutObject">

@@ -6,6 +6,8 @@ function OnInitScrollPanel(scrollpanel)
 	local sa = scrollpanel:GetAttribute().ScrollArea
 	scrollpanel:SetLimitChild(true)
 	alignObjects(viewport, sa, hsb, vsb)
+	scrollpanel:GetAttribute().HScrollPos = 0
+	scrollpanel:GetAttribute().VScrollPos = 0
 end
 
 -- event OnInitControl --
@@ -60,7 +62,7 @@ end
 
 -- method -- 
 function SetInnerObject(scrollpanel, sa)
-	if scrollpanel:GetAttribute().ScrollArea ~= nil then
+	if scrollpanel:GetAttribute().ScrollArea ~= nil and scrollpanel:GetAttribute().ScrollArea ~= sa then
 		scrollpanel:RemoveChild(scrollpanel:GetAttribute().ScrollArea)
 	end
 	scrollpanel:GetAttribute().ScrollArea = sa
@@ -73,8 +75,13 @@ end
 
 -- event OnPosChange of scroll area --
 function OnScrollAreaPosChange(sa, lo, to, ro, bo, ln, tn, rn, bn)
-	if rn-ln==ro-lo and bn-tn==bo-to then return 0, true end
 	local scrollpanel = sa:GetFather()
+	if rn-ln==ro-lo and bn-tn==bo-to then 
+		if lo~=ln or to~=tn or ro~=rn or bo~=bn then
+			scrollpanel:FireExtEvent("VisibleRectChanged", ln,tn,rn-ln,bn-tn)
+		end
+		return 0, true
+	end
 	local viewport = scrollpanel:GetAttribute().Viewport
 	local hsb = scrollpanel:GetAttribute().HScrollBar
 	local vsb = scrollpanel:GetAttribute().VScrollBar
@@ -99,6 +106,9 @@ function OnHScrollPosChange(hscrollbar)
 	local pos = hscrollbar:GetScrollPos()
 	local scrollpanel = hscrollbar:GetObject("father")
 	setScrollAreaHPos(scrollpanel, pos)
+	local oldPos = scrollpanel:GetAttribute().HScrollPos
+	scrollpanel:GetAttribute().HScrollPos = pos
+	scrollpanel:FireExtEvent("HorizontalScrollPosChanged", oldPos, pos)
 end
 
 -- event OnScrollPosChange -- 
@@ -106,6 +116,9 @@ function OnVScrollPosChange(vscrollbar)
 	local pos = vscrollbar:GetScrollPos()
 	local scrollpanel = vscrollbar:GetObject("father")
 	setScrollAreaVPos(scrollpanel, pos)
+	local oldPos = scrollpanel:GetAttribute().VScrollPos
+	scrollpanel:GetAttribute().VScrollPos = pos
+	scrollpanel:FireExtEvent("VerticalScrollPosChanged", oldPos, pos)
 end
 
 function alignObjects(viewport, sa, hs, vs)
