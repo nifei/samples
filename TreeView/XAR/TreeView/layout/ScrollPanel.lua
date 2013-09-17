@@ -78,7 +78,8 @@ function OnScrollAreaPosChange(sa, lo, to, ro, bo, ln, tn, rn, bn)
 	local scrollpanel = sa:GetFather()
 	if rn-ln==ro-lo and bn-tn==bo-to then 
 		if lo~=ln or to~=tn or ro~=rn or bo~=bn then
-			scrollpanel:FireExtEvent("VisibleRectChanged", ln,tn,rn-ln,bn-tn)
+			local viewportSize = scrollpanel:GetViewportSize()
+			scrollpanel:FireExtEvent("VisibleRectChanged", ln,tn,viewportSize.width, viewportSize.height)
 		end
 		return 0, true
 	end
@@ -119,6 +120,13 @@ function OnVScrollPosChange(vscrollbar)
 	local oldPos = scrollpanel:GetAttribute().VScrollPos
 	scrollpanel:GetAttribute().VScrollPos = pos
 	scrollpanel:FireExtEvent("VerticalScrollPosChanged", oldPos, pos)
+end
+
+-- method GetViewportSize
+function GetViewportSize(scrollpanel)
+	local viewport = scrollpanel:GetAttribute().Viewport
+	local l,t,r,b = viewport:GetObjPos()
+	return {width=(r-l),height=b-t}
 end
 
 function alignObjects(viewport, sa, hs, vs)

@@ -335,3 +335,13 @@ function SetVScrollBar(tree, vsb)
 	local scrollpanel = tree:GetObject("tree.scroll")
 	scrollpanel:SetVScrollBar(vsb)
 end
+
+function GetTreeModel(tree)
+	local model = tree:GetAttribute().DataModel
+	return model
+end
+
+function GetViewportSize(tree)
+	local scrollpanel = tree:GetObject("tree.scroll")
+	return scrollpanel:GetViewportSize()
+end

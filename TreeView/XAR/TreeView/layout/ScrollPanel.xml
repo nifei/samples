@@ -6,6 +6,7 @@
 			<SetHScrollBar file="ScrollPanel.lua" func="SetHScrollBar" />
 			<SetVScrollBar file="ScrollPanel.lua" func="SetVScrollBar" />
 			<SetInnerObject file="ScrollPanel.lua" func="SetInnerObject" />
+			<GetViewportSize file="ScrollPanel.lua" func="GetViewportSize" />
 		</method_def>
 		<event_def>
 			<VerticalScrollPosChanged>

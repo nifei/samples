@@ -54,6 +54,8 @@
 			<SetTreeModel file="TreeView.lua" func="SetTreeModel" />
 			<SetHScrollBar file="TreeView.lua" func="SetHScrollBar" />
 			<SetVScrollBar file="TreeView.lua" func="SetVScrollBar" />
+			<GetTreeModel file="TreeView.lua" func="GetTreeModel" />
+			<GetViewportSize file="TreeView.lua" func="GetViewportSize" />
 		</method_def>
 		<event_def>
 			<VerticalScrollPosChanged>
