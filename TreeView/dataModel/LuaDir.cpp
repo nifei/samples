@@ -94,6 +94,8 @@ void ListDirectoryContents(lua_State *L)
 	return;
 }
 
+/*在lua语言中，以__开头的方法一般为内建方法或成员，__gc方法是lua 中引用类型对象的资源回收方法，因为lua语言是基于垃圾回收的，当一个引用类型对象不再使用时，垃圾回收程序会将该对象从lua环境中释放，并且调用其上的__gc方法来释放该对象占用的资源（参见lua黄书）。当在lua环境中创建LuaMyClass的实例时，在堆上创建了一个MyClass的实例，对称的，当LuaMyClass实例在乱环境中被回收时，需要在__gc方法中从堆上释放对应的MyClass的实例。
+*/
 XLLRTGlobalAPI LuaDir::mLuaDirMemberFunctions[] = 
 {
     {"__gc",LuaDir::DeleteSelf},
