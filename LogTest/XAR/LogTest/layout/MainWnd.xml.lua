@@ -16,7 +16,7 @@ function OnLButtonDown(self, x, y, flags)
 	local logObjFactory = XLGetObject("LogObjectFactory")
 	if logObjFactory then
 		log = logObjFactory:CreateInstance()
-		log:Log(123)
+		log:Log("OnLButtonDown"..":"..x..":"..y)
 	end
 	return 0, true, true
 end

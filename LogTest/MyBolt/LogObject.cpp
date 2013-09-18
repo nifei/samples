@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LogObject.h"
-
+#include "tslog.h"
+#include "xl_lib/text/transcode.h"
 
 XLLRTGlobalAPI LogObject::mLogObjectMemberFunctions[] = 
 {
@@ -28,6 +29,10 @@ int LogObject::DeleteSelf(lua_State *luaState)
 int LogObject::Log(lua_State *L)
 {
 	LogObject **ppLogObject = reinterpret_cast<LogObject**>(luaL_checkudata(L, 1, "LogObject"));
+	const char* log = lua_tostring(L, 2);
+	std::wstring wlog;
+	xl::text::transcode::ANSI_to_Unicode(log, MAX_PATH, wlog);
+	TSINFO(wlog.c_str());
 	return 1;
 }
 
