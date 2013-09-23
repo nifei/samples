@@ -12,8 +12,8 @@
 				<attr>
 					<left>0</left>
 					<top>0</top>
-					<width>256</width>
-					<height>256</height>
+					<width>128</width>
+					<height>128</height>
 					<clipsens>1</clipsens>
 				</attr>
 				<children>
@@ -60,65 +60,6 @@
         </eventlist>
 	</objtemplate>
 </control>
-
-<control class="MirrorGif">
-	<attr_def>
-		<attr name="Type" type="string"/>
-	</attr_def>
-	<objtemplate>
-		<children>
-			<obj class="LayerObject">
-				<attr>
-					<left>0</left>
-					<top>0</top>
-					<width>256</width>
-					<height>256</height>
-					<clipsens>1</clipsens>
-				</attr>
-				<children>
-				<!-- 	<obj class="SeqImageObject">
-						<attr>
-							<width>father.width</width>
-							<height>father.height</height>
-							<gif>cat</gif>
-							<loop>1</loop>
-						</attr>
-						<eventlist>
-							<event name="OnInitControl">
-								local arg = {...}
-								local self = arg[1]
-								self:Play()
-							</event>
-						</eventlist>
-					</obj> -->
-					<obj class="ImageObject">
-						<attr>
-							<width>father.width</width>
-							<height>father.height</height>
-							<image>test</image>
-						</attr>
-					</obj>
-					<obj id="mirror" class="MirrorObject">
-						<attr>
-							<width>father.width</width>
-							<height>father.height</height>
-							<mirrortype>none</mirrortype>
-						</attr>
-					</obj>
-				</children>
-			</obj>
-		</children>
-		<eventlist>
-             <event name="OnInitControl">
-				local arg = {...}
-				local self = arg[1]
-				local obj = self:GetControlObject("mirror")
-				local attr = self:GetAttribute();
-				obj:SetMirrorType(attr.Type)
-			 </event>
-        </eventlist>
-	</objtemplate>
-</control>
 	
 <objtreetemplate id="HelloBolt.Tree" class="ObjectTreeTemplate">
 	<attr>
@@ -148,22 +89,83 @@
 					<zorder>-1000</zorder>
 				</attr>
 			</obj>
-			<obj class="MirrorGif">
+			<obj class="GaussianBlurImage">
 				<attr>
 					<left>0</left>
 					<top>0</top>
-					<width>256</width>
-					<height>256</height>
-					<Type>none</Type>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0</Sigma>
+					<Radius>1</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>128</left>
+					<top>0</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0.5</Sigma>
+					<Radius>1</Radius>
 				</attr>
 			</obj>
 			<obj class="GaussianBlurImage">
 				<attr>
 					<left>256</left>
 					<top>0</top>
-					<width>256</width>
-					<height>256</height>
-					<Sigma>0.3</Sigma>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.0</Sigma>
+					<Radius>1</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>384</left>
+					<top>0</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.5</Sigma>
+					<Radius>1</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>0</left>
+					<top>128</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0</Sigma>
+					<Radius>3</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>128</left>
+					<top>128</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0.5</Sigma>
+					<Radius>3</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>256</left>
+					<top>128</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.0</Sigma>
+					<Radius>3</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>384</left>
+					<top>128</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.5</Sigma>
 					<Radius>3</Radius>
 				</attr>
 			</obj>
@@ -171,21 +173,80 @@
 				<attr>
 					<left>0</left>
 					<top>256</top>
-					<width>256</width>
-					<height>256</height>
-					<Sigma>0.6</Sigma>
-					<Radius>3</Radius>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0</Sigma>
+					<Radius>5</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>128</left>
+					<top>256</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0.5</Sigma>
+					<Radius>5</Radius>
 				</attr>
 			</obj>
 			<obj class="GaussianBlurImage">
 				<attr>
 					<left>256</left>
 					<top>256</top>
-					<width>256</width>
-					<height>256</height>
-					<Sigma>0.9</Sigma>
-					<Radius>3</Radius>
-					<!-- <Radius>1</Radius> -->
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.0</Sigma>
+					<Radius>5</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>384</left>
+					<top>256</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.5</Sigma>
+					<Radius>5</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>0</left>
+					<top>384</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0</Sigma>
+					<Radius>7</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>128</left>
+					<top>384</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>0.5</Sigma>
+					<Radius>7</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>256</left>
+					<top>384</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.0</Sigma>
+					<Radius>7</Radius>
+				</attr>
+			</obj>
+			<obj class="GaussianBlurImage">
+				<attr>
+					<left>384</left>
+					<top>384</top>
+					<width>128</width>
+					<height>128</height>
+					<Sigma>1.5</Sigma>
+					<Radius>7</Radius>
 				</attr>
 			</obj>
 		</children>

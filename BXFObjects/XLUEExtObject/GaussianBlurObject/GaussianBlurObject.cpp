@@ -28,7 +28,7 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 	XL_BITMAP_HANDLE hClipBitmap = XL_ClipSubBindBitmap(hBitmapDest, lpDestClipRect);
 	assert(hClipBitmap);
 
-	if (m_radius > 1 && m_sigma >0)
+	if (m_radius > 0 && m_sigma >0)
 		Simple(hClipBitmap);
 
 	XL_ReleaseBitmap(hClipBitmap);
@@ -114,13 +114,21 @@ void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
 	int diameter = m_radius * 2 + 1;
 	double *weight;
 	GaussianFunction2(m_sigma, m_radius, &weight);
+	unsigned long **lpPixelBufferRows = new unsigned long* [bmp.Height];
 
-	for (unsigned long line = 0; line < bmp.Height; ++line)
+	for (int line = 0; line < bmp.Height; ++line)
 	{
-		for (unsigned long row = 0; row < bmp.Width; ++row)
+		if ( line >= m_radius + 1)
+		{
+			delete []lpPixelBufferRows[line - m_radius-1];
+		}
+		lpPixelBufferRows[line] = new unsigned long[bmp.Width];
+
+		for (int row = 0; row < bmp.Width; ++row)
 		{
 			unsigned long *lpPixelBuffer = (unsigned long*) XL_GetBitmapBuffer(hBitmap, row, line);
-			unsigned long *lpPixelBufferMatrix = new unsigned long [diameter*diameter];
+
+			lpPixelBufferRows[line][row] = *lpPixelBuffer;
 			double redSum = 0;
 			double greenSum = 0;
 			double blueSum = 0;
@@ -129,6 +137,56 @@ void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
 			{
 				for (int j = -m_radius; j <= m_radius; j++)
 				{
+					unsigned long pixelBuffer = 0;
+
+					if (i > 0) // 读XL_GetBitmapBuffer
+					{
+						if (line + i >= 0 && line + i <bmp.Height && row + j >= 0 && row +j <bmp.Width)
+							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, row+j, line+i));
+						else if (line + i < 0 && row + j >= 0 && row +j <bmp.Width)
+							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, row+j, 0));
+						else if (line + i >= bmp.Height && row + j >= 0 && row +j <bmp.Width)
+							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, row+j, bmp.Height-1));
+						else if (row + j < 0 && line + i >= 0 && line + i <bmp.Height)
+							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, line + i));
+						else if (row + j >= bmp.Width && line + i >= 0 && line + i <bmp.Height)
+							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, bmp.Width-1, line + i));
+						else if (row + j < 0 && line + i < 0)
+							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, 0));
+						else if (row + j >= bmp.Width && line + i >= bmp.Height)
+							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap,bmp.Width-1, bmp.Height-1));
+						else 
+							assert(false);
+					}
+					else if (i <= 0) // 读 lpPixelBufferRows的数据, 因为Bitmap的数据已经被改写了
+					{
+						if (line + i >= 0 && line + i <bmp.Height && row + j >= 0 && row +j <bmp.Width)
+							pixelBuffer = lpPixelBufferRows[line+i][row+j]; //*((unsigned long*) XL_GetBitmapBuffer(hBitmap, row+j, line+i));
+						else if (line + i < 0 && row + j >= 0 && row +j <bmp.Width)
+							pixelBuffer = lpPixelBufferRows[0][row+j]; //*((unsigned long*) XL_GetBitmapBuffer(hBitmap, row+j, 0));
+						else if (line + i >= bmp.Height && row + j >= 0 && row +j <bmp.Width)
+							pixelBuffer = lpPixelBufferRows[bmp.Height-1][row+j]; //*((unsigned long*) XL_GetBitmapBuffer(hBitmap, row+j, bmp.Height-1));
+						else if (row + j < 0 && line + i >= 0 && line + i <bmp.Height)
+							pixelBuffer = lpPixelBufferRows[line + i][0]; //*((unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, line + i));
+						else if (row + j >= bmp.Width && line + i >= 0 && line + i <bmp.Height)
+							pixelBuffer = lpPixelBufferRows[line+i][bmp.Width-1]; //*((unsigned long*) XL_GetBitmapBuffer(hBitmap, bmp.Width-1, line + i));
+						else if (row + j < 0 && line + i < 0)
+							pixelBuffer = lpPixelBufferRows[0][0]; //*((unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, 0));
+						else if (row + j >= bmp.Width && line + i >= bmp.Height)
+							pixelBuffer = lpPixelBufferRows[bmp.Height-1][bmp.Width-1]; //*((unsigned long*) XL_GetBitmapBuffer(hBitmap,bmp.Width-1, bmp.Height-1));
+						else 
+							assert(false);
+					}
+					
+					unsigned int alpha = getA(pixelBuffer);
+					unsigned int green = getG(pixelBuffer);
+					unsigned int red = getR(pixelBuffer);
+					unsigned int blue = getB(pixelBuffer);
+					redSum += red * weight[(i+m_radius)*diameter+(j+m_radius)];
+					greenSum += green * weight[(i+m_radius)*diameter+(j+m_radius)];
+					blueSum += blue * weight[(i+m_radius)*diameter+(j+m_radius)];
+					alphaSum += alpha * weight[(i+m_radius)*diameter+(j+m_radius)];
+#if 0
 					lpPixelBufferMatrix[(i+m_radius)*diameter+(j+m_radius)] = 0;
 					if (line + i >= 0 && line + i <bmp.Height && row + j >= 0 && row +j <bmp.Width)
 						lpPixelBufferMatrix[(i+m_radius)*diameter+(j+m_radius)] = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, row+j, line+i));
@@ -156,6 +214,7 @@ void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
 					greenSum += green * weight[(i+m_radius)*diameter+(j+m_radius)];
 					blueSum += blue * weight[(i+m_radius)*diameter+(j+m_radius)];
 					alphaSum += alpha * weight[(i+m_radius)*diameter+(j+m_radius)];
+#endif 
 				}
 			}
 			unsigned int alpha = alphaSum;
@@ -166,4 +225,9 @@ void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
 			*lpPixelBuffer = temp;
 		}
 	}
+	for (unsigned long bufferLine = bmp.Height - m_radius - 1; bufferLine < bmp.Height; bufferLine++)
+	{
+			delete []lpPixelBufferRows[bufferLine];
+	}
+	delete []lpPixelBufferRows;
 }
