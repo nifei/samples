@@ -1,10 +1,8 @@
 ﻿<XLUE>
 <resource>
-	<font id="default.font" height="12" facename="defaultfont" />
-	<font id="font.small" height="15" facename="defaultfont" />
-	<font id="default.font.bold" height="12" weight="bold" facename="defaultfont" />
-	<font id="default.font.link" height="12" facename="defaultfont" underline="1"/>
-	<font id="default.font.underline" height="12" facename="defaultfont" underline="1"/>
-	<font id="button.default.font" height="11" facename="defaultfont"/>
+  <!--下面这个字体的facename最为常用，使用系统的默认字体-->	
+  <font id="default.font" height="14" facename="微软雅黑" />
+  <font id="msg.font" height="40" facename="微软雅黑" />
+  <font id="msg.font.bold" height="40" weight="bold" facename="微软雅黑" underline="1"/>
 </resource>
 </XLUE>

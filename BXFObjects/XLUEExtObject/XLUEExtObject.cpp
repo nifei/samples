@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <XLGraphicPlus.h>
 #include "MirrorObjectRegister.h"
+#include "./GaussianBlurObject/GaussianBlurObjectRegister.h"
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -51,6 +52,10 @@ BOOL XLUE_STDCALL XLUE_RegisterObj( const char* lpCategory, const char* lpObjCla
 	if (strcmp(lpObjClass, EXTCLASSNAME_MIRROROBJECT) == 0)
 	{
 		ret = MirrorObjectRegister::RegisterMirrorObject();
+	}
+	else if (strcmp(lpObjClass, EXTCLASSNAME_GAUSSIANBLUROBJECT) == 0)
+	{
+		ret = GaussianBlurObjectRegister::RegisterGaussianBlurObject();
 	}
 	else
 		assert(false);

@@ -281,6 +281,50 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<Filter
+			Name="GaussianBlurObject"
+			>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObjectCreator.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObjectCreator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObjectParser.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObjectParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObjectRegister.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurObjectRegister.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\LuaGaussianBlurObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\LuaGaussianBlurObject.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
