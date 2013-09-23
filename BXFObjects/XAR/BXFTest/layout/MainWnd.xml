@@ -3,6 +3,8 @@
 
 <control class="GaussianBlurImage">
 	<attr_def>
+		<attr name="Sigma" type="float"/>
+		<attr name="Radius" type="int" />
 	</attr_def>
 	<objtemplate>
 		<children>
@@ -15,14 +17,14 @@
 					<clipsens>1</clipsens>
 				</attr>
 				<children>
-					<!-- <obj class="ImageObject">
+					<obj class="ImageObject">
 						<attr>
 							<width>father.width</width>
 							<height>father.height</height>
 							<image>test</image>
 						</attr>
-					</obj> -->
-					<obj class="SeqImageObject">
+					</obj>
+<!-- 					<obj class="SeqImageObject">
 						<attr>
 							<width>father.width</width>
 							<height>father.height</height>
@@ -36,7 +38,7 @@
 								self:Play()
 							</event>
 						</eventlist>
-					</obj>
+					</obj> -->
 					<obj id="gaussianblur" class="GaussianBlurObject">
 						<attr>
 							<width>father.width</width>
@@ -47,6 +49,14 @@
 			</obj>
 		</children>
 		<eventlist>
+             <event name="OnInitControl">
+				local arg = {...}
+				local self = arg[1]
+				local obj = self:GetControlObject("gaussianblur")
+				local attr = self:GetAttribute();
+				if attr.Sigma then obj:SetSigma(attr.Sigma) end
+				if attr.Radius then obj:SetRadius(attr.Radius) end
+			 </event>
         </eventlist>
 	</objtemplate>
 </control>
@@ -66,7 +76,7 @@
 					<clipsens>1</clipsens>
 				</attr>
 				<children>
-					<obj class="SeqImageObject">
+				<!-- 	<obj class="SeqImageObject">
 						<attr>
 							<width>father.width</width>
 							<height>father.height</height>
@@ -80,14 +90,14 @@
 								self:Play()
 							</event>
 						</eventlist>
-					</obj>
-					<!-- <obj class="ImageObject">
+					</obj> -->
+					<obj class="ImageObject">
 						<attr>
 							<width>father.width</width>
 							<height>father.height</height>
 							<image>test</image>
 						</attr>
-					</obj> -->
+					</obj>
 					<obj id="mirror" class="MirrorObject">
 						<attr>
 							<width>father.width</width>
@@ -153,14 +163,18 @@
 					<top>0</top>
 					<width>256</width>
 					<height>256</height>
+					<Sigma>0.3</Sigma>
+					<Radius>3</Radius>
 				</attr>
 			</obj>
-<!-- 			<obj class="GaussianBlurImage">
+			<obj class="GaussianBlurImage">
 				<attr>
 					<left>0</left>
 					<top>256</top>
 					<width>256</width>
 					<height>256</height>
+					<Sigma>0.6</Sigma>
+					<Radius>3</Radius>
 				</attr>
 			</obj>
 			<obj class="GaussianBlurImage">
@@ -169,8 +183,11 @@
 					<top>256</top>
 					<width>256</width>
 					<height>256</height>
+					<Sigma>0.9</Sigma>
+					<Radius>3</Radius>
+					<!-- <Radius>1</Radius> -->
 				</attr>
-			</obj> -->
+			</obj>
 		</children>
 	</obj>
 </objtreetemplate>

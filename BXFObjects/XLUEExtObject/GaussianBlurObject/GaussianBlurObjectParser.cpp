@@ -23,6 +23,17 @@ bool GaussianBlurObjectParser::ParserAttribute( GaussianBlurObject* lpObj, const
 
 	bool ret = true;
 	
+	if (strcmp(key, "Sigma") == 0)
+	{
+		double sigma = LuaGaussianBlurObject::GetSigmaFromString(value);
+		lpObj->SetSigma(sigma);
+	}
+	else if (strcmp(key, "Radius" )== 0)
+	{
+		int radius = atoi(value);
+		lpObj->SetRadius(radius);
+	}
+	else
 	{
 		assert(false);
 		ret = false;

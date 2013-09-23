@@ -10,9 +10,17 @@ public:
 	LuaGaussianBlurObject(void);
 	virtual ~LuaGaussianBlurObject(void);
 
-private:
 public:
+	static double GetSigmaFromString(const char* lpSigma);
 
+private:
+	static int SetSigma(lua_State* luaState);
+	static int GetSigma(lua_State* luaState);
+
+	static int SetRadius(lua_State *luaState);
+	static int GetRadius(lua_State *luaState);
+
+public:
 	static const XLLRTGlobalAPI s_szLuaMemberFuncs[];
 };
 
