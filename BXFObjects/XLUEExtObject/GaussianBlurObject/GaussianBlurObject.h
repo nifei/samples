@@ -26,6 +26,7 @@ public:
 
 private:
 	void Simple(XL_BITMAP_HANDLE hBitmap)const;
+	void OneDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
 	inline unsigned int getR(const unsigned long & buffer)const
 	{
 		return buffer<<8>>24;
@@ -45,6 +46,11 @@ private:
 private:
 	double m_sigma;
 	int m_radius;
+	enum Type {
+		OneDimention = 1, 
+		TwoDimention = 2
+	};
+	Type m_type;
 };
 
 #endif // __GAUSSIANBLUROBJECT_H__

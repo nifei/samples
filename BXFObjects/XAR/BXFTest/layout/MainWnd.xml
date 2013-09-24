@@ -5,6 +5,7 @@
 	<attr_def>
 		<attr name="Sigma" type="float"/>
 		<attr name="Radius" type="int" />
+		<attr name="Type" type="string" />
 	</attr_def>
 	<objtemplate>
 		<children>
@@ -56,6 +57,7 @@
 				local attr = self:GetAttribute();
 				if attr.Sigma then obj:SetSigma(attr.Sigma) end
 				if attr.Radius then obj:SetRadius(attr.Radius) end
+				if attr.Type then obj:SetType(attr.Type) end
 			 </event>
         </eventlist>
 	</objtemplate>
@@ -105,6 +107,16 @@
 					<top>0</top>
 					<width>128</width>
 					<height>128</height>
+					<Sigma>1.5</Sigma>
+					<Radius>5</Radius>
+				</attr>
+			</obj>
+<!-- 			<obj class="GaussianBlurImage">
+				<attr>
+					<left>128</left>
+					<top>0</top>
+					<width>128</width>
+					<height>128</height>
 					<Sigma>0.5</Sigma>
 					<Radius>1</Radius>
 				</attr>
@@ -238,7 +250,7 @@
 					<Sigma>1.0</Sigma>
 					<Radius>7</Radius>
 				</attr>
-			</obj>
+			</obj> 
 			<obj class="GaussianBlurImage">
 				<attr>
 					<left>384</left>
@@ -248,7 +260,7 @@
 					<Sigma>1.5</Sigma>
 					<Radius>7</Radius>
 				</attr>
-			</obj>
+			</obj>-->
 		</children>
 	</obj>
 </objtreetemplate>
