@@ -2,6 +2,7 @@
 #include "string.h"
 #include "XmlParser.h"
 
+/*TODO: 把结构体改成接口, SetListener(Interface*), 覆盖时delete Interface*/
 struct CallbackOnDataReady{
 	funcDataReadyCallback pfnCallback;
 	DWORD dwUserData1;
@@ -37,11 +38,15 @@ XmlDataModel::~XmlDataModel()
 	}
 }
 
-int XmlDataModel::GetCount()const
-{return m_playlist.size();}
+int XmlDataModel::GetCount()
+{
+	return m_playlist.size();
+}
 
-int XmlDataModel::GetColumnCount()const
-{return MAX_COL-1;}
+int XmlDataModel::GetColumnCount()
+{
+	return MAX_COL-1;
+}
 
 bool XmlDataModel::GetDataBatch(int from, int to, void **dataBatch, char** types)
 {
@@ -88,16 +93,12 @@ char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **itemData)
 		}
 		else if (column == NAME_COL)
 		{
-			std::string name = m_playlist.at(row-1).name;
-			*itemData = new char[name.length()+1];
-			strcpy((char*)(*itemData), name.c_str());
+			*itemData = (void*)m_playlist.at(row-1).name.c_str();
 			dataType = "string";
 		}
 		else if (column == SOURCE_COL)
 		{
-			std::string source = m_playlist.at(row-1).source;
-			*itemData = new char[source.length()+1];
-			strcpy((char*)(*itemData), source.c_str());
+			*itemData = (void*)m_playlist.at(row-1).source.c_str();
 			dataType = "string";
 		}
 	}

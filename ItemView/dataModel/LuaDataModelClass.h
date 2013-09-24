@@ -5,13 +5,23 @@
 
 typedef void (*funcDataReadyCallback) (DWORD dwUserData1,DWORD dwUserData2,int row, int column);
 
+class DataReadyListener
+{
+public:
+	DataReadyListener(funcDataReadyCallback pfnCallback, DWORD dwUserData1, DWORD dwUserData2);
+private:
+	funcDataReadyCallback m_pfnCallBack;
+	DWORD m_dwUserData1;
+	DWORD m_dwUserData2;
+};
+
 class DataModelInterface
 {
 public:
 	virtual ~DataModelInterface() {}
 	virtual char* GetItemAtIndex(int row,int column, void **itemData = 0) = 0;
-	virtual int GetCount()const = 0;
-	virtual int GetColumnCount()const = 0;
+	virtual int GetCount() = 0;
+	virtual int GetColumnCount() = 0;
 	virtual bool GetDataBatch(int from, int to, void **dataBatch, char** types) {return false;}
 	virtual void PrepareData(int from, int to) {}
 	virtual void ReleaseData(int from, int to) {}

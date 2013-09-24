@@ -7,22 +7,20 @@
 // call back to LuaDataModelClass info: fun + args
 struct CallbackOnDataReady;
 
-// fun type stored in CallbackOnDataReady
-typedef void (*funcDataReadyCallback) (DWORD dwUserData1,DWORD dwUserData2,int row, int column);
-
 class XmlDataModel : public DataModelInterface
 {
 public:
 	XmlDataModel(int argc = 0, const char **argv = NULL);
 	virtual ~XmlDataModel();
-	char* GetItemAtIndex(int row,int column, void **itemData = 0);
-	bool GetDataBatch(int from, int to, void **dataBatch, char** types);
-	int GetCount()const;
-	int GetColumnCount()const;
-	void PrepareData(int from, int to);
-	void ReleaseData(int from, int to);
-	void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	virtual char* GetItemAtIndex(int row,int column, void **itemData = 0);
+	virtual bool GetDataBatch(int from, int to, void **dataBatch, char** types);
+	virtual int GetCount();
+	virtual int GetColumnCount();
+	virtual void PrepareData(int from, int to);
+	virtual void ReleaseData(int from, int to);
+	virtual void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	virtual void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+
 	void FireDataReadyEvent(int , int );
 	void FireDataReadyEvent(int from, std::vector<StrSongInfo> playlist);
 	void FireDataReadyEvent(int row, const StrSongInfo& song);
