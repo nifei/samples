@@ -8,7 +8,7 @@ typedef void (*funcDataReadyCallback) (DWORD dwUserData1,DWORD dwUserData2,int r
 class DataModelInterface
 {
 public:
-	virtual ~DataModelInterface() = 0{}
+	virtual ~DataModelInterface() {}
 	virtual char* GetItemAtIndex(int row,int column, void **itemData = 0) = 0;
 	virtual int GetCount()const = 0;
 	virtual int GetColumnCount()const = 0;

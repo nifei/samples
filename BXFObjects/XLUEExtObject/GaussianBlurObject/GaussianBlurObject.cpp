@@ -173,6 +173,9 @@ void GaussianBlurObject::OneDimentionRender(XL_BITMAP_HANDLE hBitmap)const
 	}
 }
 
+/*
+TODO: XL_GetBitmapBuffer 的效率?
+*/
 void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
 {
 	assert(hBitmap);
@@ -185,6 +188,7 @@ void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
 	double *weight;
 	GaussianFunction2(m_sigma, m_radius, &weight);
 	unsigned long **lpPixelBufferLines = new unsigned long* [bmp.Height];
+	unsigned long *lpBitmapPixelBuffer =  (unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, 0);
 
 	for (int preloadLine = 0; preloadLine < m_radius; preloadLine++)
 	{
@@ -222,104 +226,21 @@ void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
 				for (int j = -m_radius; j <= m_radius; j++)
 				{
 					unsigned long pixelBuffer = 0;
+					unsigned int adjustedLine, adjustedCol;
+					if (line + i >= (int)bmp.Height)
+						adjustedLine = bmp.Height - 1;
+					else if (line + i < 0)
+						adjustedLine = 0;
+					else
+						adjustedLine = line + i;
+					if (col + j >= (int)bmp.Width)
+						adjustedCol = bmp.Width - 1;
+					else if (col + j < 0)
+						adjustedCol = 0;
+					else
+						adjustedCol = col + j;
+					pixelBuffer = lpPixelBufferLines[adjustedLine][adjustedCol];
 
-					pixelBuffer = lpPixelBufferLines[line][col];
-					if (i > 0) // 读XL_GetBitmapBuffer
-					{
-						if (line + i <bmp.Height && col + j >= 0 && col +j <bmp.Width)
-						{
-							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, col+j, line+i));
-						}
-						else if ( line + i <bmp.Height && col + j < 0)
-						{
-							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, line + i));
-						}
-						else if ( line + i <bmp.Height && col + j >= bmp.Width)
-						{
-							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, bmp.Width-1, line + i));
-						}
-						else if (line + i >= bmp.Height && col + j >= 0 && col +j <bmp.Width)
-						{
-							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, col+j, bmp.Height-1));
-						}
-						else if (line + i >= bmp.Height && col + j >= bmp.Width)
-						{
-							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap,bmp.Width-1, bmp.Height-1));
-						}
-						else if (line + i >= bmp.Height && col + j < 0)
-						{
-							pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, bmp.Height - 1));
-						}
-						else 
-							assert(false);
-					}
-					else if (i < 0) // 读 lpPixelBufferRows的数据, 因为Bitmap的数据已经被改写了
-					{
-						if (line + i >= 0 && col + j >= 0 && col +j <bmp.Width)
-						{ 
-								pixelBuffer = lpPixelBufferLines[line+i][col+j];
-						}
-						else if (line + i >= 0 && col + j < 0)
-						{
-							pixelBuffer =lpPixelBufferLines[line + i][0]; 
-						}
-						else if (line + i >= 0 && col + j >= bmp.Width)
-						{
-							pixelBuffer = lpPixelBufferLines[line+i][bmp.Width-1]; 
-						}
-						else if (line + i < 0 && col + j >= 0 && col +j <bmp.Width)
-						{
-							pixelBuffer = lpPixelBufferLines[0][col+j]; 
-						}
-						else if ( line + i < 0 && col + j < 0)
-						{
-							pixelBuffer = lpPixelBufferLines[0][0]; 
-						}
-						else if (line + i < 0 && col + j >= bmp.Width)
-						{
-							pixelBuffer = lpPixelBufferLines[0][bmp.Width - 1];
-						}
-						else 
-							assert(false);
-					} 
-					else //if i == 0, line + i is sure valid
-					{
-						if (j > 0)
-						{
-							if (col + j >= 0 && col +j <bmp.Width)
-							{
-								pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, col+j, line+i));
-							}
-							else if (col + j < 0)
-							{
-								pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, 0, line + i));
-							}
-							else if (col + j >= bmp.Width)
-							{
-								pixelBuffer = *((unsigned long*) XL_GetBitmapBuffer(hBitmap, bmp.Width-1, line + i));
-							}
-							else
-								assert (false);
-						}
-						else // j <= 0, already loaded in pixelBuffer
-						{
-							if (col + j >= 0 && col +j <bmp.Width)
-							{ 
-									pixelBuffer = lpPixelBufferLines[line+i][col+j];
-							}
-							else if (col + j < 0)
-							{
-								pixelBuffer =lpPixelBufferLines[line + i][0]; 
-							}
-							else if (col + j >= bmp.Width)
-							{
-								pixelBuffer = lpPixelBufferLines[line+i][bmp.Width-1]; 
-							}
-							else
-								assert (false);
-						}
-					}
-					
 					unsigned int alpha = getA(pixelBuffer);
 					unsigned int green = getG(pixelBuffer);
 					unsigned int red = getR(pixelBuffer);

@@ -49,8 +49,8 @@ bool XmlDataModel::GetDataBatch(int from, int to, void **dataBatch, char** types
 	if (types)
 	{
 		types[0] = "bitmap";
-		types[1] = "char";
-		types[2] = "char";
+		types[1] = "string";
+		types[2] = "string";
 		if (from < 1) from = 1;
 		if (to > (int)m_playlist.size()) to = m_playlist.size();
 		if (from <= to)
@@ -91,14 +91,14 @@ char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **itemData)
 			std::string name = m_playlist.at(row-1).name;
 			*itemData = new char[name.length()+1];
 			strcpy((char*)(*itemData), name.c_str());
-			dataType = "char";
+			dataType = "string";
 		}
 		else if (column == SOURCE_COL)
 		{
 			std::string source = m_playlist.at(row-1).source;
 			*itemData = new char[source.length()+1];
 			strcpy((char*)(*itemData), source.c_str());
-			dataType = "char";
+			dataType = "string";
 		}
 	}
 	return dataType;
@@ -185,8 +185,8 @@ void XmlDataModel::UIThreadCallbackOnDataBatch(void *userData)
 		{
 			dataModel->FireDataReadyEvent(myData->from, myData->list);
 		}
+		delete myData;
 	}
-	delete userData;
 }
 
 void XmlDataModel::UIThreadCallbackOnSingleData(void *userData)
@@ -197,6 +197,6 @@ void XmlDataModel::UIThreadCallbackOnSingleData(void *userData)
 		{
 			dataModel->FireDataReadyEvent(myData->row, myData->song);
 		}
+		delete myData;
 	}
-	delete userData;
 }

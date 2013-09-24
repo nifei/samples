@@ -24,7 +24,7 @@ function GetColumnWidth(userdata, column, widthInAll)
 	elseif column == 2 then
 		return 150
 	elseif column == 3 then
-		return 300
+		return 150
 	end
 end
 

@@ -18,13 +18,13 @@
 					<clipsens>1</clipsens>
 				</attr>
 				<children>
-					<obj class="ImageObject">
+<!-- 					<obj class="ImageObject">
 						<attr>
 							<width>father.width</width>
 							<height>father.height</height>
 							<image>test</image>
 						</attr>
-					</obj>
+					</obj> -->
 <!-- 					<obj class="SeqImageObject">
 						<attr>
 							<width>father.width</width>
@@ -89,6 +89,15 @@
 					<width>father.width</width>
 					<height>father.height</height>
 					<zorder>-1000</zorder>
+				</attr>
+			</obj>
+			<obj class="ImageObject">
+				<attr>
+					<left>0</left>
+					<top>0</top>
+					<width>father.width</width>
+					<height>father.height</height>
+					<image>test</image>
 				</attr>
 			</obj>
 			<obj class="GaussianBlurImage">

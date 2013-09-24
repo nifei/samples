@@ -126,7 +126,7 @@ int LuaDataModelClass::GetDataBatch(lua_State *L)
 				{
 					lua_pushnumber(L, column);//把index压栈, 现在rowtable@-2
 					void *itemData = dataBatch[3*(row-from)+column-1];
-					if (strcmp(types[column-1], "char") == 0) //这一段把值压栈
+					if (strcmp(types[column-1], "string") == 0) //这一段把值压栈
 					{
 						char* cData = (char*)itemData;
 						lua_pushstring(L, cData);
@@ -163,7 +163,7 @@ int LuaDataModelClass::GetItemAtIndex(lua_State *luaState)
 		int column = static_cast<int>(lua_tointeger(luaState, 4));
 		void *itemData;
 		char* dataType = pDataModelClass->GetItemAtIndex(row, column, &itemData);
-		if (strcmp(dataType, "char") == 0)
+		if (strcmp(dataType, "string") == 0)
 		{
 			char* cData = (char*)itemData;
 			lua_pushstring(luaState, cData);
