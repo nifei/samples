@@ -4,9 +4,6 @@
 #include "LuaDataModelClass.h"
 #include "stdafx.h"
 
-// call back to LuaDataModelClass info: fun + args
-struct CallbackOnDataReady;
-
 class XmlDataModel : public DataModelInterface
 {
 public:
@@ -18,8 +15,8 @@ public:
 	virtual int GetColumnCount();
 	virtual void PrepareData(int from, int to);
 	virtual void ReleaseData(int from, int to);
-	virtual void SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
-	virtual void SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback);
+	virtual void SetSingleDataReadyListener(DataReadyListenerInterface* dataReadyListener);
+	virtual void SetDataBatchReadyListener(DataReadyListenerInterface* dataReadyListener);
 
 	void FireDataReadyEvent(int , int );
 	void FireDataReadyEvent(int from, std::vector<StrSongInfo> playlist);
@@ -36,7 +33,7 @@ public:
 	} COL_NAMES;
 
 private:
-	CallbackOnDataReady *m_callbackOnDataReady;
+	DataReadyListenerInterface *m_dataReadyListener;
 	XmlDataLoader *m_loader;
 	std::vector<StrSongInfo> m_playlist;
 };

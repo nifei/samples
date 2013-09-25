@@ -14,6 +14,17 @@ function OnInitControl_ItemView(self)
 	initItemViewWithCppModel(self)
 end
 
+function OnDestroy_ListView(self)
+	self = nil
+	-- Todo 释放datamodel?
+end
+
+function OnDestroy(self)
+	local tree = self:GetBindUIObjectTree()
+	local rootObj = tree:GetRootObject()
+	rootObj:RemoveAllChild()
+end
+
 function initItemViewWithSimpleModel(self)
 	local itemFactoryUserData, itemFactoryCallbackTable = GetTextItemFactory()
 	self:SetItemFactory(itemFactoryUserData, nil, itemFactoryCallbackTable)
@@ -29,7 +40,7 @@ function initItemViewWithCppModel(self)
 
 	-- Setup data model,  by default lua table is applied. 
 	-- -- 示例代码 Custom data model import by "require"
-	local dataModelUserData, dataModelCallbackTable = GetXmlDataModelObject("XmlDataModel", "simple.xml")
+	local dataModelUserData, dataModelCallbackTable = GetXmlDataModelObject("XmlDataModel", "音乐.xml")
 	self:SetDataModel(dataModelUserData, dataModelCallbackTable)
 	
 	-- -- user can: 1. specify another lua table as data model;  

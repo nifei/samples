@@ -3,6 +3,8 @@
 #include "PostMessageToUIThread.h"
 
 CAppModule   _Module;
+static unsigned int s_uiThreadRef = 0;
+static CMainFrame* s_wndMain = 0;
 
 CMainFrame* MyMain()
 {	
@@ -33,10 +35,9 @@ CMainFrame* MyMain()
 CMainFrame* GetUIThread()
 {
 	//一个隐藏的后台窗口, 创建的目的是得到操作UI线程事件队列的方法
-	static CMainFrame* _wndMain = 0;
-	if (!_wndMain)
-		_wndMain = MyMain();
-	return _wndMain;
+	if (!s_wndMain)
+		s_wndMain = MyMain();
+	return s_wndMain;
 }
 
 void PostMessageToUIThread( void *userData, MainThreadCallbackFun ptrFun)
@@ -51,17 +52,22 @@ void PostMessageToUIThread( void *userData, MainThreadCallbackFun ptrFun)
 
 void InitUIThread()
 {
+	s_uiThreadRef++;
 	GetUIThread();
 }
 
 void UnInitUIThread()
 {
-	if (CMainFrame* wndMain = GetUIThread())
+	s_uiThreadRef--;
+	if (s_uiThreadRef == 0)
 	{
-		delete wndMain;
-		wndMain = 0;
-		_Module.RemoveMessageLoop();
-		_Module.Term();
-		::CoUninitialize();
+		if (s_wndMain)
+		{
+			delete s_wndMain;
+			s_wndMain = 0;
+			_Module.RemoveMessageLoop();
+			_Module.Term();
+			::CoUninitialize();
+		}
 	}
 }

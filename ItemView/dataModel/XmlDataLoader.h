@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "xl_lib/multithread/thread.h"
 #include "xl_lib/multithread/critical_section.h"
+#include "xl_lib/multithread/event.h"
 #include "PostMessageToUIThread.h"
 
 struct StrSongInfo;
@@ -47,9 +48,8 @@ public:
 
 	bool PrepareData(int from, int to, const std::vector<StrSongInfo>& allList);
 	bool ReleaseData(int from, int to, const std::vector<StrSongInfo>& allList );
-	void SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
-	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* userdata);
-	static xl::win32::multithread::critical_section m_cs;
+	void SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback, void* ptrCaller);
+	void SetSingleDataReadyListener(MainThreadCallbackFun pfnCallback, void* ptrCaller);
 
 protected:
 	xl::uint32  thread_proc();
@@ -61,6 +61,9 @@ private:
 	bool appendRange(range);
 	bool getRange(range&);
 
+private:
+	xl::win32::multithread::critical_section m_cs;
+	xl::win32::multithread::event m_event;
 	XmlParser *m_parser;
 	std::vector<range> m_dataRangesWaitingForExecute;
 	CallbackToDataModelOnDataReady *m_callbackToDataModelOnDataBatchReady;

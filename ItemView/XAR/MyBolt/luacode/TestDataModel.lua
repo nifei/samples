@@ -1,13 +1,14 @@
-local userdata = nil 
-local callbackTable = nil
-
 function GetXmlDataModelObject(dataModelClassName, playlistFileName)
+	local userdata = nil 
+	local callbackTable = nil
 	if userdata == nil and callbackTable ==  nil then
 		local xmlClassFactory = XLGetObject(dataModelClassName..".Factory"..".Object")
 		local xmlClass = xmlClassFactory:CreateInstance(dataModelClassName, playlistFileName)
 		userdata ={}
 		userdata.class = xmlClass
 		userdata.className = dataModelClassName
+		local delete = xmlClassFactory:CreateInstance(dataModelClassName, playlistFileName)
+		delete = nil
 		callbackTable = {}
 		callbackTable.GetCount = 
 			function(userdata)

@@ -157,6 +157,7 @@
 						</attr>
 						<eventlist>
 						<event name="OnInitControl" file="MainWnd.xml.lua" func="OnInitControl_ItemView" />
+						<event name="OnDestroy" file="MainWnd.xml.lua" func="OnDestroy_ListView" />
 						<event name="VerticalScrollPosChanged">
 							-- 监听自定义控件自定义事件方法一:
 							-- 请注意参数获取及参数顺序
@@ -219,6 +220,7 @@
 		</attr>
 		<eventlist>
 			<event name="OnSize" file="MainWnd.xml.lua" func="OnMainWndSize"/>
+			<event name="OnDestroy" file="MainWnd.xml.lua" func="OnDestroy" />
 		</eventlist>
 </hostwndtemplate>
 </xlue>

@@ -35,6 +35,11 @@ struct StrSongInfo
 		hBitmap = rhs.hBitmap;
 		return *this;
 	}
+	~StrSongInfo()
+	{
+		if (hBitmap)
+			int i = 0;
+	}
 };
 
 class XmlParser : public xl::xml::expat_parser<XmlParser>

@@ -9,27 +9,57 @@ struct XmlDataLoader::range
 	std::vector<StrSongInfo> *playlist;
 	enum{Prepare, Release, Invalid};
 	XmlDataLoader::range(int _type)
-		:playlist(0), type(_type){}
+		:playlist(NULL), type(_type){}
 	XmlDataLoader::range()
-		:playlist(0), type(Invalid){}
+		:playlist(NULL), type(Invalid){}
+	~range(){
+	}
 };
 
-xl::win32::multithread::critical_section XmlDataLoader::m_cs;
-
 XmlDataLoader::XmlDataLoader()
-:m_parser(0), 
-m_callbackToDataModelOnDataBatchReady(0),
-m_callbackToDataModelOnSingleDataReady(0)
+:m_parser(NULL), 
+m_callbackToDataModelOnDataBatchReady(NULL),
+m_callbackToDataModelOnSingleDataReady(NULL)
 {
 	m_parser = new XmlParser();
+	range r;
+	r.type = range::Invalid;
+	r.playlist = new std::vector<StrSongInfo>();
+	r.playlist->push_back(StrSongInfo());
+	m_dataRangesWaitingForExecute.push_back(r);
 }
 
 XmlDataLoader::~XmlDataLoader()
 {
+	m_event.set_event();
+	stop();
 	if (m_parser)
 	{
 		delete m_parser;
-		m_parser = 0;
+		m_parser = NULL;
+	}
+	if (m_callbackToDataModelOnDataBatchReady)
+	{
+		delete m_callbackToDataModelOnDataBatchReady;
+		m_callbackToDataModelOnDataBatchReady = NULL;
+	}
+	if (m_callbackToDataModelOnSingleDataReady)
+	{
+		delete m_callbackToDataModelOnSingleDataReady;
+		m_callbackToDataModelOnSingleDataReady = NULL;
+	}
+	//m_dataRangesWaitingForExecute.clear();
+	/*
+		为什么需要遍历销毁waitingForExecute的range中的playlist:
+		clear()会调用range的析构方法, 但是range的指针成员playlist不会被销毁, 只会销毁对象
+		为什么不可以在range的析构方法中销毁playlist:
+		range是作为对象传递的, 离开作用域就会被销毁
+	*/
+	while(!m_dataRangesWaitingForExecute.empty())
+	{
+		range r = m_dataRangesWaitingForExecute.front();
+		m_dataRangesWaitingForExecute.erase(m_dataRangesWaitingForExecute.begin());
+		delete r.playlist;
 	}
 }
 
@@ -93,8 +123,10 @@ void XmlDataLoader::SetDataBatchReadyListener(MainThreadCallbackFun pfnCallback,
 
 xl::uint32  XmlDataLoader::thread_proc()
 {
-	while(true)
+	while(m_event.wait_event())
 	{
+		if (this->is_stop_event_set())
+			break;
 		range r;	
 		r.type = range::Invalid;
 		getRange(r);
@@ -105,12 +137,13 @@ xl::uint32  XmlDataLoader::thread_proc()
 					r.playlist->at(i).hBitmap = LoadImage(r.playlist->at(i).cover.c_str());
 					if(PostMessageToUIThread && m_callbackToDataModelOnSingleDataReady)
 					{
+						//工作线程创建, UI线程销毁?
 						PostSingleDataMessageToUIThreadUserData *u = new PostSingleDataMessageToUIThreadUserData();
 						u->row = r.from+i;
 						u->song = r.playlist->at(i);
 						u->ptrCaller = m_callbackToDataModelOnSingleDataReady->ptrCaller;
 						PostMessageToUIThread((void*)u, m_callbackToDataModelOnSingleDataReady->funCallback);
-						//! 此处并没有特别耗资源的操作,为了在界面看到一行一行FireDataReadyEvent()的效果,停顿50msec再操作下一行.
+						//! 此处并没有特别耗资源的操作,为了在界面看到一行一行FireDataReadyEvent()的效果,停顿10msec再操作下一行.
 						Sleep(10);
 					}
 			}
@@ -143,21 +176,29 @@ xl::uint32  XmlDataLoader::thread_proc()
 
 bool XmlDataLoader::appendRange(XmlDataLoader::range r)
 {
-	::EnterCriticalSection(&m_cs);
+	m_cs.lock();
 	m_dataRangesWaitingForExecute.push_back(r);
-	::LeaveCriticalSection(&m_cs);
+	if (m_dataRangesWaitingForExecute.size() == 1)
+	{
+		m_event.set_event();
+	}
+	m_cs.unlock();
 	return true;
 }
 
 bool XmlDataLoader::getRange(XmlDataLoader::range &r)
 {
-	::EnterCriticalSection(&m_cs);
-	if (m_dataRangesWaitingForExecute.empty()==false)
+	m_cs.lock();
+	if (m_dataRangesWaitingForExecute.empty() == false)
 	{
 		r = m_dataRangesWaitingForExecute.front();
 		m_dataRangesWaitingForExecute.erase(m_dataRangesWaitingForExecute.begin());
+		if (m_dataRangesWaitingForExecute.empty())
+		{
+			m_event.reset_event();
+		}
 	}
-	::LeaveCriticalSection(&m_cs);
+	m_cs.unlock();
 	return true;
 }
 
@@ -172,7 +213,7 @@ XL_BITMAP_HANDLE XmlDataLoader::LoadPng( const wchar_t* lpFile )
 XL_BITMAP_HANDLE XmlDataLoader::LoadImage(const char* lpFile)
 {
 	std::wstring wlpFile;
-	xl::text::transcode::UTF8_to_Unicode(lpFile, strlen(lpFile), wlpFile);
+	xl::text::transcode::UTF8_to_Unicode(lpFile, MAX_PATH, wlpFile);
 	return loadImage(wlpFile.c_str());
 }
 

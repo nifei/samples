@@ -2,21 +2,14 @@
 #include "string.h"
 #include "XmlParser.h"
 
-/*TODO: 把结构体改成接口, SetListener(Interface*), 覆盖时delete Interface*/
-struct CallbackOnDataReady{
-	funcDataReadyCallback pfnCallback;
-	DWORD dwUserData1;
-	DWORD dwUserData2;
-};
-
 XmlDataModel::XmlDataModel(int argc, const char *argv[])
-:m_callbackOnDataReady(NULL), m_loader(NULL)
+: m_loader(NULL)
+, m_dataReadyListener(NULL)
 {
 	if (argc && argv)
 	{
 		InitUIThread();
 		m_loader = new XmlDataLoader();
-		InitializeCriticalSection(&(XmlDataLoader::m_cs));
 		m_loader->LoadPlaylist(m_playlist, argv[0]);
 		m_loader->start();
 	}
@@ -27,15 +20,15 @@ XmlDataModel::~XmlDataModel()
 	if (m_loader)
 	{
 		delete m_loader;
-		m_loader = 0;
+		m_loader = NULL;
 	}
-	::DeleteCriticalSection(&(XmlDataLoader::m_cs));
-	UnInitUIThread();
-	if (m_callbackOnDataReady)
+	if (m_dataReadyListener)
 	{
-		delete m_callbackOnDataReady;
-		m_callbackOnDataReady = 0;
+		delete m_dataReadyListener;
+		m_dataReadyListener = NULL;
 	}
+
+	UnInitUIThread();
 }
 
 int XmlDataModel::GetCount()
@@ -62,11 +55,9 @@ bool XmlDataModel::GetDataBatch(int from, int to, void **dataBatch, char** types
 		{
 			for ( int row = from; row <= to; row++)
 			{
-				char *name = const_cast<char*>(m_playlist.at(row - 1).name.c_str());
-				char* source = const_cast<char*>(m_playlist.at(row - 1).source.c_str());
-				dataBatch[3*(row-from)] = new XL_BITMAP_HANDLE(m_playlist.at(row - 1).hBitmap);
-				dataBatch[3*(row-from)+1] = name;
-				dataBatch[3*(row-from)+2] = source;
+				dataBatch[3*(row-from)] = &(m_playlist.at(row - 1).hBitmap);
+				dataBatch[3*(row-from)+1] = (void*)m_playlist.at(row - 1).name.c_str();
+				dataBatch[3*(row-from)+2] = (void*)m_playlist.at(row - 1).source.c_str();
 			}
 			ret = true;
 		}
@@ -130,9 +121,9 @@ void XmlDataModel::ReleaseData(int from, int to)
 
 void XmlDataModel::FireDataReadyEvent(int row, int column)
 {
-	if (m_callbackOnDataReady)
+	if (m_dataReadyListener)
 	{
-		m_callbackOnDataReady->pfnCallback(m_callbackOnDataReady->dwUserData1, m_callbackOnDataReady->dwUserData2, row, column);
+		m_dataReadyListener->onDataReady(row, column);
 	}
 }
 
@@ -154,28 +145,33 @@ void XmlDataModel::FireDataReadyEvent(int row, const StrSongInfo& song)
 	}
 }
 
-void XmlDataModel::SetSingleDataReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
+void XmlDataModel::SetSingleDataReadyListener(DataReadyListenerInterface *dataReadyListener)
 {
-	if (m_callbackOnDataReady != 0)
-		delete m_callbackOnDataReady;
-	m_callbackOnDataReady = new CallbackOnDataReady();
-	m_callbackOnDataReady->dwUserData1 = dwUserData1;
-	m_callbackOnDataReady->dwUserData2 = dwUserData2;
-	m_callbackOnDataReady->pfnCallback = pfnCallback;
-
-	m_loader->SetSingleDataReadyListener(XmlDataModel::UIThreadCallbackOnSingleData, (void*)this);
+	if (m_dataReadyListener)
+	{
+		delete m_dataReadyListener;
+		m_dataReadyListener = NULL;
+	} 
+	else 
+	{
+		m_loader->SetSingleDataReadyListener(XmlDataModel::UIThreadCallbackOnSingleData, (void*)this);
+	}
+	m_dataReadyListener = dataReadyListener;
 }
 
-void XmlDataModel::SetDataBatchReadyListener(DWORD dwUserData1, DWORD dwUserData2, funcDataReadyCallback pfnCallback)
-{
-	if (m_callbackOnDataReady != 0)
-		delete m_callbackOnDataReady;
-	m_callbackOnDataReady = new CallbackOnDataReady();
-	m_callbackOnDataReady->dwUserData1 = dwUserData1;
-	m_callbackOnDataReady->dwUserData2 = dwUserData2;
-	m_callbackOnDataReady->pfnCallback = pfnCallback;
 
-	m_loader->SetDataBatchReadyListener(XmlDataModel::UIThreadCallbackOnDataBatch, (void*)this);
+void XmlDataModel::SetDataBatchReadyListener(DataReadyListenerInterface *dataReadyListener)
+{
+	if (m_dataReadyListener)
+	{
+		delete m_dataReadyListener;
+		m_dataReadyListener = NULL;
+	}
+	else
+	{
+		m_loader->SetDataBatchReadyListener(XmlDataModel::UIThreadCallbackOnDataBatch, (void*)this);
+	}
+	m_dataReadyListener = dataReadyListener;
 }
 
 void XmlDataModel::UIThreadCallbackOnDataBatch(void *userData)
