@@ -18,20 +18,6 @@
 			</Triggered>
 		</event_def>
 		<objtemplate id="TreeView.JointTemplate">
-<!-- 			<children>
-				<obj id="joint.layout" class="RectangleObject">
-					<attr>
-						<left>0</left>
-						<top>0</top>
-						<width>father.width</width>
-						<height>father.height</height>
-						<srcpt>0, 0</srcpt>
-						<pen>pen.dot</pen>
-						<destpt>width,height</destpt>
-						<pencolor>system.red</pencolor>
-						<brush>brush.null</brush>
-						<visible>1</visible>
-					</attr> -->
 					<children>
 						<obj id="image" class="ImageObject">
 							<attr>
@@ -43,8 +29,6 @@
 							</attr>
 						</obj>
 					</children>
-<!-- 				</obj>
-			</children> -->
 			<eventlist>
 				<event name="OnLButtonDown" file="Joint.lua" func="OnLButtonDown" />
 				<event name="OnLButtonUp" file="Joint.lua" func="OnLButtonUp" />

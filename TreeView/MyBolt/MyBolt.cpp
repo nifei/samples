@@ -92,7 +92,7 @@ bool LoadMainXAR()
 bool RegisterDataModelClass()
 {
 	HINSTANCE hmod;
-	hmod =::LoadLibrary(L"dataModel.dll");
+	hmod =::LoadLibrary(L"DirModel.dll");
 	typedef bool (*Fun)(void);
 	Fun lpproc = (Fun)GetProcAddress (hmod,"RegisterDataModelClass");
 	if (lpproc != 0)
@@ -112,7 +112,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
         return 1;
     }
 
-	LoadLibrary(TEXT("log.dll"));
 	RegisterDataModelClass();
 
     if(!LoadMainXAR())

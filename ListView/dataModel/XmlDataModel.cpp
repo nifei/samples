@@ -160,7 +160,6 @@ void XmlDataModel::SetSingleDataReadyListener(DataReadyListenerInterface *dataRe
 	m_dataReadyListener = dataReadyListener;
 }
 
-
 void XmlDataModel::SetDataBatchReadyListener(DataReadyListenerInterface *dataReadyListener)
 {
 	if (m_dataReadyListener)

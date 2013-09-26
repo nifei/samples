@@ -141,20 +141,22 @@ function alignObjects(viewport, sa, hs, vs)
 			if 0-lsa>wsa-widthView then lsa=widthView-wsa end
 			hs:SetVisible(true)
 			hs:SetChildrenVisible(true)
-			hs:SetScrollRange(0, wsa-widthView)
+			hs:SetScrollRange(0, wsa-widthView, true)
 		else
 			lsa=0
 			hs:SetVisible(false)
+			hs:SetScrollRange(0, 0)
 			hs:SetChildrenVisible(false)
 		end
 		if hv < hsa then 
 			if 0-tsa>hsa-hv then tsa=hv-hsa end
 			vs:SetVisible(true)
 			vs:SetChildrenVisible(true)
-			vs:SetScrollRange(0, hsa-hv)
+			vs:SetScrollRange(0, hsa-hv, true)
 		else
 			tsa=0
 			vs:SetVisible(false)
+			vs:SetScrollRange(0, 0)
 			vs:SetChildrenVisible(false)
 		end
 		sa:SetObjPos2(lsa, tsa, wsa, hsa)

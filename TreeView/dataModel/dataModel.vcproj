@@ -63,6 +63,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="XLLuaRuntime.lib XLFSIO.lib XLUE.lib XLGraphic.lib xl_lib_static.lib"
+				OutputFile="$(OutDir)\DirModel.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../../lib;../xl_lib"
 				GenerateDebugInformation="true"

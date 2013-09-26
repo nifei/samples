@@ -23,13 +23,13 @@ void ListDirectoryContents(lua_State *L)
 		{
 			int len = wcslen(szDrive);
 			std::string atemp;
-			xl::text::transcode::Unicode_to_ANSI(szDrive, MAX_PATH, atemp);
+			xl::text::transcode::Unicode_to_UTF8(szDrive, MAX_PATH, atemp);
 			const char* volume = atemp.c_str();
 			UINT uDriveType = GetDriveType(szDrive);
 
 			lua_newtable(L);
 			lua_pushnumber(L, 1);
-			lua_pushboolean(L, true);
+			lua_pushboolean(L, true); // has children
 			lua_settable(L, -3);
 
 			lua_pushnumber(L, 2);
@@ -73,14 +73,11 @@ void ListDirectoryContents(lua_State *L)
 				}
 				lua_settable(L, -3);
 
-				wchar_t subDir[MAX_PATH];
-				wcscpy(subDir, fdFile.cFileName);
-				std::string atemp;
-				xl::text::transcode::Unicode_to_ANSI(fdFile.cFileName, MAX_PATH, atemp);
-				const char* aSubDir = atemp.c_str();
+				std::string subDirString;
+				xl::text::transcode::Unicode_to_UTF8(fdFile.cFileName, MAX_PATH, subDirString);
 
 				lua_pushnumber(L, 2);
-				lua_pushstring(L, aSubDir);
+				lua_pushstring(L, subDirString.c_str());
 				lua_settable(L, -3);
 				
 				lua_pushnumber(L, index);//°ÑÒ»Î¬Ë÷ÒýrowÑ¹Õ»
@@ -98,8 +95,8 @@ void ListDirectoryContents(lua_State *L)
 */
 XLLRTGlobalAPI LuaDir::mLuaDirMemberFunctions[] = 
 {
-    {"__gc",LuaDir::DeleteSelf},
 	{"GetSubDirs", LuaDir::GetSubDirs},
+    {"__gc",LuaDir::DeleteSelf},
     {NULL,NULL}
 };
 
