@@ -15,8 +15,6 @@ function OnInitControl_ListView(self)
 end
 
 function OnDestroy_ListView(self)
-	self = nil
-	-- Todo 释放datamodel?
 end
 
 function OnDestroy(self)
@@ -53,11 +51,11 @@ function initListViewWithCppModel(self)
 	
 	local function OnListViewHorizontalScrollPosChanged(listViewObject, listViewEventName, oldPos, newPos)
 		-- 监听自定义控件自定义事件方法二:
-		-- 这样做的好处是不想继续监听的时候可以根据AttachListener返回的cookie移除监听
+		-- 这样做的好处是不想继续监听的时候可以根据 AttachListener 返回的 cookie 移除监听
 	end
 	local cookie, ret = self:AttachListener("HorizontalScrollPosChanged", true, OnListViewHorizontalScrollPosChanged)
 	if ret then
-		-- 移除对事件HorizontalScrollPosChanged的监听, 所以上面的AttachListener不再有效
+		-- 移除对事件 HorizontalScrollPosChanged 的监听, 所以上面的 AttachListener 不再有效
 		self:RemoveListener("HorizontalScrollPosChanged", cookie)
 	end
 end
