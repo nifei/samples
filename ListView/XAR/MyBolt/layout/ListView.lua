@@ -77,7 +77,7 @@ function SetScrollBarH(self, scrollObjH)
 	
 	attr.ScrollBarAttrs.HScrollBar = scrollObjH
 	attr.ScrollBarAttrs.HsbVisible = attr.ScrollBarAttrs.HsbVisible and true
-	self:GetControlObject("itemview.bkg"):AddChild(attr.ScrollBarAttrs.HScrollBar)
+	self:GetControlObject("listview.bkg"):AddChild(attr.ScrollBarAttrs.HScrollBar)
 	
 	-- attach listeners
 	-- 两个AttachListener都是在scrollbar存在的前提下建立的，scrollbar为空时没有互相通知的必要。
@@ -123,7 +123,7 @@ function SetScrollBarV(self, scrollObjV)
 	
 	attr.ScrollBarAttrs.VScrollBar = scrollObjV
 	attr.ScrollBarAttrs.VsbVisible = attr.ScrollBarAttrs.VsbVisible and true
-	self:GetControlObject("itemview.bkg"):AddChild(attr.ScrollBarAttrs.VScrollBar)
+	self:GetControlObject("listview.bkg"):AddChild(attr.ScrollBarAttrs.VScrollBar)
 	
 	-- attach listeners
 	-- 两个AttachListener都是在scrollbar存在的前提下建立的，scrollbar为空时没有互相通知的必要。
@@ -161,11 +161,11 @@ function SetHeader(self, headerObj)
 							 "SetScrollPos",
 							 "GetSectionWidthList",
 							 "SetSectionWidthList"}
-	local result = CheckMethodWithAlert(expectedMethods, headerObj, "ItemView Header")
+	local result = CheckMethodWithAlert(expectedMethods, headerObj, "ListView Header")
 
 	attr.HeaderAttrs.Header = headerObj
 	attr.HeaderAttrs.Visible = attr.HeaderAttrs.Visible and true
-	self:GetControlObject("itemview.bkg"):AddChild(attr.HeaderAttrs.Header)
+	self:GetControlObject("listview.bkg"):AddChild(attr.HeaderAttrs.Header)
 
 	alignObjects(self)
 	-- Todo: attach listeners
@@ -174,7 +174,7 @@ end
 
 function OnInitControl(self)
 	local attr = self:GetAttribute()
-	local scrollArea = self:GetControlObject("itemview.scrollarea")
+	local scrollArea = self:GetControlObject("listview.scrollarea")
 	attr.ScrollArea = scrollArea
 	if attr.ScrollArea ~= nil then 
 		local function OnScrollAreaVPosChanged(saObj, eventName, oldPos, newPos)
@@ -207,30 +207,30 @@ function OnInitControl(self)
 	attr.HeaderAttrs.Header = nil
 	
 	if attr.BackgroundTexture then
-		local textureObj = self:GetControlObject("itemview.bkg")
+		local textureObj = self:GetControlObject("listview.bkg")
 		if textureObj then
 			textureObj:SetTextureID(attr.BackgroundTexture)
 		end
 	end
 
-	local itemViewId = self:GetID()
-	if itemViewId==nil then itemViewId="" end
+	local listViewId = self:GetID()
+	if listViewId==nil then listViewId="" end
 	-- Allow user to assign nil or specify another scrollbar later
 	if attr.ScrollBarClassNameV then
 		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local scrollObjV = objFactory:CreateUIObject(itemViewId..".scrollbarV", attr.ScrollBarClassNameV)
+		local scrollObjV = objFactory:CreateUIObject(listViewId..".scrollbarV", attr.ScrollBarClassNameV)
 		self:SetScrollBarV(scrollObjV)
 	end
 	
 	if attr.ScrollBarClassNameH then
 		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local scrollObjH = objFactory:CreateUIObject(itemViewId..".scrollbarH", attr.ScrollBarClassNameH)
+		local scrollObjH = objFactory:CreateUIObject(listViewId..".scrollbarH", attr.ScrollBarClassNameH)
 		self:SetScrollBarH(scrollObjH)
 	end
 	
 	if attr.HeaderClassName then
 		local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-		local headerObj = objFactory:CreateUIObject(itemViewId..".header", attr.HeaderClassName)
+		local headerObj = objFactory:CreateUIObject(listViewId..".header", attr.HeaderClassName)
 		self:SetHeader(headerObj)
 	end
 	
@@ -313,7 +313,7 @@ function setScrollBarHVisible(self, visible)
 end
 
 function SetHeaderNameList(self, nameList)
-	local scrollArea = self:GetControlObject("itemview.scrollarea")
+	local scrollArea = self:GetControlObject("listview.scrollarea")
 	if scrollArea then
 		scrollArea:SetColumnNameList(nameList)
 	end

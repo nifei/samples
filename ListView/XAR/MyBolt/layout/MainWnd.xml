@@ -34,7 +34,7 @@
 							<top>0</top>
 							<width>140</width>
 							<height>30</height>			
-							<text>ItemView Demo</text>
+							<text>ListView Demo</text>
 							<textcolor>system.white</textcolor>
 							<font>default.font.bold</font>
 						</attr>
@@ -139,7 +139,7 @@
 					<enabledrop>1</enabledrop>
 				</attr>
 				<children>
-					<obj id="itemView" class="ListView">
+					<obj id="listview" class="ListView">
 						<attr>
 							<left>10</left>
 							<top>50 + 30</top>

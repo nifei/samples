@@ -30,10 +30,6 @@
 			</children>
 			<eventlist>
 				<!-- 这些事件在ListView.Header 上发生时，其方法会被调用 -->
-<!-- 				<event name="OnLButtonDown" file="ItemViewHeader.lua" func="OnLButtonDown" />
-				<event name="OnLButtonUp" file="ItemViewHeader.lua" func="OnLButtonUp" />
-				<event name="OnMouseMove" file="ItemViewHeader.lua" func="OnMouseMove" />	
-				<event name="OnMouseLeave" file="ItemViewHeader.lua" func="OnMouseLeave" />	 -->
 				<event name="OnInitControl" file="ListViewHeader.lua" func="OnInitControl" />
 			</eventlist>
 		</objtemplate>

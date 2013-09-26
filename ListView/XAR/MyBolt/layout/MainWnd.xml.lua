@@ -79,7 +79,7 @@ function scroll_down_OnLButtonDown(self)
 	local count = parent:GetChildCount()
 	for i=0,count-1 do
 		local obj = parent:GetChildByIndex(i)
-		if obj:GetID() == "itemView" then
+		if obj:GetID() == "listview" then
 			local scroll = obj
 			scroll:PageDown()
 		end
@@ -92,7 +92,7 @@ function scroll_up_OnLButtonDown(self)
 	
 	for i=0,count-1 do
 		local obj = parent:GetChildByIndex(i)
-		if obj:GetID() == "itemView" then
+		if obj:GetID() == "listview" then
 			local scroll = obj
 			scroll:PageUp()
 		end

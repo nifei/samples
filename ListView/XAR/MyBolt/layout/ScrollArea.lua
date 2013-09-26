@@ -359,7 +359,7 @@ function SetScrollPosV(self,newValue)
 			move(self, -distanceV)
 			self:FireExtEvent("OnScrollPosChange")
 			-- 触发ScrollArea自定义事件, 带参数的方法
-			-- 监听事件的方法见ItemView.lua, 搜索VerticalScrollPosChanged
+			-- 监听事件的方法见 ListView.lua, 搜索VerticalScrollPosChanged
 			-- 也看, HorizontalScrollPosChanged
 			self:FireExtEvent("VerticalScrollPosChanged", oldValue, newValue)
 			local rh = getRowHeight(self)

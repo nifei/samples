@@ -1,5 +1,5 @@
--- 如果用户设置了datamodel callbackTable和userdata, 就用ItemView.Attribute.ItemDataTable作为缓存区.
--- 如果用户调用SetDataTable, 直接赋值给ItemDataTable, 就用ItemView.Attribute.ItemDataTable存储所有数据, 不再动态加载数据
+-- 如果用户设置了datamodel callbackTable和userdata, 就用 ListView.Attribute.ItemDataTable作为缓存区.
+-- 如果用户调用SetDataTable, 直接赋值给ItemDataTable, 就用 ListView.Attribute.ItemDataTable存储所有数据, 不再动态加载数据
 
 function SetDataModel(self, userdata, callbackTable)
 	local attr = self:GetAttribute()
@@ -38,9 +38,9 @@ function SetDataModel(self, userdata, callbackTable)
 	-- 如果用户提供SetDataBatchReadyListener, 优先用DataBatchReadyListener
 	-- 如果没有提供, 再用SingleDataReadyListener
 	-- 如果都没有提供, 但是设置了Preload>0,那就看不到数据了
-	-- 当ItemView收到DataModel的DataBatchReady的回调的时候
-	-- 如果DataModel提供了GetDataBatch方法返回, ItemView调用该方法更新数据
-	-- 如果没有提供, ItemView调用GetItemAtIndex
+	-- 当ListView收到DataModel的DataBatchReady的回调的时候
+	-- 如果DataModel提供了GetDataBatch方法返回, ListView调用该方法更新数据
+	-- 如果没有提供, ListView调用GetItemAtIndex
 	if attr.dataModelCallbackTable.SetDataBatchReadyListener then
 		local function funOnDataBatchReady(from, to)
 			-- 如果反复加载释放数据, 可能此处Ready的Data实际上已经被释放了

@@ -70,7 +70,7 @@
 		</event_def>
     <objtemplate>
 	<children>
-		<obj id="itemview.bkg" class="TextureObject">
+		<obj id="listview.bkg" class="TextureObject">
 			<attr>
 				<left>0</left>
 				<top>0</top>
@@ -79,8 +79,8 @@
 				<texture></texture>
 			</attr>
 			<children>
-			<!-- 只有ListView.ScrollArea被指定Control Class, 其他的itemview.header, itemview.scrollV, 在初始化时通过用户设置的Attribute “ScrollBarClassNameH” 等来实例化具体的对象-->
-				<obj id="itemview.scrollarea" class="ListView.ScrollArea">
+			<!-- 只有ListView.ScrollArea被指定Control Class, 其他的 listview.header, listview.scrollV, 在初始化时通过用户设置的Attribute “ScrollBarClassNameH” 等来实例化具体的对象-->
+				<obj id="listview.scrollarea" class="ListView.ScrollArea">
 				<attr>
 					<left>0</left>
 					<top>0</top>
