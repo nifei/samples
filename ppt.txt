@@ -1,6 +1,0 @@
-1. Qt UI xml
-2. QPA presentation
-3. Qt event loop 
-4. Qt src, 设置不要的东西也会被分配资源
-5. moc展开代码
-6. Qt event delivery
