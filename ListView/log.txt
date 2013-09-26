@@ -1,0 +1,19 @@
+Log:Init itemView
+Log:Init itemView
+Log:Destroy item view
+Log:Init itemView
+Log:Destroy host wnd
+Log:root obj:app.bkg
+Log:Init itemView
+Log:Destroy host wnd
+Log:root obj:app.bkg
+Log:destroy list view
+Log:root obj:app.bkg
+Log:destroy list view
+Log:destroy list view
+Log:destroy list view
+Log:destroy list view
+Log:destroy list view
+Log:destroy list view
+Log:Valid userdata
+Log:Valid userdata
