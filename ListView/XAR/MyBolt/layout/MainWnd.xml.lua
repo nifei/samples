@@ -8,10 +8,10 @@ local mdSimple = XLLoadModule(lua_code_dir.."SimpleItemFactoryAndDataModel.lua")
 local GetTextItemFactory = mdSimple.GetTextItemFactory
 local GetSimpleDataModelObject = mdSimple.GetSimpleDataModelObject
 
-local GlobalItemView = nil 
-function OnInitControl_ItemView(self)
-	GlobalItemView = self
-	initItemViewWithCppModel(self)
+local GlobalListView = nil 
+function OnInitControl_ListView(self)
+	GlobalListView = self
+	initListViewWithCppModel(self)
 end
 
 function OnDestroy_ListView(self)
@@ -25,7 +25,7 @@ function OnDestroy(self)
 	rootObj:RemoveAllChild()
 end
 
-function initItemViewWithSimpleModel(self)
+function initListViewWithSimpleModel(self)
 	local itemFactoryUserData, itemFactoryCallbackTable = GetTextItemFactory()
 	self:SetItemFactory(itemFactoryUserData, nil, itemFactoryCallbackTable)
 	
@@ -33,7 +33,7 @@ function initItemViewWithSimpleModel(self)
 	self:SetDataModel(dataModelUserData, dataModelCallbackTable)
 end
 
-function initItemViewWithCppModel(self)
+function initListViewWithCppModel(self)
 	-- Setup item factory
 	local itemFactoryUserData, itemFactoryCallbackTable = GetItemFactory()
 	self:SetItemFactory(itemFactoryUserData, nil, itemFactoryCallbackTable)
@@ -51,11 +51,11 @@ function initItemViewWithCppModel(self)
 	-- 示例代码 set header data
 	self:SetHeaderNameList({"Cover", "Name", "Dir"})
 	
-	local function OnItemViewHorizontalScrollPosChanged(itemViewObject, itemViewEventName, oldPos, newPos)
+	local function OnListViewHorizontalScrollPosChanged(listViewObject, listViewEventName, oldPos, newPos)
 		-- 监听自定义控件自定义事件方法二:
 		-- 这样做的好处是不想继续监听的时候可以根据AttachListener返回的cookie移除监听
 	end
-	local cookie, ret = self:AttachListener("HorizontalScrollPosChanged", true, OnItemViewHorizontalScrollPosChanged)
+	local cookie, ret = self:AttachListener("HorizontalScrollPosChanged", true, OnListViewHorizontalScrollPosChanged)
 	if ret then
 		-- 移除对事件HorizontalScrollPosChanged的监听, 所以上面的AttachListener不再有效
 		self:RemoveListener("HorizontalScrollPosChanged", cookie)
@@ -63,12 +63,12 @@ function initItemViewWithCppModel(self)
 end
 
 function ChangeModel(self)
-	if GlobalItemView ~=  nil then
+	if GlobalListView ~=  nil then
 		if self:GetText()=="加载Lua Data Model" then
-			initItemViewWithSimpleModel(GlobalItemView)
+			initListViewWithSimpleModel(GlobalListView)
 			self:SetText("加载C++ Data Model")
 		elseif self:GetText()=="加载C++ Data Model" then
-			initItemViewWithCppModel(GlobalItemView)
+			initListViewWithCppModel(GlobalListView)
 			self:SetText("加载Lua Data Model")
 		end
 	end

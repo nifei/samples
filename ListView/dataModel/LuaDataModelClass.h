@@ -62,7 +62,7 @@ public:
 	static int PrepareData(lua_State *luaState);
 	static int ReleaseData(lua_State *luaState);
 	/*!
-		如果用户提供给ListView的DataModelCallbackTable中包含SetDataBatchReadyListener, 那么ItemView会调用该方法传给LuaDataModelClass一个Lua回调方法DataReadyCallback在数据准备好的时候通知ItemView
+		如果用户提供给ListView的DataModelCallbackTable中包含SetDataBatchReadyListener, 那么ListView会调用该方法传给LuaDataModelClass一个Lua回调方法DataReadyCallback在数据准备好的时候通知ListView
 		LuaDataModelClass会把DataReadyCallback连同回调时需要的参数dwUserData1, dwUserData2原封不动地传给DataModel, 当DataModel准备好数据的时候应该调用DataReadyCallback. 但是DataModel不应该直接操作lua接口, 所以除了lua方法DataReadyCallback和dwUserData1, dwUserData2之外, LuaDataModelClass会把自己的方法LuaDataModelClass::LuaDataReadyListener也作为参数传给DataModel, DataModel回调这个方法通知数据准备好了就可以了. 
 		///sa AttachDataReadyListener
 	*/
