@@ -148,10 +148,10 @@
 							<!-- 以下属性如果用户不设置,会用默认值 -->
 							<!-- 以下属性的值就是默认值 -->
 							<BackgroundTexture></BackgroundTexture>
-							<ScrollBarClassNameV>ItemView.ScrollBarV</ScrollBarClassNameV>
-							<ScrollBarClassNameH>ItemView.ScrollBarH</ScrollBarClassNameH>
+							<ScrollBarClassNameV>ListView.ScrollBarV</ScrollBarClassNameV>
+							<ScrollBarClassNameH>ListView.ScrollBarH</ScrollBarClassNameH>
 							<ScrollBarSize>20</ScrollBarSize>
-							<HeaderClassName>ItemView.Header</HeaderClassName>
+							<HeaderClassName>ListView.Header</HeaderClassName>
 							<HeaderHeight>30</HeaderHeight>
 							<PreloadDataCount>50</PreloadDataCount>
 						</attr>

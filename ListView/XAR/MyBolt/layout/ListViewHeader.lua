@@ -55,6 +55,6 @@ end
 
 function createSection(self, idx)
 	local objFactory = XLGetObject("Xunlei.UIEngine.ObjectFactory")
-	local textObj = objFactory:CreateUIObject("btn"..idx, "ItemView.Header.Section")
+	local textObj = objFactory:CreateUIObject("btn"..idx, "ListView.Header.Section")
 	return textObj
 end

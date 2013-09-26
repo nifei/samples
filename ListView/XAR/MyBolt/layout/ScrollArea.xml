@@ -37,7 +37,7 @@
 		</Action>
 		</method_def>
 	</animation_def>
-	<control class="ItemView.ScrollArea">
+	<control class="ListView.ScrollArea">
 		<attr_def>
 			<attr name="PreloadDataCount" type="int" />
 		</attr_def>
@@ -106,7 +106,7 @@
 		</obj>
 	</children>
 	<eventlist>
-		<!-- 这些事件在ItemView.ScrollArea 上发生时，其方法会被调用 -->
+		<!-- 这些事件在ListView.ScrollArea 上发生时，其方法会被调用 -->
 		<event name="OnLButtonDown" file="ScrollArea.lua" func="OnLButtonDown" />
 		<event name="OnLButtonUp" file="ScrollArea.lua" func="OnLButtonUp" />
 		<event name="OnMouseMove" file="ScrollArea.lua" func="OnMouseMove" />	

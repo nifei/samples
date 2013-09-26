@@ -1,5 +1,5 @@
 <xlue>
-	<control class="ItemView.ItemContainer">
+	<control class="ListView.ItemContainer">
 		<attr_def>
 			<attr name="ItemName" type="string" />
 			<!-- <attr name="CallbackTable" type="table" /> -->

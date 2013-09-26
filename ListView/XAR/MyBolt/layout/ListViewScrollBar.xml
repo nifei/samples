@@ -1,5 +1,5 @@
 <xlue>
-	<control class="ItemView.ScrollBarH">
+	<control class="ListView.ScrollBarH">
 		<attr_def>
 		</attr_def>
 		<method_def>
@@ -34,7 +34,7 @@
 				</param>
 			</OnScrollPosChange>
 		</event_def>
-		<objtemplate id="ItemView.ScrollBarH">
+		<objtemplate id="ListView.ScrollBarH">
 			<children>
 				<obj id="scrollbar.h" class="BaseUI.ScrollBar" templateid="BaseUI.HScrollBar">
 					<attr>
@@ -60,7 +60,7 @@
 		</objtemplate>
 	</control>
 	<!-- Minimum ScrollBarControl, custom scroll bar control should follow this schema -->
-	<control class="ItemView.ScrollBarV">
+	<control class="ListView.ScrollBarV">
 		<attr_def>
 		</attr_def>
 		<method_def>
@@ -95,7 +95,7 @@
 				</param>
 			</OnScrollPosChange>
 		</event_def>
-		<objtemplate id="ItemView.ScrollBarV">
+		<objtemplate id="ListView.ScrollBarV">
 			<children>
 				<obj id="scrollbar.v" class="BaseUI.ScrollBar" templateid="BaseUI.VScrollBar">
 					<attr>

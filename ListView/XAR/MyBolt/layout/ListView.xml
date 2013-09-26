@@ -11,16 +11,16 @@
 				<default></default>
 			</attr>
 			<attr name="ScrollBarClassNameV" type="string">
-				<default>ItemView.ScrollBarV</default>
+				<default>ListView.ScrollBarV</default>
 			</attr>
 			<attr name="ScrollBarClassNameH" type="string">
-				<default>ItemView.ScrollBarH</default>
+				<default>ListView.ScrollBarH</default>
 			</attr>
 			<attr name="ScrollBarSize" type="int">
 				<default>20</default>
 			</attr>
 			<attr name="HeaderClassName" type="string">
-				<default>ItemView.Header</default>
+				<default>ListView.Header</default>
 			</attr>
 			<attr name="HeaderHeight" type="string">
 				<default>30</default>
@@ -79,8 +79,8 @@
 				<texture></texture>
 			</attr>
 			<children>
-			<!-- 只有ItemView.ScrollArea被指定Control Class, 其他的itemview.header, itemview.scrollV, 在初始化时通过用户设置的Attribute “ScrollBarClassNameH” 等来实例化具体的对象-->
-				<obj id="itemview.scrollarea" class="ItemView.ScrollArea">
+			<!-- 只有ListView.ScrollArea被指定Control Class, 其他的itemview.header, itemview.scrollV, 在初始化时通过用户设置的Attribute “ScrollBarClassNameH” 等来实例化具体的对象-->
+				<obj id="itemview.scrollarea" class="ListView.ScrollArea">
 				<attr>
 					<left>0</left>
 					<top>0</top>

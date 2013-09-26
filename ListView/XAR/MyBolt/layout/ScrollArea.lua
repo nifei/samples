@@ -211,7 +211,7 @@ function createEnoughItems(self)
 		top = 0
 		for i = 0,self:GetAttribute().ScrollAttributes["Capacity"]+1 do
 			if self:GetAttribute().ItemContainers[i] == nil then
-				local container = objFactory:CreateUIObject("container"..i,"ItemView.ItemContainer")
+				local container = objFactory:CreateUIObject("container"..i,"ListView.ItemContainer")
 				container:SetLimitChild(true)
 				top = getRowHeight(self)*i
 				container:SetObjPos2(0, top, right-left, getRowHeight(self))
