@@ -4,8 +4,8 @@
 typedef void (*PFNDATAREADYCALLBACK) (lua_State* luaState, long functionRef, int row, int column);
 
 /*
-	具体的监听者, 在被监听事件发生时调用一个lua方法, 这个lua方法接受(int,int)的参数
-	监听者需要保存一个lua方法的ref (long), 一个lua State
+具体的监听者, 在被监听事件发生时调用一个lua方法, 这个lua方法接受(int,int)的参数
+监听者需要保存一个lua方法的ref (long), 一个lua State
 */
 class DataReadyListener : public DataReadyListenerInterface
 {
@@ -40,16 +40,16 @@ XLLRTGlobalAPI LuaDataModelClass::s_LuaDataModelClassMemberFunctions[] =
 	{"ReleaseData",LuaDataModelClass::ReleaseData},
 	{"SetDataBatchReadyListener", LuaDataModelClass::SetDataBatchReadyListener},
 	{"SetSingleDataReadyListener", LuaDataModelClass::SetSingleDataReadyListener},
-    {"__gc",LuaDataModelClass::DeleteSelf},
-    {NULL,NULL}
+	{"__gc",LuaDataModelClass::DeleteSelf},
+	{NULL,NULL}
 };
 
 void LuaDataModelClass::RegisterClass(const char * dataModelClassName, XL_LRT_ENV_HANDLE hEnv)
 {
-    if(hEnv == NULL)
-    {
-        return;
-    }
+	if(hEnv == NULL)
+	{
+		return;
+	}
 
 	long nLuaResult =  XLLRT_RegisterClass(hEnv, dataModelClassName, s_LuaDataModelClassMemberFunctions, NULL, 0);
 }
@@ -251,7 +251,7 @@ int LuaDataModelClass::DeleteSelf(lua_State *luaState)
 	{
 		delete pDataModelClass;
 	}
-    //返回值用于提示该C函数的返回值数量，即压入栈中的返回值数量。
+	//返回值用于提示该C函数的返回值数量，即压入栈中的返回值数量。
 	return 0;
 }
 
@@ -271,33 +271,33 @@ int LuaDataModelClassFactory::CreateInstance(lua_State* luaState)
 		// 在有新的DataModel时, 还是需要修改工厂类的实现, 但是比增加一个LuaDataModelClass实现的代码量还是少的
 		XLLRT_PushXLObject(luaState,dataModelClassName,pResult);
 	}
-    return 1;
+	return 1;
 }
 
 LuaDataModelClassFactory* __stdcall LuaDataModelClassFactory::Instance(void*)
 {
-    static LuaDataModelClassFactory* s_pTheOne = NULL;
-    if (s_pTheOne == NULL)
-    {
-        s_pTheOne = new LuaDataModelClassFactory();
-    }
-    return s_pTheOne;
+	static LuaDataModelClassFactory* s_pTheOne = NULL;
+	if (s_pTheOne == NULL)
+	{
+		s_pTheOne = new LuaDataModelClassFactory();
+	}
+	return s_pTheOne;
 }
 
 XLLRTGlobalAPI LuaDataModelClassFactory::s_LuaDataModelClassFactoryMemberFunctions[] = 
 {
-   {"CreateInstance",LuaDataModelClassFactory::CreateInstance},
-    {NULL,NULL}
+	{"CreateInstance",LuaDataModelClassFactory::CreateInstance},
+	{NULL,NULL}
 };
 
 void LuaDataModelClassFactory::RegisterObj(const char *dataModelClassName, XL_LRT_ENV_HANDLE hEnv)
 {
-    if(hEnv == NULL)
+	if(hEnv == NULL)
 	{
-        return ;
+		return ;
 	}
 
-    XLLRTObject factoryObject;
+	XLLRTObject factoryObject;
 	char factoryClassName[100];
 	strcpy_s(factoryClassName, dataModelClassName);
 	strcat_s(factoryClassName, ".Factory.Class");
@@ -305,11 +305,11 @@ void LuaDataModelClassFactory::RegisterObj(const char *dataModelClassName, XL_LR
 	strcpy_s(factoryObjectName, dataModelClassName);
 	strcat_s(factoryObjectName, ".Factory.Object");
 	factoryObject.ClassName = factoryClassName;
-    factoryObject.MemberFunctions = s_LuaDataModelClassFactoryMemberFunctions;
+	factoryObject.MemberFunctions = s_LuaDataModelClassFactoryMemberFunctions;
 	factoryObject.ObjName = factoryObjectName;
 
-    factoryObject.userData = NULL;
-    factoryObject.pfnGetObject = (fnGetObject)LuaDataModelClassFactory::Instance;
+	factoryObject.userData = NULL;
+	factoryObject.pfnGetObject = (fnGetObject)LuaDataModelClassFactory::Instance;
 
-    XLLRT_RegisterGlobalObj(hEnv,factoryObject); 
+	XLLRT_RegisterGlobalObj(hEnv,factoryObject); 
 }

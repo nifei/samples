@@ -4,9 +4,9 @@
 
 void ListDirectoryContents(lua_State *L, const char *currentDir)
 {
-	std::wstring wtemp;
-	xl::text::transcode::UTF8_to_Unicode(currentDir, strlen(currentDir), wtemp);
-	const wchar_t *wCurrentDir =wtemp.c_str();
+	std::wstring wsConvert;
+	xl::text::transcode::UTF8_to_Unicode(currentDir, strlen(currentDir), wsConvert);
+	const wchar_t *wCurrentDir =wsConvert.c_str();
 
 	if (wcscmp(wCurrentDir, L"") == 0)
 	{
@@ -22,9 +22,9 @@ void ListDirectoryContents(lua_State *L, const char *currentDir)
 		do
 		{
 			int len = wcslen(szDrive);
-			std::string atemp;
-			xl::text::transcode::Unicode_to_UTF8(szDrive, wcslen(szDrive), atemp);
-			const char* volume = atemp.c_str();
+			std::string sDriveConvert;
+			xl::text::transcode::Unicode_to_UTF8(szDrive, wcslen(szDrive), sDriveConvert);
+			const char* volume = sDriveConvert.c_str();
 			UINT uDriveType = GetDriveType(szDrive);
 
 			lua_newtable(L);
@@ -58,7 +58,8 @@ void ListDirectoryContents(lua_State *L, const char *currentDir)
 		}
 		int index = 1;
 		lua_newtable(L);
-		do{
+		do
+		{
 			if (wcscmp(fdFile.cFileName, L".") != 0 && wcscmp(fdFile.cFileName, L"..") != 0 
 				&& !(fdFile.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
 				&& !(fdFile.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
