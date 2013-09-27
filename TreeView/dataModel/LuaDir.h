@@ -10,7 +10,7 @@ public:
 	static void RegisterClass(XL_LRT_ENV_HANDLE hEnv);
 	static int GetSubDirs(lua_State *luaState);
 private:
-	static XLLRTGlobalAPI mLuaDirMemberFunctions[];
+	static XLLRTGlobalAPI s_LuaDirMemberFunctions[];
 };
 
 class LuaDirFactory
@@ -20,7 +20,7 @@ public:
 	static int CreateInstance(lua_State *luaState);
 	static void RegisterObj(XL_LRT_ENV_HANDLE hEnv);
 private:
-	static XLLRTGlobalAPI mLuaDirFactoryMemberFunctions[];
+	static XLLRTGlobalAPI s_LuaDirFactoryMemberFunctions[];
 };
 
 #endif

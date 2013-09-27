@@ -1,7 +1,7 @@
 #include "LuaDataModelClass.h"
 #include "XmlDataModel.h"
 
-typedef void (*funcDataReadyCallback) (lua_State* luaState,long functionRef, int row, int column);
+typedef void (*PFNDATAREADYCALLBACK) (lua_State* luaState, long functionRef, int row, int column);
 
 /*
 	具体的监听者, 在被监听事件发生时调用一个lua方法, 这个lua方法接受(int,int)的参数
@@ -10,7 +10,7 @@ typedef void (*funcDataReadyCallback) (lua_State* luaState,long functionRef, int
 class DataReadyListener : public DataReadyListenerInterface
 {
 public:
-	DataReadyListener(funcDataReadyCallback pfnCallback, lua_State *luaState)
+	DataReadyListener(PFNDATAREADYCALLBACK pfnCallback, lua_State *luaState)
 		: m_pfnCallBack(pfnCallback)
 		, m_luaState(luaState)
 	{
@@ -20,17 +20,17 @@ public:
 	{
 		luaL_unref(m_luaState, LUA_REGISTRYINDEX, m_functionRef);
 	}
-	virtual void onDataReady(const int & arg1, const int & arg2)
+	virtual void OnDataReady(const int & arg1, const int & arg2)
 	{
 		m_pfnCallBack(m_luaState, m_functionRef, arg1, arg2);
 	}
 private:
-	funcDataReadyCallback m_pfnCallBack;
+	PFNDATAREADYCALLBACK m_pfnCallBack;
 	lua_State *m_luaState;
 	long m_functionRef;
 };
 
-XLLRTGlobalAPI LuaDataModelClass::mLuaDataModelClassMemberFunctions[] = 
+XLLRTGlobalAPI LuaDataModelClass::s_LuaDataModelClassMemberFunctions[] = 
 {
 	{"GetItemAtIndex",LuaDataModelClass::GetItemAtIndex},
 	{"GetDataBatch",LuaDataModelClass::GetDataBatch},
@@ -44,42 +44,44 @@ XLLRTGlobalAPI LuaDataModelClass::mLuaDataModelClassMemberFunctions[] =
     {NULL,NULL}
 };
 
-void LuaDataModelClass::RegisterClass(const char * DataModelClassName, XL_LRT_ENV_HANDLE hEnv)
+void LuaDataModelClass::RegisterClass(const char * dataModelClassName, XL_LRT_ENV_HANDLE hEnv)
 {
     if(hEnv == NULL)
     {
         return;
     }
 
-	long nLuaResult =  XLLRT_RegisterClass(hEnv,DataModelClassName,mLuaDataModelClassMemberFunctions,NULL,0);
+	long nLuaResult =  XLLRT_RegisterClass(hEnv, dataModelClassName, s_LuaDataModelClassMemberFunctions, NULL, 0);
 }
 
 DataModelInterface *LuaDataModelClass::GetDataModelClassObject(lua_State *luaState)
 {
 	//lua栈中, 1是类对象本身, 从2开始是参数
-	const char* dataModelClassName = static_cast<const char*>(lua_tostring(luaState,2));
+	const char* dataModelClassName = lua_tostring(luaState,2);
 	if (!dataModelClassName)
+	{
 		dataModelClassName = "XmlDataModel";
+	}
 	DataModelInterface **ppDataModelInstance = reinterpret_cast<DataModelInterface**>(luaL_checkudata(luaState, 1, dataModelClassName));
 	if(ppDataModelInstance && (*ppDataModelInstance))
+	{
 		return *ppDataModelInstance;
-	return 0;
+	}
+	return NULL;
 }
 
 int LuaDataModelClass::SetSingleDataReadyListener(lua_State* luaState)
 {
 	if (DataModelInterface *pDataModelClass = GetDataModelClassObject(luaState))
 	{
-		if(!lua_isfunction(luaState, 3)) //在模板中是2, 用模板的时候lua端没有加类名参数, 用接口的时候加了
+		if(lua_isfunction(luaState, 3)) //在模板中是2, 用模板的时候lua端没有加类名参数, 用接口的时候加了
 		{
-			return 0;
-		}
-		//long functionRef = luaL_ref(luaState, LUA_REGISTRYINDEX);
-		// lua方法的ref和unref分别放在DataReadyListener的构造和析构方法中调用
-		// DataReadyListener被luaDataModelClass创建, 被XmlDataModel销毁. 
-		// 如果一定要遵守"谁创建, 谁销毁", 在此可以把DataReadyListener的指针引用/指针指针传给XmlDataModel, LuaDataModelClass负责DataReadyListener的生命周期, 不觉得有必要. 
-		pDataModelClass->SetSingleDataReadyListener(new DataReadyListener(LuaDataModelClass::LuaDataReadyListener, luaState));
-		//luaL_unref(luaState, LUA_REGISTRYINDEX, functionRef);
+			lua_pushvalue(luaState, 3);
+			// lua方法的ref和unref分别放在DataReadyListener的构造和析构方法中调用
+			// DataReadyListener被luaDataModelClass创建, 被XmlDataModel销毁. 
+			// 如果一定要遵守"谁创建, 谁销毁", 在此可以把DataReadyListener的指针引用/指针指针传给XmlDataModel, LuaDataModelClass负责DataReadyListener的生命周期, 不觉得有必要. 
+			pDataModelClass->SetSingleDataReadyListener(new DataReadyListener(LuaDataModelClass::LuaDataReadyListener, luaState));
+		} 
 	}
 	return 0;
 }
@@ -88,13 +90,11 @@ int LuaDataModelClass::SetDataBatchReadyListener(lua_State* luaState)
 {
 	if (DataModelInterface *pDataModelClass = GetDataModelClassObject(luaState))
 	{
-		if(!lua_isfunction(luaState, 3))//在模板中是2, 用模板的时候lua端没有加类名参数, 用接口的时候加了
+		if(lua_isfunction(luaState, 3))//在模板中是2, 用模板的时候lua端没有加类名参数, 用接口的时候加了
 		{
-			return 0;
+			lua_pushvalue(luaState, 3);
+			pDataModelClass->SetDataBatchReadyListener(new DataReadyListener(LuaDataModelClass::LuaDataReadyListener, luaState));
 		}
-		//long functionRef =  luaL_ref(luaState, LUA_REGISTRYINDEX);
-		pDataModelClass->SetDataBatchReadyListener(new DataReadyListener(LuaDataModelClass::LuaDataReadyListener, luaState));
-		//luaL_unref(luaState, LUA_REGISTRYINDEX, functionRef);
 	}
 	return 0;
 }
@@ -121,9 +121,9 @@ int LuaDataModelClass::PrepareData(lua_State *luaState)
 		int from = static_cast<int>(lua_tointeger(luaState, 3));
 		int to = static_cast<int>(lua_tointeger(luaState, 4));
 		pDataModelClass->PrepareData(from, to);
-		return 1;
+		return 0;
 	}
-	return 1;
+	return 0;
 }
 
 int LuaDataModelClass::ReleaseData(lua_State *luaState)
@@ -133,9 +133,9 @@ int LuaDataModelClass::ReleaseData(lua_State *luaState)
 		int from = static_cast<int>(lua_tointeger(luaState, 3));
 		int to = static_cast<int>(lua_tointeger(luaState, 4));
 		pDataModelClass->ReleaseData(from, to);
-		return 1;
+		return 0;
 	}
-	return 1;
+	return 0;
 }
 
 int LuaDataModelClass::GetDataBatch(lua_State *L)
@@ -145,29 +145,30 @@ int LuaDataModelClass::GetDataBatch(lua_State *L)
 		int from = static_cast<int>(lua_tointeger(L, 3));
 		int to = static_cast<int>(lua_tointeger(L, 4));
 		int columnCount = pDataModelClass->GetColumnCount();
-		char** types = new char*[columnCount];
-		void** dataBatch = new void*[columnCount*(to-from+1)];
+		char** pTypes = new char*[columnCount];
+		void** ppDataBatch = new void*[columnCount*(to-from+1)];
 		if (from <= 0) from = 1;
 		if (to > pDataModelClass->GetCount()) to =  pDataModelClass->GetCount();
 
-		if (pDataModelClass->GetDataBatch(from, to, dataBatch, types))
+		if (pDataModelClass->GetDataBatch(from, to, ppDataBatch, pTypes))
 		{
 			lua_newtable(L); // 要返回的table, 起名字叫return table
 			for ( int row = from; row <= to; row++)
 			{
 				lua_newtable(L);// 这一行的Table, 叫它rowtable, 现在rowtable@-1
-				void *itemData = dataBatch[3*(row-from)];
+				void *pItemData = ppDataBatch[3*(row-from)];
 				for ( int column = 1; column<=columnCount; column++)
 				{
 					lua_pushnumber(L, column);//把index压栈, 现在rowtable@-2
-					void *itemData = dataBatch[3*(row-from)+column-1];
-					if (strcmp(types[column-1], "string") == 0) //这一段把值压栈
+					void *pItemData = ppDataBatch[3*(row-from)+column-1];
+					if (strcmp(pTypes[column-1], "string") == 0) //这一段把值压栈
 					{
-						char* cData = (char*)itemData;
+						char* cData = (char*)pItemData;
 						lua_pushstring(L, cData);
-					} else if (strcmp(types[column-1], "bitmap") == 0)
+					} 
+					else if (strcmp(pTypes[column-1], "bitmap") == 0)
 					{
-						XL_BITMAP_HANDLE *hBitmap = (XL_BITMAP_HANDLE*)itemData;	
+						XL_BITMAP_HANDLE *hBitmap = (XL_BITMAP_HANDLE*)pItemData;	
 						if (*hBitmap)
 							XLUE_PushBitmap(L, *hBitmap);
 						else
@@ -183,14 +184,13 @@ int LuaDataModelClass::GetDataBatch(lua_State *L)
 				lua_insert(L, -2); // 把栈顶的一维索引和rowtable换一下位置, 
 				lua_settable(L, -3); // 把刚压栈的一维索引row, 和rowtable弹出, 放在要返回的return table中
 			}
-			delete []types;
-			delete []dataBatch;
+			delete []pTypes;
+			delete []ppDataBatch;
 			return 1;
 		}
 	}
 	return 1;
 }
-
 
 int LuaDataModelClass::GetItemAtIndex(lua_State *luaState)
 {
@@ -198,18 +198,20 @@ int LuaDataModelClass::GetItemAtIndex(lua_State *luaState)
 	{
 		int row = static_cast<int> (lua_tointeger(luaState, 3));
 		int column = static_cast<int>(lua_tointeger(luaState, 4));
-		void *itemData;
-		char* dataType = pDataModelClass->GetItemAtIndex(row, column, &itemData);
+		void *pItemData;
+		char* dataType = pDataModelClass->GetItemAtIndex(row, column, &pItemData);
 		if (strcmp(dataType, "string") == 0)
 		{
-			char* cData = (char*)itemData;
+			char* cData = (char*)pItemData;
 			lua_pushstring(luaState, cData);
-		} else if (strcmp(dataType, "bitmap") == 0)
+		} 
+		else if (strcmp(dataType, "bitmap") == 0)
 		{
-			XL_BITMAP_HANDLE hBitmap = itemData;	
+			XL_BITMAP_HANDLE hBitmap = pItemData;	
 			XLUE_PushBitmap(luaState, hBitmap);
 		}
-		else {
+		else 
+		{
 			lua_pushnil(luaState);
 		}
 		return 1;
@@ -217,7 +219,6 @@ int LuaDataModelClass::GetItemAtIndex(lua_State *luaState)
 	lua_pushnil(luaState);
 	return 1;
 }
-
 
 int LuaDataModelClass::GetCount(lua_State *luaState)
 {
@@ -250,6 +251,7 @@ int LuaDataModelClass::DeleteSelf(lua_State *luaState)
 	{
 		delete pDataModelClass;
 	}
+    //返回值用于提示该C函数的返回值数量，即压入栈中的返回值数量。
 	return 0;
 }
 
@@ -258,8 +260,8 @@ int LuaDataModelClassFactory::CreateInstance(lua_State* luaState)
 	if (lua_isstring(luaState, 2) && lua_isstring(luaState, 3))
 	{
 		DataModelInterface* pResult = NULL;
-		const char *dataModelClassName = static_cast<const char*>(lua_tostring(luaState, 2));
-		const char *userdata = static_cast<const char*>(lua_tostring(luaState, 3));
+		const char *dataModelClassName = lua_tostring(luaState, 2);
+		const char *userdata = lua_tostring(luaState, 3);
 		const char *argv[1] = {userdata};
 		if (strcmp(dataModelClassName, "XmlDataModel") == 0)
 		{
@@ -275,14 +277,14 @@ int LuaDataModelClassFactory::CreateInstance(lua_State* luaState)
 LuaDataModelClassFactory* __stdcall LuaDataModelClassFactory::Instance(void*)
 {
     static LuaDataModelClassFactory* s_pTheOne = NULL;
-    if(s_pTheOne == NULL)
+    if (s_pTheOne == NULL)
     {
         s_pTheOne = new LuaDataModelClassFactory();
     }
     return s_pTheOne;
 }
 
-XLLRTGlobalAPI LuaDataModelClassFactory::mLuaDataModelClassFactoryMemberFunctions[] = 
+XLLRTGlobalAPI LuaDataModelClassFactory::s_LuaDataModelClassFactoryMemberFunctions[] = 
 {
    {"CreateInstance",LuaDataModelClassFactory::CreateInstance},
     {NULL,NULL}
@@ -297,14 +299,14 @@ void LuaDataModelClassFactory::RegisterObj(const char *dataModelClassName, XL_LR
 
     XLLRTObject factoryObject;
 	char factoryClassName[100];
-	strcpy(factoryClassName, dataModelClassName);
-	strcat(factoryClassName, ".Factory.Class");
+	strcpy_s(factoryClassName, dataModelClassName);
+	strcat_s(factoryClassName, ".Factory.Class");
 	char factoryObjectName[100];
-	strcpy(factoryObjectName, dataModelClassName);
-	strcat(factoryObjectName, ".Factory.Object");
-	factoryObject.ClassName =factoryClassName;
-    factoryObject.MemberFunctions = mLuaDataModelClassFactoryMemberFunctions;
-	factoryObject.ObjName =factoryObjectName;
+	strcpy_s(factoryObjectName, dataModelClassName);
+	strcat_s(factoryObjectName, ".Factory.Object");
+	factoryObject.ClassName = factoryClassName;
+    factoryObject.MemberFunctions = s_LuaDataModelClassFactoryMemberFunctions;
+	factoryObject.ObjName = factoryObjectName;
 
     factoryObject.userData = NULL;
     factoryObject.pfnGetObject = (fnGetObject)LuaDataModelClassFactory::Instance;

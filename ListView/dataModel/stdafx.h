@@ -8,12 +8,9 @@
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
 #include <atlbase.h>
-//#include <atlapp.h>
-
 #include <windows.h>
 #include <atlwin.h>
 
-#include <string>
 #include <assert.h>
 #include <Shlwapi.h>
 
@@ -24,5 +21,6 @@
 #include <XLLuaRuntime.h>
 #include <lua/lua.h>
 
+#include <string>
 
 // TODO: referenc e additional headers your program requires here

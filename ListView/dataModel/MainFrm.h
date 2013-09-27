@@ -9,8 +9,8 @@
 #include <atlwin.h>
 #include "atlframe.h"
 
-extern CAppModule _Module;
-typedef void (*MainThreadCallbackFun)(void*);
+//extern CAppModule _Module;
+typedef void (*PFNMAINTHREADCALLBACK)(void*);
 const int WM_MY_MESSAGE = WM_USER+1; //自定义消息ID
 ///! wtl窗口类, 这个窗口是隐藏的, 我们只处理自定义的消息类型WM_MY_MESSAGE, 来处理通过WM_MY_MESSAGE post 到消息队列的消息
 #define IDR_MAINFRAME				128
@@ -41,17 +41,17 @@ public:
 	END_MSG_MAP()
 
 	/*!  用户Post message 方法原型:
-		  PostMessageToUIThread( void *userData = 0, MainThreadCallbackFun ptrFun = 0);
+		  PostMessageToUIThread( void *userData = 0, PFNMAINTHREADCALLBACK ptrFun = 0);
 		  在这里参数被还原成userData和回调函数指针, 然后调用回调函数
 	!*/
    LRESULT OnMyMessage( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
    {
        //ATL::CWindow的MessageBox的调用
-	   void* userData = (void*)wParam;
-	   MainThreadCallbackFun ptrFun = (MainThreadCallbackFun)lParam;
-	   if (ptrFun)
+	   void* pUserData = (void*)wParam;
+	   PFNMAINTHREADCALLBACK pfnCallback = (PFNMAINTHREADCALLBACK)lParam;
+	   if (pfnCallback)
 	   {
-		   ptrFun(userData);
+		   pfnCallback(pUserData);
 	   }
        return 0;
    }

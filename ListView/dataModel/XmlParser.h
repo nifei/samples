@@ -2,9 +2,11 @@
 #define _XML_PARSER_H_
 #pragma once 
 
-#include <xl_lib/xml/expat_parser.h>
-#include <vector>
 #include "stdafx.h"
+
+#include <xl_lib/xml/expat_parser.h>
+
+#include <vector>
 
 struct StrSongInfo
 {
@@ -37,25 +39,14 @@ struct StrSongInfo
 	}
 	~StrSongInfo()
 	{
-		if (hBitmap)
-			int i = 0;
 	}
 };
 
 class XmlParser : public xl::xml::expat_parser<XmlParser>
 {
 public:
-	XmlParser();
-	~XmlParser();
-	bool LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName);
-
-public:
-	// expat_parser methods
-	void OnPostCreate();
-	void OnStartElement (const XML_Char *pszName, const XML_Char **papszAttrs);
-	void OnEndElement (const XML_Char *);
-
-	enum {
+	enum 
+	{
 		MEDIA_TAG = 0,
 		COVER_COL = 1,
 		NAME_COL = 2,
@@ -63,9 +54,16 @@ public:
 		MAX_COL
 	} COL_NAMES;
 
+	XmlParser();
+	~XmlParser();
+	bool LoadPlaylist(std::vector<StrSongInfo*> & playlist, const char* fileName);
+	void OnPostCreate();
+	void OnStartElement (const XML_Char *pszName, const XML_Char **papszAttrs);
+	void OnEndElement (const XML_Char * elem);
+
 private:
-	char * attrNamesOfColumn[MAX_COL];
-	std::vector<StrSongInfo> *m_playlist;
+	char * m_attrNamesOfColumn[MAX_COL];
+	std::vector<StrSongInfo*> *m_playlist;
 };
 
 #endif

@@ -1,11 +1,12 @@
-#pragma once 
 #ifndef _LUA_DATAMODEL_CLASS_H_
 #define _LUA_DATAMODEL_CLASS_H_
+#pragma once 
+
 #include "stdafx.h"
 
 /*
 	这个监听者接口在监听事件触发时调用一个接收(int, int)参数的方法
-	具体的DataModelClass只需要知道这个接口的onDataReady方法就够了
+	具体的DataModelClass只需要知道这个接口的OnDataReady方法就够了
 	接口的实现者处理具体事务
 */
 class DataReadyListenerInterface
@@ -15,24 +16,24 @@ public:
 		析构方法为纯虚函数带有实现的目的: 
 		virtual ~DataReadyListenerInterface() = 0{}
 		虚析构方法保证基类析构方法被调用, 资源释放
-		这个接口一定是个抽象类, 在接口onDataReady被去掉以后也不希望被实例化, 纯虚析构方法保证了这一点
+		这个接口一定是个抽象类, 在接口OnDataReady被去掉以后也不希望被实例化, 纯虚析构方法保证了这一点
 	*/
 	virtual ~DataReadyListenerInterface(){}
-	virtual void onDataReady(const int &arg1, const int &arg2) =0;
+	virtual void OnDataReady(const int &arg1, const int &arg2) =0;
 };
 
 class DataModelInterface
 {
 public:
 	virtual ~DataModelInterface() {}
-	virtual char* GetItemAtIndex(int row,int column, void **itemData = 0) = 0;
+	virtual char* GetItemAtIndex(int row,int column, void **ppItemData = 0) = 0;
 	virtual int GetCount() = 0;
 	virtual int GetColumnCount() = 0;
-	virtual bool GetDataBatch(int from, int to, void **dataBatch, char** types) {return false;}
+	virtual bool GetDataBatch(int from, int to, void **ppDataBatch, char** pTypes) {return false;}
 	virtual void PrepareData(int from, int to) {}
 	virtual void ReleaseData(int from, int to) {}
-	virtual void SetSingleDataReadyListener(DataReadyListenerInterface* dataReadyListener){}
-	virtual void SetDataBatchReadyListener(DataReadyListenerInterface* dataReadyListener) {}
+	virtual void SetSingleDataReadyListener(DataReadyListenerInterface* pDataReadyListener){}
+	virtual void SetDataBatchReadyListener(DataReadyListenerInterface* pDataReadyListener) {}
 };
 
 class LuaDataModelClassFactory
@@ -48,7 +49,7 @@ public:
 	*/
 	static void RegisterObj(const char *dataModelClassName, XL_LRT_ENV_HANDLE hEnv);
 private:
-	static XLLRTGlobalAPI mLuaDataModelClassFactoryMemberFunctions[];
+	static XLLRTGlobalAPI s_LuaDataModelClassFactoryMemberFunctions[];
 };
 
 class LuaDataModelClass
@@ -73,9 +74,12 @@ public:
 	static int SetSingleDataReadyListener(lua_State *luaState);
 	static void RegisterClass(const char * dataModelClassName, XL_LRT_ENV_HANDLE hEnv);
 	static void LuaDataReadyListener(lua_State* luaState, long functionRef, int row, int column);
+
 private:
 	static DataModelInterface *GetDataModelClassObject(lua_State *luaState);
-	static XLLRTGlobalAPI mLuaDataModelClassMemberFunctions[];
+
+private:
+	static XLLRTGlobalAPI s_LuaDataModelClassMemberFunctions[];
 };
 
 #endif

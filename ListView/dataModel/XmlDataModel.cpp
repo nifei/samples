@@ -1,35 +1,42 @@
 #include "XmlDataModel.h"
-#include "string.h"
 #include "XmlParser.h"
+#include "XmlDataLoader.h"
+
+#include <string>
 
 XmlDataModel::XmlDataModel(int argc, const char *argv[])
-: m_loader(NULL)
-, m_dataReadyListener(NULL)
+: m_pLoader(NULL)
+, m_pDataReadyListener(NULL)
 {
 	if (argc && argv)
 	{
 		InitUIThread();
-		m_loader = new XmlDataLoader();
-		m_loader->LoadPlaylist(m_playlist, argv[0]);
-		m_loader->start();
+		m_pLoader = new XmlDataLoader();
+		m_pLoader->LoadPlaylist(m_playlist, argv[0]);
+		m_pLoader->start();
 	}
 }
 
 XmlDataModel::~XmlDataModel()
 {
-	if (m_loader)
+	if (m_pLoader)
 	{
-		delete m_loader;
-		m_loader = NULL;
+		delete m_pLoader;
+		m_pLoader = NULL;
 	}
-	if (m_dataReadyListener)
+	if (m_pDataReadyListener)
 	{
-		delete m_dataReadyListener;
-		m_dataReadyListener = NULL;
+		delete m_pDataReadyListener;
+		m_pDataReadyListener = NULL;
+	}
+	while (!m_playlist.empty())
+	{
+		StrSongInfo *pSong = m_playlist.front();
+		m_playlist.erase(m_playlist.begin());
+		delete pSong;
 	}
 
 	UnInitUIThread();
-	//  no need to destroy m_playlist it'll be cleared then destroy as an object member of this XmlDataModel
 }
 
 int XmlDataModel::GetCount()
@@ -42,23 +49,23 @@ int XmlDataModel::GetColumnCount()
 	return MAX_COL-1;
 }
 
-bool XmlDataModel::GetDataBatch(int from, int to, void **dataBatch, char** types)
+bool XmlDataModel::GetDataBatch(int from, int to, void **ppDataBatch, char** pTypes)
 {
 	bool ret = false;
-	if (types)
+	if (pTypes)
 	{
-		types[0] = "bitmap";
-		types[1] = "string";
-		types[2] = "string";
+		pTypes[0] = "bitmap";
+		pTypes[1] = "string";
+		pTypes[2] = "string";
 		if (from < 1) from = 1;
 		if (to > (int)m_playlist.size()) to = m_playlist.size();
 		if (from <= to)
 		{
 			for ( int row = from; row <= to; row++)
 			{
-				dataBatch[3*(row-from)] = &(m_playlist.at(row - 1).hBitmap);
-				dataBatch[3*(row-from)+1] = (void*)m_playlist.at(row - 1).name.c_str();
-				dataBatch[3*(row-from)+2] = (void*)m_playlist.at(row - 1).source.c_str();
+				ppDataBatch[3*(row-from)] = &(m_playlist.at(row - 1)->hBitmap);
+				ppDataBatch[3*(row-from)+1] = (void*)m_playlist.at(row - 1)->name.c_str();
+				ppDataBatch[3*(row-from)+2] = (void*)m_playlist.at(row - 1)->source.c_str();
 			}
 			ret = true;
 		}
@@ -66,7 +73,7 @@ bool XmlDataModel::GetDataBatch(int from, int to, void **dataBatch, char** types
 	return ret;
 }
 
-char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **itemData)
+char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **ppItemData)
 {
 	size_t row(irow);
 	size_t column(icolumn);
@@ -76,21 +83,21 @@ char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **itemData)
 	{
 		if (column == COVER_COL)
 		{
-			if(m_playlist.at(row-1).hBitmap == NULL)
+			if(m_playlist.at(row-1)->hBitmap == NULL)
 			{
-				m_playlist.at(row-1).hBitmap = m_loader->LoadImage(m_playlist.at(row-1).cover.c_str());
+				m_playlist.at(row-1)->hBitmap = m_pLoader->LoadImage(m_playlist.at(row-1)->cover.c_str());
 			}
-			*itemData = m_playlist.at(row-1).hBitmap;
+			*ppItemData = m_playlist.at(row-1)->hBitmap;
 			dataType = "bitmap";
 		}
 		else if (column == NAME_COL)
 		{
-			*itemData = (void*)m_playlist.at(row-1).name.c_str();
+			*ppItemData = (void*)m_playlist.at(row-1)->name.c_str();
 			dataType = "string";
 		}
 		else if (column == SOURCE_COL)
 		{
-			*itemData = (void*)m_playlist.at(row-1).source.c_str();
+			*ppItemData = (void*)m_playlist.at(row-1)->source.c_str();
 			dataType = "string";
 		}
 	}
@@ -100,100 +107,85 @@ char* XmlDataModel::GetItemAtIndex(int irow,int icolumn, void **itemData)
 void XmlDataModel::PrepareData(int from, int to)
 {
 	//准备的数据在m_playlist中的索引是from-1~to-1
-	if (from <= 0) from = 1;
-	if (to > m_playlist.size()) to = m_playlist.size();
-	m_loader->PrepareData(from, to, m_playlist);
+	from = from <= 0 ? 1 : from;
+	to = to > (int)m_playlist.size() ? m_playlist.size() : to;
+	m_pLoader->PrepareData(from, to, m_playlist);
 }
 
 void XmlDataModel::ReleaseData(int from, int to)
 {
 	//准备的数据在m_playlist中的索引是from-1~to-1
-	if (from <= 0) from = 1;
-	if (to > m_playlist.size()) to = m_playlist.size();
+	from = from <= 0 ? 1 : from;
+	to = to > (int)m_playlist.size() ? m_playlist.size() : to;
 	if (from <= to)
 	{
-		m_loader->ReleaseData(from, to, m_playlist);
+		m_pLoader->ReleaseData(from, to, m_playlist);
 		for(int i = from; i <= to; i++)
 		{
-			m_playlist[i-1].hBitmap = 0;
+			m_playlist[i-1]->hBitmap = 0;
 		}
 	}
 }
 
 void XmlDataModel::FireDataReadyEvent(int row, int column)
 {
-	if (m_dataReadyListener)
+	if (m_pDataReadyListener)
 	{
-		m_dataReadyListener->onDataReady(row, column);
+		m_pDataReadyListener->OnDataReady(row, column);
 	}
 }
 
-void XmlDataModel::FireDataReadyEvent(int from, std::vector<StrSongInfo> playlist)
+void XmlDataModel::SetSingleDataReadyListener(DataReadyListenerInterface *pDataReadyListener)
 {
-	for (int i = 0; i < playlist.size(); i++)
+	if (m_pDataReadyListener)
 	{
-		m_playlist[from+i-1] = playlist.at(i);
-	}
-	FireDataReadyEvent(from, from+playlist.size()-1);
-}
-
-void XmlDataModel::FireDataReadyEvent(int row, const StrSongInfo& song)
-{
-	m_playlist[row-1] = song;
-	for (int col = 1; col <= GetColumnCount(); col++)
-	{
-		FireDataReadyEvent(row, col);
-	}
-}
-
-void XmlDataModel::SetSingleDataReadyListener(DataReadyListenerInterface *dataReadyListener)
-{
-	if (m_dataReadyListener)
-	{
-		delete m_dataReadyListener;
-		m_dataReadyListener = NULL;
+		delete m_pDataReadyListener;
+		m_pDataReadyListener = NULL;
 	} 
 	else 
 	{
-		m_loader->SetSingleDataReadyListener(XmlDataModel::UIThreadCallbackOnSingleData, (void*)this);
+		m_pLoader->SetSingleDataReadyListener(XmlDataModel::UIThreadCallbackOnSingleData, (void*)this);
 	}
-	m_dataReadyListener = dataReadyListener;
+	m_pDataReadyListener = pDataReadyListener;
 }
 
-void XmlDataModel::SetDataBatchReadyListener(DataReadyListenerInterface *dataReadyListener)
+void XmlDataModel::SetDataBatchReadyListener(DataReadyListenerInterface *pDataReadyListener)
 {
-	if (m_dataReadyListener)
+	if (m_pDataReadyListener)
 	{
-		delete m_dataReadyListener;
-		m_dataReadyListener = NULL;
+		delete m_pDataReadyListener;
+		m_pDataReadyListener = NULL;
 	}
 	else
 	{
-		m_loader->SetDataBatchReadyListener(XmlDataModel::UIThreadCallbackOnDataBatch, (void*)this);
+		m_pLoader->SetDataBatchReadyListener(XmlDataModel::UIThreadCallbackOnDataBatch, (void*)this);
 	}
-	m_dataReadyListener = dataReadyListener;
+	m_pDataReadyListener = pDataReadyListener;
 }
 
-void XmlDataModel::UIThreadCallbackOnDataBatch(void *userData)
+void XmlDataModel::UIThreadCallbackOnDataBatch(void *pUserData)
 {
-	if (PostDataBatchMessageToUIThreadUserData *myData = (PostDataBatchMessageToUIThreadUserData*)userData)
+	if (PostDataBatchMessageToUIThreadUserData *pMyData = (PostDataBatchMessageToUIThreadUserData*)pUserData)
 	{
-		if (XmlDataModel *dataModel = (XmlDataModel*)myData->ptrCaller)
+		if (XmlDataModel *pDataModel = (XmlDataModel*)pMyData->pCaller)
 		{
-			dataModel->FireDataReadyEvent(myData->from, myData->list);
+			pDataModel->FireDataReadyEvent(pMyData->from, pMyData->from+pMyData->list.size()-1);
 		}
-		delete myData;
+		delete pMyData;
 	}
 }
 
-void XmlDataModel::UIThreadCallbackOnSingleData(void *userData)
+void XmlDataModel::UIThreadCallbackOnSingleData(void *pUserData)
 {
-	if (PostSingleDataMessageToUIThreadUserData *myData = (PostSingleDataMessageToUIThreadUserData*)userData)
+	if (PostSingleDataMessageToUIThreadUserData *pMyData = (PostSingleDataMessageToUIThreadUserData*)pUserData)
 	{
-		if (XmlDataModel *dataModel = (XmlDataModel*)myData->ptrCaller)
+		if (XmlDataModel *pDataModel = (XmlDataModel*)pMyData->pCaller)
 		{
-			dataModel->FireDataReadyEvent(myData->row, myData->song);
+			for (int col = 1; col <= pDataModel->GetColumnCount(); col++)
+			{
+				pDataModel->FireDataReadyEvent(pMyData->row, col);
+			}
 		}
-		delete myData;
+		delete pMyData;
 	}
 }

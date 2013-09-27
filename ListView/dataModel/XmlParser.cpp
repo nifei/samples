@@ -1,5 +1,6 @@
 #include "XmlParser.h"
 #include "PostMessageToUIThread.h"
+
 #include "xl_lib/text/transcode.h"
 
 XmlParser::XmlParser()
@@ -11,10 +12,10 @@ XmlParser::~XmlParser()
 	// No need to destroy m_playlist since it's a reference to XmlDataLoader's
 }
 
-bool XmlParser::LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fileName)
+bool XmlParser::LoadPlaylist(std::vector<StrSongInfo*> & playlist, const char* fileName)
 {
 	std::wstring wplaylistName;
-	xl::text::transcode::UTF8_to_Unicode(fileName, MAX_PATH, wplaylistName);
+	xl::text::transcode::UTF8_to_Unicode(fileName, strlen(fileName), wplaylistName);
 
 	XLFS_FILE_HANDLE hFile = NULL;
 	m_playlist = &playlist;
@@ -32,15 +33,15 @@ bool XmlParser::LoadPlaylist(std::vector<StrSongInfo> & playlist, const char* fi
 		return false;
 	}
 
-	attrNamesOfColumn[MEDIA_TAG] = ("media");
-	attrNamesOfColumn[COVER_COL] = ("cover");
-	attrNamesOfColumn[NAME_COL] = ("name");
-	attrNamesOfColumn[SOURCE_COL] = ("src");
+	m_attrNamesOfColumn[MEDIA_TAG] = "media";
+	m_attrNamesOfColumn[COVER_COL] = "cover";
+	m_attrNamesOfColumn[NAME_COL] = "name";
+	m_attrNamesOfColumn[SOURCE_COL] = "src";
 
 	while(!XLFS_IsEOF(hFile) && fSuccess)
 	{
 		nReadLength = XLFS_ReadFile(hFile, (unsigned char*)buffer, (int)sizeof(char) *1024 * 16);
-		fSuccess = this->parse(buffer, (int)nReadLength, 0);
+		fSuccess = parse(buffer, (int)nReadLength, 0);
 	}
 
 	XLFS_CloseFile(hFile);
@@ -52,26 +53,26 @@ XML¿â·½·¨
 */
 void XmlParser::OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs)
 {
-	if (strcmp(pszName, this->attrNamesOfColumn[MEDIA_TAG]) == 0)
+	if (strcmp(pszName, this->m_attrNamesOfColumn[MEDIA_TAG]) == 0)
 	{
 		StrSongInfo *info = new StrSongInfo();
 		int attrInd = 0;
 		const XML_Char * attr = papszAttrs[attrInd];
 		while(attr)
 		{
-			if (strcmp(attr, attrNamesOfColumn[COVER_COL]) == 0)
+			if (strcmp(attr, m_attrNamesOfColumn[COVER_COL]) == 0)
 			{
 				attrInd++;
 				attr = papszAttrs[attrInd];
 				info->cover = attr;
 			}
-			if (strcmp(attr, attrNamesOfColumn[NAME_COL]) == 0)
+			if (strcmp(attr, m_attrNamesOfColumn[NAME_COL]) == 0)
 			{
 				attrInd++;
 				attr = papszAttrs[attrInd];
 				info->name = attr;
 			}
-			if (strcmp(attr, attrNamesOfColumn[SOURCE_COL]) == 0)
+			if (strcmp(attr, m_attrNamesOfColumn[SOURCE_COL]) == 0)
 			{
 				attrInd++;
 				attr = papszAttrs[attrInd];
@@ -80,7 +81,7 @@ void XmlParser::OnStartElement(const XML_Char *pszName, const XML_Char **papszAt
 			attrInd++;
 			attr = papszAttrs[attrInd];
 		}
-		m_playlist->push_back(*info);
+		m_playlist->push_back(info);
 	}
 }
 

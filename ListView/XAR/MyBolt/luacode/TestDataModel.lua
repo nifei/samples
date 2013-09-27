@@ -27,10 +27,10 @@ function GetXmlDataModelObject(dataModelClassName, playlistFileName)
 			function(userdata)
 				return userdata.class:GetColumnCount(userdata.className)
 			end
-		callbackTable.SetDataBatchReadyListener = 
-			function (userdata, dataBatchReadyListener)
-				userdata.class:SetDataBatchReadyListener(userdata.className, dataBatchReadyListener)
-			end
+		-- callbackTable.SetDataBatchReadyListener = 
+			-- function (userdata, dataBatchReadyListener)
+				-- userdata.class:SetDataBatchReadyListener(userdata.className, dataBatchReadyListener, "string")
+			-- end
 			
 		callbackTable.SetSingleDataReadyListener = 
 			function(userdata, singleDataReadyListener)

@@ -6,13 +6,11 @@
 #include <XLUE.h>
 #include <XLGraphic.h>
 #include <XLLuaRuntime.h>
-#include <string>
-#include <vector>
 #include <Shlwapi.h>
 #include <assert.h>	
 #include <windows.h>
 
-using namespace std;
+#include <string>
 
 const WCHAR* GetResDir()
 {
@@ -30,7 +28,7 @@ int __stdcall LuaErrorHandle(lua_State* luaState,const wchar_t* pExtInfo,const w
         s_bEnter = true;
         if(pExtInfo != NULL)
         {
-			wstring str = wcszLuaErrorString ? wcszLuaErrorString : L"";
+			std::wstring str = wcszLuaErrorString ? wcszLuaErrorString : L"";
             luaState;
             pExtInfo;
             wcszLuaErrorString;
@@ -93,10 +91,12 @@ bool RegisterDataModelClass()
 {
 	HINSTANCE hmod;
 	hmod =::LoadLibrary(L"DirModel.dll");
-	typedef bool (*Fun)(void);
-	Fun lpproc = (Fun)GetProcAddress (hmod,"RegisterDataModelClass");
-	if (lpproc != 0)
-		return lpproc();
+	typedef bool (*FUNCREGISTER)(void);
+	FUNCREGISTER pfnRegister = (FUNCREGISTER)GetProcAddress (hmod,"RegisterDataModelClass");
+	if (pfnRegister != 0)
+	{
+		return pfnRegister();
+	}
 	return false;
 }
 
