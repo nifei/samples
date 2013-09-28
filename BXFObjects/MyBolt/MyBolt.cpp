@@ -113,6 +113,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     XL_LRT_ENV_HANDLE hEnv = XLLRT_GetEnv(NULL);
     LogObject::RegisterClass(hEnv);
     LogObjectFactory::RegisterObj(hEnv);
+	XLLRT_ReleaseEnv(hEnv);
 
 
 	MSG msg;
