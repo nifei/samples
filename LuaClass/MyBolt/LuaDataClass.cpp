@@ -104,7 +104,7 @@ int LuaDerived2::Click2(lua_State *luaState)
 
 	// 该调用成功, 因为push的时候声称是LUA_DERIVED2
 	// 即使push的时候传了一个实际指向LUA_DERIVED1的对象进去也成功
-	long result2 = XLLRT_CheckXLObject(luaState, 1, LUA_DERIVED2, &lpObjDerived2);
+	
 	Derived2 **ppDataObject = reinterpret_cast<Derived2**>(lua_touserdata(luaState, 1));
 	(*ppDataObject)->Click2();
 	return 1;
@@ -137,8 +137,8 @@ int LuaFactory::CreateInstance(lua_State* luaState)
 	}
 	else if (strcmp(className, "Derived2") == 0)
 	{
-		// 试试Base *obj = new Derived2();
-		 Base *obj = new Derived1();
+		Base *obj = new Derived2();
+		 // 试试Base *obj = new Derived1();
 		// 即使在这里push一个Derived1的指针到lua环境中, 因为类名参数是LUA_DERIVED2, 所以回头XLLRT_GetXLObjectClass 取出的也是LUA_DERIVED2
 		XLLRT_PushXLObject(luaState, LUA_DERIVED2, obj);
 	}
