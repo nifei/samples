@@ -12,7 +12,7 @@ GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
 , m_radius(1)
-, m_type(OneDimention)
+, m_type(DirecheIIR)
 {
 
 }
@@ -41,10 +41,86 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 		{
 			OneDimentionRender(hClipBitmap);
 		}
+		else if (m_type == DirecheIIR)
+		{
+			DericheIIRRender(hClipBitmap);
+		}
 	}
 
 	XL_ReleaseBitmap(hClipBitmap);
 }
+/* Calcualte Gaussian Blur Filter Coefficiens
+ *  alpha -> smooting gradient depends on sigma
+ *  k = ((1-e^-alpha)^2)/(1+2*alpha*e^-alpha - e^-2alpha)
+ *  a0 = k; a1 = k*(alpha-1)*e^-alpha; a2 = k*(alpha+1)*e^-alpha; a3 = -k*e^(-2*alpha)
+ *  b1 = -2*e^-alpha; b2 = e^(-2*alpha)
+ */
+void calGaussianCoeff( float sigma,  float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+{
+  float alpha, lamma,  k; 
+  // defensive check
+  if (sigma < 0.5f)
+	  sigma = 0.5f;
+
+  alpha = (float) exp((0.726)*(0.726)) / sigma;
+  lamma = (float)exp(-alpha);
+  *b2 = (float)exp(-2*alpha);
+  k = (1-lamma)*(1-lamma)/(1+2*alpha*lamma- (*b2));
+  *a0 = k;
+  *a1 = k*(alpha-1)*lamma;
+  *a2 = k*(alpha+1)*lamma;
+  *a3 = -k* (*b2);
+  *b1 = -2*lamma;
+  *cprev = (*a0 + *a1)/(1+ *b1 + *b2);
+  *cnext = (*a2 + *a3)/(1+ *b1 + *b2);
+}
+
+/* SSE Implementation: gaussianHorizontal_sse
+ *		oTemp - Temporary small buffer used between left to right pass
+ *		id    - input image 
+ *		od    - output image from this filter
+ *		height - image height
+ *		width - image original width
+ *		Nwidth - Padded width
+ * 		a0, a1, a2, a3, b1, b2, cprev, cnext: Gaussian coefficients
+ */
+void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+{
+}
+void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int width, int height, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+{
+}
+void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
+{
+	XLBitmapInfo bmp;
+	XL_GetBitmapInfo(hBitmap, &bmp);
+
+	assert(bmp.ColorType == XLGRAPHIC_CT_ARGB32);
+
+	float a0, a1, a2, a3, b1, b2, cprev, cnext;
+	calGaussianCoeff(m_sigma, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
+
+	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
+
+	float *oTemp = new float[bmp.Width*4];
+	float *od = new float[bmp.Width*bmp.Height*4];
+	
+	for (int row = 0; row < bmp.Height; ++row)
+	{
+		unsigned long *lpRowInitial = lpPixelBufferInitial +  bmp.ScanLineLength/4*row;
+		float *lpColumnInitial = &(od[row*4]);
+		DerichIIRHorizontal( oTemp, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
+	}
+
+	for (int col = 0; col < bmp.Width; ++col)
+	{
+		unsigned long *lpColumnInitial = lpPixelBufferInitial + col * bmp.Height;
+	}
+
+	delete []oTemp;
+	delete []od;
+}
+
 
 const double pi = 3.14159265358979323846;
 void GaussianFunction(double sigma, int r, double ** results)

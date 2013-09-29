@@ -25,6 +25,7 @@ public:
 	int GetRadius()const {return m_radius;}
 
 private:
+	void DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const;
 	void Simple(XL_BITMAP_HANDLE hBitmap)const;
 	void OneDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
 	inline unsigned int getR(const unsigned long & buffer)const
@@ -48,7 +49,8 @@ private:
 	int m_radius;
 	enum Type {
 		OneDimention = 1, 
-		TwoDimention = 2
+		TwoDimention = 2, 
+		DirecheIIR = 3
 	};
 	Type m_type;
 };
