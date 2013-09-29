@@ -3,9 +3,9 @@
 #include "stdafx.h"
 #pragma once
 
-#define LUA_BASE "LuaBase"
-#define LUA_DERIVED1 "LuaDerived1"
-#define LUA_DERIVED2 "LuaDerived2"
+#define LUA_BASE "LuaBaseClassName"
+#define LUA_DERIVED1 "LuaDerived1ClassName"
+#define LUA_DERIVED2 "LuaDerived2ClassName"
 #define LUA_BASE_FACTORY "LuaBaseFactoryObject"
 
 class LuaBase
@@ -31,6 +31,7 @@ class LuaDerived2
 {
 public:
 	static int Click2(lua_State *luaState);
+	static int Click3(lua_State *luaState);
 	static void RegisterClass(XL_LRT_ENV_HANDLE hEnv);
 private:
 	static XLLRTGlobalAPI s_LuaDerived2MemberFunctions[];

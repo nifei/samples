@@ -1,6 +1,8 @@
 #ifndef _DATA_CLASS_H_
 #define _DATA_CLASS_H_
 
+#include <string>
+
 class Base
 {
 public:
@@ -27,6 +29,8 @@ public:
 class Derived2 : public Base
 {
 public:
+	Derived2(const std::string string = "默认")
+		:m_string(string){}
 	virtual void Click()
 	{
 		::MessageBoxA(0, "子类Derived1对基类方法Click()的实现被调用", "警告", 0);
@@ -35,6 +39,12 @@ public:
 	{
 		::MessageBoxA(0, "子类Derived2的方法Click2()的实现被调用", "警告", 0);
 	}
+	void Click3()
+	{
+		::MessageBoxA(0, m_string.c_str(), "警告", 0);
+	}
+private:
+	const std::string m_string;
 };
 
 #endif

@@ -34,6 +34,7 @@ function OnLButtonDown(self, x, y, flags)
 		if id == "Derived2" then
 			derived2:Click()
 			derived2:Click2()
+			derived2:Click3()
 		end
 	end
 	return 0, true, true
