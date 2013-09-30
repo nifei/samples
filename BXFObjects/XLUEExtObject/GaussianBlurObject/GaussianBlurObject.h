@@ -28,22 +28,6 @@ private:
 	void DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const;
 	void Simple(XL_BITMAP_HANDLE hBitmap)const;
 	void OneDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
-	inline unsigned int getR(const unsigned long & buffer)const
-	{
-		return buffer<<8>>24;
-	}
-	inline unsigned int getG(const unsigned long & buffer)const
-	{
-		return buffer<<16>>24;
-	}
-	inline unsigned int getB(const unsigned long & buffer)const
-	{
-		return buffer<<24>>24;
-	}
-	inline unsigned int getA(const unsigned long & buffer)const
-	{
-		return buffer>>24;
-	}
 private:
 	double m_sigma;
 	int m_radius;

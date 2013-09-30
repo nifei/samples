@@ -81,8 +81,8 @@
 			<layered>1</layered>
 			<left>200</left> 
 			<top>100</top>
-			<width>512</width>
-			<height>512</height>
+			<width>256</width>
+			<height>256</height>
 			<topmost>0</topmost>
 			<visible>1</visible>
 			<enable>1</enable>

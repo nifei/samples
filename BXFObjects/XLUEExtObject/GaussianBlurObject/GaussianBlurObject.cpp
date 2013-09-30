@@ -7,6 +7,13 @@
 #include "./GaussianBlurObject.h"
 #include <cmath>
 #include <iostream>
+#include <mmintrin.h>  //MMX
+#include <xmmintrin.h> //SSE
+#include <emmintrin.h> //SSE2
+#include <pmmintrin.h> //SSE3
+#include <tmmintrin.h> //SSSE3
+#include <smmintrin.h> //SSE4.1
+#include <nmmintrin.h> //SSE4.2
 
 GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
@@ -74,7 +81,22 @@ void calGaussianCoeff( float sigma,  float *a0, float *a1, float *a2, float *a3,
   *cprev = (*a0 + *a1)/(1+ *b1 + *b2);
   *cnext = (*a2 + *a3)/(1+ *b1 + *b2);
 }
-
+inline unsigned int getR(const unsigned long & buffer)
+{
+	return buffer<<8>>24;
+}
+inline unsigned int getG(const unsigned long & buffer)
+{
+	return buffer<<16>>24;
+}
+inline unsigned int getB(const unsigned long & buffer)
+{
+	return buffer<<24>>24;
+}
+inline unsigned int getA(const unsigned long & buffer)
+{
+	return buffer>>24;
+}
 /* SSE Implementation: gaussianHorizontal_sse
  *		oTemp - Temporary small buffer used between left to right pass
  *		id    - input image 
@@ -84,12 +106,254 @@ void calGaussianCoeff( float sigma,  float *a0, float *a1, float *a2, float *a3,
  *		Nwidth - Padded width
  * 		a0, a1, a2, a3, b1, b2, cprev, cnext: Gaussian coefficients
  */
+inline void assignLongTo4Floats(float* out, unsigned long *in)
+{
+	unsigned int alpha = getA(*in);
+	unsigned int green = getG(*in);
+	unsigned int red = getR(*in);
+	unsigned int blue = getB(*in);
+	out[0] = (double)blue;
+	out[1] = (double)green;
+	out[2] = (double)red;
+	out[3] = (double)alpha;
+}
+
+inline void assign4FloatsToLong(unsigned long *out, float *in)
+{
+	unsigned int blue= in[0];
+	unsigned int green = in[1];
+	unsigned int red = in[2];
+	unsigned int alpha = in[3];
+	*out = (alpha<<24)|(red<<16)|(green<<8)|blue;
+}
+
+inline void multi4Floats(float *out, float *in, float *coeff)
+{
+	out[0] = in[0] * (*coeff);
+	out[1] = in[1] * (*coeff);
+	out[2] = in[2] * (*coeff);
+	out[3] = in[3] * (*coeff);
+}
+inline void assign4Floats(float *out, float *in)
+{
+	out[0] = in[0];
+	out[1] = in[1];
+	out[2] = in[2];
+	out[3] = in[3];
+}
+inline void add4Floats(float *out, float *in_l, float *in_r)
+{
+	out[0] = in_l[0] + in_r[0];
+	out[1] = in_l[1] + in_r[1];
+	out[2] = in_l[2] + in_r[2];
+	out[3] = in_l[3] + in_r[3];
+}
+inline void sub4Floats(float *out, float *in_l, float *in_r)
+{
+	out[0] = in_l[0] - in_r[0];
+	out[1] = in_l[1] - in_r[1];
+	out[2] = in_l[2] - in_r[2];
+	out[3] = in_l[3] - in_r[3];
+}
+/*
+	Input:
+	00,01,02
+	10,11,12
+
+	Output:
+	00,10
+	01,11
+	02,12
+
+	width = 3;
+	height = 2
+*/
+/*
+	for (int col = 0; col < width; col++)
+	{
+		assignLongTo4Floats(od, id);
+		id += 1;
+		od += height*4;
+	}
+*/
 void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
+	
+	for (int col = 0; col < width; col++)
+	{
+		assignLongTo4Floats(od, id);
+		id += 1;
+		od += height*4;
+	}
+	return;
+	float prevIn[4];
+	float currIn[4];
+	float prevOut[4];
+	float prev2Out[4];
+
+	float currComp[4];
+	float temp1[4];
+	float temp2[4];
+	float temp3[4];
+
+	// 第一遍从左往右的公式是: oTemp[i] = (a0*id[i] + a1*id[i-1]) - (b1*oTemp[i-1] + b2*oTemp[i-2])
+	// 第二遍从右往左的公式是: od[i] = oTemp[i] + (a3*id[i+1] + a4*id[i+2]) - (b1*od[i+1]+b2*od[i+2])
+	assignLongTo4Floats(prevIn, id);
+	multi4Floats(prevOut, prevIn, cprev);
+	assign4Floats(prev2Out, prevOut);
+	for (int x = 0; x < width; ++x)
+	{
+		assignLongTo4Floats(currIn, id);
+		multi4Floats(currComp, currIn, a0);
+		multi4Floats(temp1, prevIn, a1);
+		multi4Floats(temp2, prevOut, b1);
+		multi4Floats(temp3, prev2Out, b2);
+		add4Floats(currComp, currComp, temp1);
+		add4Floats(temp2, temp2, temp3);
+		assign4Floats(prev2Out, prevOut);
+		sub4Floats(prevOut, currComp, temp2);
+		assign4Floats(prevIn, currIn);
+
+		assign4Floats(oTemp, prevOut);
+		oTemp+=4;
+		id+=1;
+	}
+	id -= 1;
+	od += 4*height*(width-1);// 最后一行行首
+	oTemp -= 4;
+	
+	assignLongTo4Floats(prevIn, id);
+	multi4Floats(prev2Out, prevIn, cnext);
+	assign4Floats(prevOut, prev2Out);
+	assign4Floats(currIn, prevIn);
+
+	a0 = a2;
+	a1 = a3;
+
+	float inNext[4];
+	float output[4];
+
+	for (int x = width - 1; x >= 0; --x)
+	{
+		assignLongTo4Floats(inNext, id);
+		assign4Floats(output, oTemp);
+
+		multi4Floats(currComp, currIn, a0);
+		multi4Floats(temp1, prevIn, a1);
+		multi4Floats(temp2, prevOut, b1);
+		multi4Floats(temp3, prev2Out, b2);
+		add4Floats(currComp, currComp, temp1);
+		add4Floats(temp2, temp2, temp3);
+		assign4Floats(prev2Out, prevOut);
+		sub4Floats(prevOut, currComp, temp2);
+		assign4Floats(prevIn, currIn);
+		assign4Floats(currIn, inNext);
+		add4Floats(output, output, prevOut);
+
+		assign4Floats(od, output);
+		id -= 1;
+		od -= 4*height;
+		oTemp -= 4;
+	}
 }
-void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int width, int height, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+
+/*
+	Input:
+	00(id),	10
+	01,		11
+	02,		12
+
+	Output:
+	00(od),	01,02
+	10,		11,12
+
+	width:2
+	height:3
+*/
+/*
+	for (int col = 0; col < height; col++)
+	{
+		assign4FloatsToLong(od, id);
+		od += width;
+		id += 4;
+	}
+	return;
+	*/
+void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int height, int width, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
+	float prevIn[4];
+	float currIn[4];
+	float prevOut[4];
+	float prev2Out[4];
+
+	float currComp[4];
+	float temp1[4];
+	float temp2[4];
+	float temp3[4];
+
+	assign4Floats(prevIn, id);
+	multi4Floats(prev2Out, prevIn, cprev);
+	assign4Floats(prevOut, prev2Out);
+
+	for (int col = 0; col < height; col++)
+	{
+		assign4Floats(currIn, id);
+
+		multi4Floats(currComp, currIn, a0);
+		multi4Floats(temp1, prevIn, a1);
+		multi4Floats(temp2, prevOut, b1);
+		multi4Floats(temp3, prev2Out, b2);
+
+		add4Floats(currComp, currComp, temp1);
+		add4Floats(temp2, temp2, temp3);
+		assign4Floats(prev2Out, prevOut);
+		sub4Floats(prevOut, currComp, temp2);
+		assign4Floats(prevIn, currIn);
+
+		oTemp += 4;
+		id += 4;
+	}
+	id -= 4;
+	oTemp -= 4;
+	od += width*(height-1);
+
+	a0 = a2;
+	a1 = a3;
+	assign4Floats(prevIn, id);
+	assign4Floats(currIn, prevIn);
+	multi4Floats(prev2Out, prevIn, cnext);
+	assign4Floats(prevOut, prev2Out);
+
+	float inNext[4];
+	float output[4];
+	for(int row = height - 1; row >= 0; row--)
+	{
+		/*
+		assign4Floats(inNext, id);
+		assign4Floats(output, oTemp);
+		multi4Floats(currComp, currIn, a0);
+		multi4Floats(temp1, prevIn, a1);
+		multi4Floats(temp2, prevOut, b1);
+		multi4Floats(temp3, prev2Out, b2);
+
+		add4Floats(currComp, currComp, temp1);
+		add4Floats(temp2, temp2, temp3);
+		assign4Floats(prev2Out, prevOut);
+		sub4Floats(prevOut, currComp, temp2);
+		assign4Floats(prevIn, currIn);
+		assign4Floats(currIn, inNext);
+
+		add4Floats(output, output, prevOut);
+		assign4FloatsToLong(od, output);
+		*/
+		assign4FloatsToLong(od, oTemp);
+		id -= 4;
+		od -= width;
+		oTemp -= 4;
+	}
+
 }
+
 void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 {
 	XLBitmapInfo bmp;
@@ -101,26 +365,41 @@ void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 	calGaussianCoeff(m_sigma, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 
 	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
+		unsigned long *lpRowInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 1);
 
-	float *oTemp = new float[bmp.Width*4];
+	float *oTemp = new float[(bmp.Width + bmp.Height)*4];
 	float *od = new float[bmp.Width*bmp.Height*4];
 	
 	for (int row = 0; row < bmp.Height; ++row)
 	{
-		unsigned long *lpRowInitial = lpPixelBufferInitial +  bmp.ScanLineLength/4*row;
-		float *lpColumnInitial = &(od[row*4]);
-		DerichIIRHorizontal( oTemp, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
+		unsigned long *lpRowInitial = lpPixelBufferInitial + bmp.ScanLineLength/4*row;
+		float *lpColumnInitial = od + row*4;
+		DerichIIRHorizontal(oTemp, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
 	}
 
 	for (int col = 0; col < bmp.Width; ++col)
 	{
-		unsigned long *lpColumnInitial = lpPixelBufferInitial + col * bmp.Height;
+		/*
+		原图buffer作为输出指针
+		00(COL=0),	01(col=1),	02(col=2)
+		10,			11,			12
+		*/
+		unsigned long *lpColInitial = lpPixelBufferInitial + col;
+		//unsigned long *lpColInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, col, 0);
+		/*
+		od作为输入指针
+		00, 10
+		01, 11
+		02, 12
+		*/
+		float *lpRowInitial = od+bmp.Height*col*4;
+		//DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int width, int height, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+		DerichIIRVertical(oTemp, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 	}
 
 	delete []oTemp;
 	delete []od;
 }
-
 
 const double pi = 3.14159265358979323846;
 void GaussianFunction(double sigma, int r, double ** results)
