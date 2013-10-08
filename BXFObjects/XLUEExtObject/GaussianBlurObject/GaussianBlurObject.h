@@ -18,7 +18,7 @@ public:
 	// 该对象是剪裁敏感的，所以需要配合LayerObject+clipsens使用
 	virtual void OnPaint(XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char alpha);
 
-	void SetSigma(double sigma) {m_sigma = sigma;}
+	void SetSigma(double sigma);
 	double GetSigma()const {return m_sigma;}
 
 	void SetRadius(int radius) {m_radius = radius;}

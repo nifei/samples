@@ -9,6 +9,14 @@ function OnSize(self, sizetype, width, height)
 	
 end
 
+function OnMouseWheel(self, x, y, distance, flags)
+	local oldSigma = self:GetSigma()
+	local newSigma = oldSigma + distance/50
+	if newSigma <= 0 then newSigma = 0 end
+	self:SetSigma(newSigma)
+	return 0, true, true
+end
+
 function OnClose(self)
 	--UELoader的全局函数
 	Quit()

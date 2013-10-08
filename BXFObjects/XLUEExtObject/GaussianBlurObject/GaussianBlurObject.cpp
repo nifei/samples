@@ -7,6 +7,8 @@
 #include "./GaussianBlurObject.h"
 #include <cmath>
 #include <iostream>
+#include <time.h>
+
 #include <mmintrin.h>  //MMX
 #include <xmmintrin.h> //SSE
 #include <emmintrin.h> //SSE2
@@ -14,7 +16,6 @@
 #include <tmmintrin.h> //SSSE3
 #include <smmintrin.h> //SSE4.1
 #include <nmmintrin.h> //SSE4.2
-
 GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
@@ -28,8 +29,19 @@ GaussianBlurObject::~GaussianBlurObject(void)
 {
 }
 
-void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char /*alpha*/ )
+void GaussianBlurObject::SetSigma(double sigma)
 {
+	if (m_sigma == sigma)
+	{
+		return;
+	}
+	m_sigma = sigma;
+	PushDirtyRect(NULL);
+}
+
+void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char /*alpha*/ )
+{__m128 test;
+	time_t time1 = time(NULL);
 	assert(lpSrcClipRect);
 	const RECT* pos = GetPos();
 //	assert(RectHelper::EqualRect(lpSrcClipRect, GetPos()));
@@ -37,13 +49,13 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 	XL_BITMAP_HANDLE hClipBitmap = XL_ClipSubBindBitmap(hBitmapDest, lpDestClipRect);
 	assert(hClipBitmap);
 
-	// FIR ÐÍÂË²¨
-	if (m_radius > 0 && m_sigma >0)
+	if (m_radius >= 0 && m_sigma >0)
 	{
 		if (m_type == TwoDimention)
 		{
 			Simple(hClipBitmap);
 		}
+		// FIR ÐÍÂË²¨
 		else if (m_type == OneDimention)
 		{
 			OneDimentionRender(hClipBitmap);
@@ -55,6 +67,8 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 	}
 
 	XL_ReleaseBitmap(hClipBitmap);
+	time_t time2=time(NULL);
+	double seconds = difftime(time1, time2);
 }
 /* Calcualte Gaussian Blur Filter Coefficiens
  *  alpha -> smooting gradient depends on sigma
@@ -169,23 +183,16 @@ inline void sub4Floats(float *out, float *in_l, float *in_r)
 	height = 2
 */
 /*
-	for (int col = 0; col < width; col++)
-	{
-		assignLongTo4Floats(od, id);
-		id += 1;
-		od += height*4;
-	}
+	//for (int col = 0; col < width; col++)
+	//{
+	//	assignLongTo4Floats(od, id);
+	//	id += 1;
+	//	od += height*4;
+	//}
+	//return;
 */
 void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
-	
-	for (int col = 0; col < width; col++)
-	{
-		assignLongTo4Floats(od, id);
-		id += 1;
-		od += height*4;
-	}
-	return;
 	float prevIn[4];
 	float currIn[4];
 	float prevOut[4];
@@ -309,6 +316,7 @@ void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int height, i
 		assign4Floats(prev2Out, prevOut);
 		sub4Floats(prevOut, currComp, temp2);
 		assign4Floats(prevIn, currIn);
+		assign4Floats(oTemp, prevOut);
 
 		oTemp += 4;
 		id += 4;
@@ -328,7 +336,6 @@ void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int height, i
 	float output[4];
 	for(int row = height - 1; row >= 0; row--)
 	{
-		/*
 		assign4Floats(inNext, id);
 		assign4Floats(output, oTemp);
 		multi4Floats(currComp, currIn, a0);
@@ -345,8 +352,7 @@ void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int height, i
 
 		add4Floats(output, output, prevOut);
 		assign4FloatsToLong(od, output);
-		*/
-		assign4FloatsToLong(od, oTemp);
+		
 		id -= 4;
 		od -= width;
 		oTemp -= 4;
@@ -418,12 +424,6 @@ void GaussianFunction(double sigma, int r, double ** results)
 		sum += (*results)[i];
 	}
 	assert(sum>0);
-	double temp[49];
-	for (int i = 0; i < r*2+1; i++)
-	{
-		(*results)[i] /= sum;
-		temp[i] = (*results)[i];
-	}
 }
 
 void GaussianFunction2(double sigma, int r, double **results)
@@ -463,12 +463,6 @@ void GaussianFunction2(double sigma, int r, double **results)
 			(*results)[i*D+j] = (*results)[(r*2-i)*D+(r*2-j)];
 			sum += (*results)[i*D+j];
 		}
-	}
-	double watch[225];
-	for (int i = 0; i < D*D; i++)
-	{
-		(*results)[i] /= sum;
-		watch[i] = (*results)[i];
 	}
 }
 

@@ -48,9 +48,7 @@ int LuaGaussianBlurObject::GetSigma( lua_State* luaState )
 	if (lpExtObj != NULL)
 	{
 		double sigma = lpExtObj->GetSigma();
-		char* lpType;
-		sprintf(lpType, "%f", sigma);
-		lua_pushstring(luaState, lpType);
+		lua_pushnumber(luaState, sigma);
 		return 1;
 	}
 
