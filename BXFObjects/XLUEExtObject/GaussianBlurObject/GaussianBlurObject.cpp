@@ -394,6 +394,7 @@ void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 		DerichIIRHorizontal(oTempThread, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
 	}
 
+// to make this omp parallel work, please enable project property->c++->language->OpenMP support
 #pragma omp parallel for
 	for (int col = 0; col < bmp.Width; ++col)
 	{
