@@ -16,6 +16,7 @@
 #include <tmmintrin.h> //SSSE3
 #include <smmintrin.h> //SSE4.1
 #include <nmmintrin.h> //SSE4.2
+#include <omp.h>
 GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
@@ -41,7 +42,7 @@ void GaussianBlurObject::SetSigma(double sigma)
 
 void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char /*alpha*/ )
 {__m128 test;
-	time_t time1 = time(NULL);
+	clock_t time1 = clock();
 	assert(lpSrcClipRect);
 	const RECT* pos = GetPos();
 //	assert(RectHelper::EqualRect(lpSrcClipRect, GetPos()));
@@ -67,8 +68,8 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 	}
 
 	XL_ReleaseBitmap(hClipBitmap);
-	time_t time2=time(NULL);
-	double seconds = difftime(time1, time2);
+	clock_t time2=clock();
+	float diff = (((float)time2 - (float)time1) / 1000000.0F ) * 1000; 
 }
 /* Calcualte Gaussian Blur Filter Coefficiens
  *  alpha -> smooting gradient depends on sigma
@@ -362,6 +363,12 @@ void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int height, i
 
 void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 {
+	SYSTEM_INFO sysInfo;
+	GetSystemInfo( &sysInfo );
+	int nCPU = sysInfo.dwNumberOfProcessors;
+	int threadNum = nCPU;
+	omp_set_num_threads(threadNum);
+
 	XLBitmapInfo bmp;
 	XL_GetBitmapInfo(hBitmap, &bmp);
 
@@ -371,20 +378,26 @@ void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 	calGaussianCoeff(m_sigma, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 
 	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
-		unsigned long *lpRowInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 1);
+	unsigned long *lpRowInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 1);
 
-	float *oTemp = new float[(bmp.Width + bmp.Height)*4];
+	int bufferSizePerThread = (bmp.Width>bmp.Height?bmp.Width:bmp.Height)*4;
+	float *oTemp = new float[bufferSizePerThread*threadNum];
 	float *od = new float[bmp.Width*bmp.Height*4];
 	
+#pragma omp parallel for 
 	for (int row = 0; row < bmp.Height; ++row)
 	{
+		int tidx = omp_get_thread_num();
 		unsigned long *lpRowInitial = lpPixelBufferInitial + bmp.ScanLineLength/4*row;
 		float *lpColumnInitial = od + row*4;
-		DerichIIRHorizontal(oTemp, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
+		float *oTempThread = oTemp + bufferSizePerThread * tidx;
+		DerichIIRHorizontal(oTempThread, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
 	}
 
+#pragma omp parallel for
 	for (int col = 0; col < bmp.Width; ++col)
 	{
+		int tidx = omp_get_thread_num();
 		/*
 		原图buffer作为输出指针
 		00(COL=0),	01(col=1),	02(col=2)
@@ -399,8 +412,9 @@ void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 		02, 12
 		*/
 		float *lpRowInitial = od+bmp.Height*col*4;
+		float *oTempThread = oTemp + bufferSizePerThread * tidx;
 		//DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int width, int height, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
-		DerichIIRVertical(oTemp, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
+		DerichIIRVertical(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 	}
 
 	delete []oTemp;
