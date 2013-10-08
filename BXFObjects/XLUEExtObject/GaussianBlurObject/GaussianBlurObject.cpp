@@ -265,6 +265,43 @@ void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width,
 	}
 }
 
+void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+{
+	__m128 prevIn, /*currIn, */prevOut, prev2Out, coeft, coefa0, coefa1, coefb1, coefb2;
+
+	coeft = _mm_load_ss((float*)cprev);
+	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
+	prevIn = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i *) (id)));
+	prev2Out = _mm_mul_ps(prevIn, coeft);
+	prevOut = prev2Out;
+
+	coefa0 = _mm_load_ss((float*)a0);
+	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
+	coefa1 = _mm_load_ss((float*)a1);
+	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
+	coefb1 = _mm_load_ss((float*)b1);
+	coefb1 = _mm_shuffle_ps(coefb1, coefb1, 0x00);
+	coefb2 = _mm_load_ss((float*)b2);
+	coefb2 = _mm_shuffle_ps(coefb2, coefb2, 0x00);
+
+	for (int x = 0; x < width; x++)
+	{
+		__m128 currIn = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i*)(id)));
+		__m128 currComp = _mm_mul_ps(currIn, coefa0);
+		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
+		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
+		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
+		currComp= _mm_add_ps(currComp, temp1);
+		temp2 = _mm_add_ps(temp2, temp3);
+		prev2Out = prevOut;
+		prevOut = _mm_sub_ps(currComp, temp2);
+		prevIn = currIn;
+		_mm_store_ps(oTemp, prevOut);
+		id += 1;
+		oTemp += 4;
+	}
+}
+
 /*
 	Input:
 	00(id),	10
@@ -391,7 +428,8 @@ void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 		unsigned long *lpRowInitial = lpPixelBufferInitial + bmp.ScanLineLength/4*row;
 		float *lpColumnInitial = od + row*4;
 		float *oTempThread = oTemp + bufferSizePerThread * tidx;
-		DerichIIRHorizontal(oTempThread, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
+		//DerichIIRHorizontal(oTempThread, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
+		DerichIIRHorizontalSSE(oTempThread, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
 	}
 
 // to make this omp parallel work, please enable project property->c++->language->OpenMP support
