@@ -21,7 +21,7 @@ GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
 , m_radius(1)
-, m_type(DirecheIIR)
+, m_type(DirecheIIRSSE)
 {
 
 }
@@ -52,18 +52,23 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 
 	if (m_radius >= 0 && m_sigma >0)
 	{
+		// FIR 型滤波
 		if (m_type == TwoDimention)
 		{
-			Simple(hClipBitmap);
+			TwoDimentionRender(hClipBitmap);
 		}
-		// FIR 型滤波
 		else if (m_type == OneDimention)
 		{
 			OneDimentionRender(hClipBitmap);
 		}
+		// IIR 型滤波
 		else if (m_type == DirecheIIR)
 		{
 			DericheIIRRender(hClipBitmap);
+		}
+		else if (m_type == DirecheIIRSSE)
+		{
+			DericheIIRRenderSSE(hClipBitmap);
 		}
 	}
 
@@ -172,10 +177,14 @@ inline void sub4Floats(float *out, float *in_l, float *in_r)
 }
 /*
 	Input:
-	00,01,02
+	00,01,02 (*)
 	10,11,12
 
+	中间结果oTemp:
+	00,01,02
+
 	Output:
+	(*)
 	00,10
 	01,11
 	02,12
@@ -267,7 +276,7 @@ void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width,
 
 void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
-	__m128 prevIn, /*currIn, */prevOut, prev2Out, coeft, coefa0, coefa1, coefb1, coefb2;
+	__m128 prevIn, currIn, prevOut, prev2Out, coeft, coefa0, coefa1, coefb1, coefb2;
 
 	coeft = _mm_load_ss((float*)cprev);
 	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
@@ -296,9 +305,48 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 		prev2Out = prevOut;
 		prevOut = _mm_sub_ps(currComp, temp2);
 		prevIn = currIn;
-		_mm_store_ps(oTemp, prevOut);
+		_mm_storeu_ps(oTemp, prevOut);
 		id += 1;
 		oTemp += 4;
+	}
+
+	id -= 1;
+	od += 4*height*(width-1);//输出的最后一行, 不一定是行首, 当前输入行在原图中时第y行, 则od的位置应指向输出的最后一行的第y列, 见上图id, oTemp, od的转换关系
+	oTemp -= 4;
+
+	coeft = _mm_load_ss((float*)cnext);
+	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
+	prevIn = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i *)(id)));
+	prev2Out = _mm_mul_ps(prevIn, coeft);
+	prevOut = prev2Out;
+	currIn = prevIn;
+
+	coefa0 = _mm_load_ss((float*)a2);
+	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
+	coefa1 = _mm_load_ss((float*)a3);
+	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
+
+	for (int x = width - 1; x >= 0; x--)
+	{
+		__m128 inNext = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i*)(id)));
+		__m128 output = _mm_loadu_ps((float*)(oTemp));
+		__m128 currComp = _mm_mul_ps(currIn, coefa0);
+		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
+		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
+		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
+		currComp = _mm_add_ps(currComp, temp1);
+		temp2 = _mm_add_ps(temp2, temp3);
+		prev2Out = prevOut;
+		prevOut = _mm_sub_ps(currComp, temp2);
+		prevIn = currIn;
+		currIn = inNext;
+		output = _mm_add_ps(output, prevOut);
+
+		_mm_storeu_ps((float*)od, output);
+		
+		id -= 1;
+		od -= 4*height;
+		oTemp -= 4;
 	}
 }
 
@@ -316,6 +364,7 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 	height:3
 */
 /*
+	无模糊输出的结果应该是
 	for (int col = 0; col < height; col++)
 	{
 		assign4FloatsToLong(od, id);
@@ -323,7 +372,7 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 		id += 4;
 	}
 	return;
-	*/
+*/
 void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int height, int width, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
 	float prevIn[4];
@@ -398,7 +447,88 @@ void DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int height, i
 
 }
 
-void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
+void DerichIIRVerticalSSE(float *oTemp, float *id, unsigned long *od, int height, int width, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+{
+	__m128 prevIn, currIn, prevOut, prev2Out, coeft, coefa0, coefa1, coefb1, coefb2;
+
+	coeft = _mm_load_ss((float*)cprev);
+	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
+	prevIn = _mm_loadu_ps((float*)id);
+	prev2Out = _mm_mul_ps(prevIn, coeft);
+	prevOut = prev2Out;
+
+	coefa0 = _mm_load_ss((float*)a0);
+	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
+	coefa1 = _mm_load_ss((float*)a1);
+	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
+	coefb1 = _mm_load_ss((float*)b1);
+	coefb1 = _mm_shuffle_ps(coefb1, coefb1, 0x00);
+	coefb2 = _mm_load_ss((float*)b2);
+	coefb2 = _mm_shuffle_ps(coefb2, coefb2, 0x00);
+
+	for (int y = 0; y < height; y++)
+	{
+		currIn = _mm_loadu_ps((float*)id);
+		__m128 currComp = _mm_mul_ps(currIn, coefa0);
+		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
+		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
+		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
+		currComp = _mm_add_ps(currComp, temp1);
+		temp2 = _mm_add_ps(temp2, temp3);
+		prev2Out = prevOut;
+		prevOut = _mm_sub_ps(currComp, temp2);
+		prevIn = currIn;
+		_mm_storeu_ps((float*)(oTemp), prevOut);
+
+		id += 4;
+		oTemp += 4;
+	}
+
+	id -= 4;
+	oTemp -= 4;
+	od += width * (height - 1);
+
+	coeft = _mm_load_ss((float*)cnext);
+	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
+	prevIn = _mm_loadu_ps((float*)id);
+	currIn = prevIn;
+	prev2Out = _mm_mul_ps(prevIn, coeft);
+	prevOut = prev2Out;
+
+	coefa0 = _mm_load_ss((float*)a2);
+	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
+	coefa1 = _mm_load_ss((float*)a3);
+	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
+
+	for (int y = height - 1; y >= 0; y--)
+	{
+		__m128 inNext = _mm_loadu_ps((float*) id);
+		__m128 output = _mm_loadu_ps((float*)(oTemp));
+		__m128 currComp = _mm_mul_ps(currIn, coefa0);
+		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
+		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
+		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
+		currComp = _mm_add_ps(currComp, temp1);
+		temp2 = _mm_add_ps(temp2, temp3);
+		prev2Out = prevOut;
+		prevOut = _mm_sub_ps(currComp, temp2);
+		prevIn = currIn;
+		currIn = inNext;
+		output = _mm_add_ps(output, prevOut);
+		__m128i outputi = _mm_cvttps_epi32(output);
+
+		outputi = _mm_packus_epi32(outputi, outputi);
+		outputi = _mm_packus_epi16(outputi, outputi);
+		//_mm_storel_epi64((__m128i *)od, outputi);//crash. bitmap damaged
+		*od = outputi.m128i_i32[0];
+
+		id -= 4;
+		od -= width;
+		oTemp -= 4;
+	}
+}
+
+void GaussianBlurObject::DericheIIRRenderSSE(XL_BITMAP_HANDLE hBitmap)const
 {
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo( &sysInfo );
@@ -453,7 +583,44 @@ void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
 		float *lpRowInitial = od+bmp.Height*col*4;
 		float *oTempThread = oTemp + bufferSizePerThread * tidx;
 		//DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int width, int height, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
-		DerichIIRVertical(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
+		//DerichIIRVertical(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
+		DerichIIRVerticalSSE(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
+	}
+
+	delete []oTemp;
+	delete []od;
+}
+
+void GaussianBlurObject::DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const
+{
+	XLBitmapInfo bmp;
+	XL_GetBitmapInfo(hBitmap, &bmp);
+
+	assert(bmp.ColorType == XLGRAPHIC_CT_ARGB32);
+
+	float a0, a1, a2, a3, b1, b2, cprev, cnext;
+	calGaussianCoeff(m_sigma, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
+
+	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
+	unsigned long *lpRowInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 1);
+
+	int bufferSizePerThread = (bmp.Width>bmp.Height?bmp.Width:bmp.Height)*4;
+	float *oTemp = new float[bufferSizePerThread];
+	float *od = new float[bmp.Width*bmp.Height*4];
+	
+	for (int row = 0; row < bmp.Height; ++row)
+	{
+		unsigned long *lpRowInitial = lpPixelBufferInitial + bmp.ScanLineLength/4*row;
+		float *lpColumnInitial = od + row*4;
+		DerichIIRHorizontal(oTemp, lpRowInitial, lpColumnInitial, bmp.Width, bmp.Height, bmp.Width, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext );
+	}
+
+	for (int col = 0; col < bmp.Width; ++col)
+	{
+		int tidx = omp_get_thread_num();
+		unsigned long *lpColInitial = lpPixelBufferInitial + col;
+		float *lpRowInitial = od+bmp.Height*col*4;
+		DerichIIRVertical(oTemp, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 	}
 
 	delete []oTemp;
@@ -634,7 +801,7 @@ void GaussianBlurObject::OneDimentionRender(XL_BITMAP_HANDLE hBitmap)const
 memcpy bmp.Height 次调用在bmp.Width * 4长度上
 XL_GetBitmapBuffer 1次
 */
-void GaussianBlurObject::Simple(XL_BITMAP_HANDLE hBitmap)const
+void GaussianBlurObject::TwoDimentionRender(XL_BITMAP_HANDLE hBitmap)const
 {
 	assert(hBitmap);
 	XLBitmapInfo bmp;

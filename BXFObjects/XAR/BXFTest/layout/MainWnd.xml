@@ -27,23 +27,23 @@
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<image>test</image>
+					<image>dear</image>
 				</attr>
 			</obj> 
-<!-- 			<obj id="penguin" class="GaussianBlurObject">
+ 			<obj id="penguin" class="GaussianBlurObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<Sigma>30</Sigma>
-					<Radius>100</Radius>
+					<Sigma>5</Sigma>
+					<Radius>15</Radius>
 				</attr>
 				<eventlist>
 					<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
 				</eventlist>
-			</obj> -->
-			<obj class="GaussianBlurObject">
+			</obj> 
+			<!-- <obj class="GaussianBlurObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
@@ -82,7 +82,7 @@
 					<Sigma>3</Sigma>
 					<Radius>9</Radius>
 				</attr>
-			</obj>
+			</obj> -->
 		</children>
 	</obj>
 </objtreetemplate>
@@ -94,8 +94,8 @@
 			<layered>1</layered>
 			<left>200</left> 
 			<top>100</top>
-			<width>256</width>
-			<height>256</height>
+			<width>640</width>
+			<height>450</height>
 			<topmost>0</topmost>
 			<visible>1</visible>
 			<enable>1</enable>

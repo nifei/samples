@@ -26,7 +26,8 @@ public:
 
 private:
 	void DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const;
-	void Simple(XL_BITMAP_HANDLE hBitmap)const;
+	void DericheIIRRenderSSE(XL_BITMAP_HANDLE hBitmap)const;
+	void TwoDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
 	void OneDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
 private:
 	double m_sigma;
@@ -34,7 +35,8 @@ private:
 	enum Type {
 		OneDimention = 1, 
 		TwoDimention = 2, 
-		DirecheIIR = 3
+		DirecheIIR = 3, 
+		DirecheIIRSSE = 4
 	};
 	Type m_type;
 };
