@@ -25,6 +25,7 @@ public:
 	int GetRadius()const {return m_radius;}
 
 private:
+	void DericheIIRRenderSSEIntrinsics(XL_BITMAP_HANDLE hBitmap)const;
 	void DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const;
 	void DericheIIRRenderSSE(XL_BITMAP_HANDLE hBitmap)const;
 	void TwoDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
@@ -36,7 +37,8 @@ private:
 		OneDimention = 1, 
 		TwoDimention = 2, 
 		DirecheIIR = 3, 
-		DirecheIIRSSE = 4
+		DirecheIIRSSE = 4, 
+		DirecheIIRSSEIntrinsics = 5
 	};
 	Type m_type;
 };
