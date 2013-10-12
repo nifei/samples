@@ -117,40 +117,60 @@ ls_than_high:
 		memcpy(lpPixelBufferLine, lpPixelBufferTempInitial + column * bmp.Height, bmp.Height * 4);
 		for (int row = 0; row < bmp.Height; ++row)
 		{
+			float pixelSum[4] = {0,0,0,0};
+			__int32 lo = 0;
+			__int32 hi = bmp.Height - 1;
+			char a, r, g, b;
 			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
-			double redSum = 0;
-			double greenSum = 0;
-			double blueSum = 0;
-			double alphaSum = 0;
-			for (int j = -m_radius; j <= m_radius; j++)
-			{
-				unsigned long pixelBuffer;
-				if (row + j < 0)
-				{
-					pixelBuffer = lpPixelBufferLine[0];
-				}
-				else if (row + j >= bmp.Height)
-				{
-					pixelBuffer = lpPixelBufferLine[bmp.Height-1];
-				}
-				else
-				{
-					pixelBuffer = lpPixelBufferLine[row+j];
-				}
-				unsigned int alpha = XLCOLOR_BGRA_A(pixelBuffer);
-				unsigned int green = XLCOLOR_BGRA_G(pixelBuffer);
-				unsigned int red = XLCOLOR_BGRA_R(pixelBuffer);
-				unsigned int blue = XLCOLOR_BGRA_B(pixelBuffer);
-				redSum += red * weight[j+m_radius];
-				greenSum += green * weight[j+m_radius];
-				blueSum += blue * weight[j+m_radius];
-				alphaSum += alpha * weight[j+m_radius];
+
+			_asm{
+				mov edx, m_radius;
+				imul edx, 2;
+				add edx, 1;
+				mov ecx, 0;
+				add ecx, weight;
+				movupd xmm2, pixelSum;
+start_loop2:
+				mov ebx, m_radius;
+				sub ebx, edx;
+				add ebx, 1;
+				add ebx, row;
+
+				cmp ebx, lo;
+				jge gt_than_low2;
+ls_than_low2:
+				mov ebx, lo;
+gt_than_low2:
+				cmp ebx, hi;
+				jle ls_than_high2;
+gt_than_high2:
+				mov ebx, hi;
+ls_than_high2:
+				;矫正结束, ebx存放正确索引
+
+				mov eax, lpPixelBufferLine;
+				imul ebx, 4;
+				add eax, ebx;
+
+				pmovzxbd xmm0, [eax];
+				cvtdq2ps xmm0, xmm0; 整形变浮点
+
+				movd xmm1, [ecx];
+				shufps xmm1, xmm1, 0x00;
+				mulps xmm0, xmm1;
+				addps xmm2, xmm0;
+
+				add ecx, 4;
+				dec edx;
+				jnz start_loop2;
+				movupd pixelSum, xmm2;
+				emms;
 			}
-			unsigned int alpha = alphaSum;
-			unsigned int green = greenSum;
-			unsigned int red = redSum;
-			unsigned int blue = blueSum;
-			*lpPixelBuffer = XLCOLOR_BGRA(blue, green, red, alpha);
+			b = pixelSum[0];
+			g = pixelSum[1];
+			r = pixelSum[2];
+			a = pixelSum[3];
+			*lpPixelBuffer = XLCOLOR_BGRA(b, g, r, a);
 		}
 		delete []lpPixelBufferLine;
 	}
