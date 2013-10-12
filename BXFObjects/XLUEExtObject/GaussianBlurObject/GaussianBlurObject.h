@@ -1,6 +1,7 @@
 #ifndef __GAUSSIANBLUROBJECT_H__
 #define __GAUSSIANBLUROBJECT_H__
 
+class GaussianBlurDelegate;
 
 class GaussianBlurObject
 	: public ExtLayoutObjMethodsImpl
@@ -12,6 +13,14 @@ public:
 	virtual ~GaussianBlurObject(void);
 
 public:
+
+	enum Type {
+		OneDimention = 1, 
+		TwoDimention = 2, 
+		DirecheIIR = 3, 
+		DirecheIIRSSE = 4, 
+		DirecheIIRSSEIntrinsics = 5
+	};
 
 	// ExtLayoutObjMethodsImpl virtual funtions
 
@@ -25,21 +34,8 @@ public:
 	int GetRadius()const {return m_radius;}
 
 private:
-	void DericheIIRRenderSSEIntrinsics(XL_BITMAP_HANDLE hBitmap)const;
-	void DericheIIRRender(XL_BITMAP_HANDLE hBitmap)const;
-	void DericheIIRRenderSSE(XL_BITMAP_HANDLE hBitmap)const;
-	void TwoDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
-	void OneDimentionRender(XL_BITMAP_HANDLE hBitmap)const;
-private:
 	double m_sigma;
 	int m_radius;
-	enum Type {
-		OneDimention = 1, 
-		TwoDimention = 2, 
-		DirecheIIR = 3, 
-		DirecheIIRSSE = 4, 
-		DirecheIIRSSEIntrinsics = 5
-	};
 	Type m_type;
 };
 

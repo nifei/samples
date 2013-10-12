@@ -286,6 +286,18 @@
 			Name="GaussianBlurObject"
 			>
 			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurDelegate.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurFIRImpl.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\GaussianBlurIIRImpl.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\GaussianBlurObject\GaussianBlurObject.cpp"
 				>
 			</File>

@@ -27,7 +27,7 @@
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<image>dear</image>
+					<image>penguin</image>
 				</attr>
 			</obj> 
  			<obj id="penguin" class="GaussianBlurObject">
@@ -94,8 +94,8 @@
 			<layered>1</layered>
 			<left>200</left> 
 			<top>100</top>
-			<width>640</width>
-			<height>450</height>
+			<width>1024</width>
+			<height>768</height>
 			<topmost>0</topmost>
 			<visible>1</visible>
 			<enable>1</enable>
