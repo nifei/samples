@@ -24,8 +24,7 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 
 	for (int line = 0; line < bmp.Height; ++line)
 	{
-		lpPixelBufferLine = new unsigned long [bmp.Width];
-		memcpy(lpPixelBufferLine, lpPixelBufferInitial + bmp.ScanLineLength/4*line, bmp.Width * 4);
+		lpPixelBufferLine = lpPixelBufferInitial + bmp.ScanLineLength/4*line;
 		unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial + line;
 
 		for (__int32 col = 0; col < bmp.Width; ++col)
@@ -43,12 +42,12 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 			// col, 我们正在计算这根线上第col个像素
 			// lpPixelBufferLine - 这根线的首地址
 			// pixelSum - 要在上面累积颜色分量的向量
+			// Todo: 32bit的寄存器不够用的时候应该怎么办?
 			_asm{
 				mov edx, m_radius;
 				imul edx, 2;
 				add edx, 1;
-				mov ecx, 0; 让ecx指向weight的首地址, 每次循环加4byte(1个float那么长)指向weight[m_radius+j];
-				add ecx, weight;
+				mov ecx, weight;让ecx指向weight的首地址, 每次循环加4byte(1个float那么长)指向weight[m_radius+j];
 				movupd xmm2, pixelSum;
 start_loop:
 				; 开始循环体
@@ -100,35 +99,34 @@ ls_than_high:
 				; 想要把xmm2的每一个float取整截成byte,拼成一个long
 				cvtps2dq xmm2, xmm2;
 				packssdw xmm2, xmm2;
-				pextrw b, xmm2, 0;
-				pextrw g, xmm2, 1;
-				pextrw r, xmm2, 2;
-				pextrw a, xmm2, 3;
+				mov esi, lpPixelBufferTemp;
+				pextrw [esi], xmm2, 0;
+				pextrw [esi+1], xmm2, 1;
+				pextrw [esi+2], xmm2, 2;
+				;pextrw [esi+3], xmm2, 3;
+				mov [esi+3], 0xfe;
 				emms;
 			}
-			*lpPixelBufferTemp = XLCOLOR_BGRA(b, g, r, a);
+			//*lpPixelBufferTemp = XLCOLOR_BGRA(b, g, r, a);
 			lpPixelBufferTemp += bmp.Height;
 		}
-		delete []lpPixelBufferLine;
 	}
 	for (int column = 0; column < bmp.Width; ++column)
 	{
-		lpPixelBufferLine = new unsigned long [bmp.Height];
-		memcpy(lpPixelBufferLine, lpPixelBufferTempInitial + column * bmp.Height, bmp.Height * 4);
+		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height;
 		for (int row = 0; row < bmp.Height; ++row)
 		{
 			float pixelSum[4] = {0,0,0,0};
 			__int32 lo = 0;
 			__int32 hi = bmp.Height - 1;
-			char a, r, g, b;
+			BYTE a, r, g, b;
 			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
 
 			_asm{
 				mov edx, m_radius;
 				imul edx, 2;
 				add edx, 1;
-				mov ecx, 0;
-				add ecx, weight;
+				mov ecx, weight;
 				movupd xmm2, pixelSum;
 start_loop2:
 				mov ebx, m_radius;
@@ -164,15 +162,19 @@ ls_than_high2:
 				dec edx;
 				jnz start_loop2;
 				movupd pixelSum, xmm2;
+
+				; 想要把xmm2的每一个float取整截成byte,拼成一个long
+				cvtps2dq xmm2, xmm2;
+				packssdw xmm2, xmm2;
+				mov esi, lpPixelBuffer;
+				pextrw [esi], xmm2, 0;
+				pextrw [esi+1], xmm2, 1;
+				pextrw [esi+2], xmm2, 2;
+				;pextrw [esi+3], xmm2, 3;
+				mov [esi+3], 0xfe;这一位是alpha
 				emms;
 			}
-			b = pixelSum[0];
-			g = pixelSum[1];
-			r = pixelSum[2];
-			a = pixelSum[3];
-			*lpPixelBuffer = XLCOLOR_BGRA(b, g, r, a);
 		}
-		delete []lpPixelBufferLine;
 	}
 	free(lpPixelBufferTempInitial);
 }
