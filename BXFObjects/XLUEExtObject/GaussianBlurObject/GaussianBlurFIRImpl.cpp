@@ -22,69 +22,58 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
 	unsigned long *lpPixelBufferTempInitial = (unsigned long*)malloc(sizeof(unsigned long)*bmp.Height*bmp.Width);
 
-	for (int line = 0; line < bmp.Height; ++line)
+	__int32 lo = 0;
+	__int32 hi = 0;
+	_asm{
+		jmp done;
+correct_index:
+		; index in ebx
+		; lo
+		; hi
+		cmp ebx, lo;
+		jge gt_than_low_case;
+ls_than_low_case:
+		mov ebx, lo;
+gt_than_low_case:
+		cmp ebx, hi;
+		jle ls_than_high_case;
+gs_than_high_case:
+		mov ebx, hi;
+ls_than_high_case:
+		ret;
+done:
+	}
+	for (int line = bmp.Height - 1; line >= 0; --line)
 	{
 		lpPixelBufferLine = lpPixelBufferInitial + bmp.ScanLineLength/4*line;
-		unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial + line;
 
-		for (__int32 col = 0; col < bmp.Width; ++col)
-		{
-			float pixelSum[4] = {0,0,0,0};
-			__int32 lo = 0;
-			__int32 hi = bmp.Width - 1;
-			char a,r,g,b;
-
-			// 这一段asm用到的内存变量有:
-			// lo - 这根线的索引最小值
-			// hi - 这根线的索引最大值
-			// m_radius, 高斯核半径, __int32
-			// weight, 高斯核矩阵
-			// col, 我们正在计算这根线上第col个像素
-			// lpPixelBufferLine - 这根线的首地址
-			// pixelSum - 要在上面累积颜色分量的向量
-			// Todo: 32bit的寄存器不够用的时候应该怎么办?
-			_asm{
-				mov edx, m_radius;
-				imul edx, 2;
-				add edx, 1;
+		lo = 0;
+		hi = bmp.Width - 1;
+		_asm {
+			// ebx 记循环
+			// esi 记lpPixelBufferTemp
+			mov ebx,bmp.Width;
+			mov esi, lpPixelBufferTempInitial;
+			add esi, line;
+			add esi, line;
+			add esi, line;
+			add esi, line;
+			mov edx, diameter;
+start_loop_h_level_1:
+				push edx;
 				mov ecx, weight;让ecx指向weight的首地址, 每次循环加4byte(1个float那么长)指向weight[m_radius+j];
-				movupd xmm2, pixelSum;
-start_loop:
-				; 开始循环体
-				mov ebx, m_radius;
-				sub ebx, edx;
-				add ebx, 1; // 现在bx = j
-				add ebx, col; // now bx = col + j
+start_loop_h_level_0:
+				push ebx
+				add ebx, m_radius
+				sub ebx, edx
+				call correct_index;
 
-				cmp ebx, lo;
-				jge gt_than_low;
-ls_than_low:
-				mov ebx, lo;
-gt_than_low:
-				cmp ebx, hi;
-				jle ls_than_high;
-gs_than_high:
-				mov ebx, hi;
-ls_than_high:
-				;矫正完了, ebx存放着正确的索引 即col+j被矫正在0-width之内
-				
-				; 行首地址放在eax, offset放在ebx, offset*dword长加在行首eax, 对eax代表的地址取值,
-				; 看起来很罗嗦但是不知道为什么 mov lpPixelBufferLine, [dword eax + indx]不工作
-				; Todo: 效率?
-				mov eax, lpPixelBufferLine; 
+				mov eax, lpPixelBufferLine ;为什么不能用递增/减: 边界溢出的像素要取边界点, 非线性递增/减关系; 但是中间大部分都是递增/减的.
 				imul ebx, 4;
 				add eax, ebx; 
-
-				;把pixelBuffer的四个8bit integer扩展成4个32bit integer, 放在128bit寄存器xmm0上
 				pmovzxbd xmm0, [eax];
 				cvtdq2ps xmm0, xmm0; eax用完了
 
-				; 先把weighting = weight[m_radius+j]读出来
-				; 此时ecx指向weight[m_radius+j], 为了把ecx表示的地址存放的float放在xmm1上花费
-				; 了两个多小时用什么指令都不对
-				; 然后发现是因为weight的类型为double T.T
-				; 教训就是注意实际在内存中, 寄存器上存放的数据的实际类型, ecx指向的地址是正确的, 但是要两倍
-				; 的长度才能拿到正确的值, 而我一直当float的长度来move, 当然不对
 				movd xmm1, [ecx]; 现在xmm1的低四位存放weight[m_radius+j]了
 				shufps xmm1, xmm1, 0x00;
 				mulps xmm0, xmm1;
@@ -92,62 +81,66 @@ ls_than_high:
 				addps xmm2, xmm0;
 
 				; 结束循环体
+				pop ebx
 				add ecx, 4;
 				dec edx;
-				jnz start_loop;
-				movupd pixelSum, xmm2;
+				jnz start_loop_h_level_0;
+
 				; 想要把xmm2的每一个float取整截成byte,拼成一个long
 				cvtps2dq xmm2, xmm2;
 				packssdw xmm2, xmm2;
-				mov esi, lpPixelBufferTemp;
 				pextrw [esi], xmm2, 0;
 				pextrw [esi+1], xmm2, 1;
 				pextrw [esi+2], xmm2, 2;
 				;pextrw [esi+3], xmm2, 3;
 				mov [esi+3], 0xfe;
-				emms;
-			}
-			//*lpPixelBufferTemp = XLCOLOR_BGRA(b, g, r, a);
-			lpPixelBufferTemp += bmp.Height;
+
+				pop edx;
+end_loop_h_level_1:
+			add esi, bmp.Height;
+			add esi, bmp.Height;
+			add esi, bmp.Height;
+			add esi, bmp.Height;
+			dec ebx;
+			jnz start_loop_h_level_1;
+			emms;
 		}
 	}
-	for (int column = 0; column < bmp.Width; ++column)
+	for (int column = bmp.Width - 1; column >= 0; --column)
 	{
-		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height;
-		for (int row = 0; row < bmp.Height; ++row)
-		{
-			float pixelSum[4] = {0,0,0,0};
-			__int32 lo = 0;
-			__int32 hi = bmp.Height - 1;
-			BYTE a, r, g, b;
-			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
-
-			_asm{
-				mov edx, m_radius;
-				imul edx, 2;
-				add edx, 1;
-				mov ecx, weight;
-				movupd xmm2, pixelSum;
-start_loop2:
-				mov ebx, m_radius;
+		lpPixelBufferLine = lpPixelBufferTempInitial + (bmp.Width-1-column) * bmp.Height;
+		lo = 0;
+		hi = bmp.Height - 1;
+		_asm{
+			// ebx记这一层的循环
+			// esi记要写的位置
+			mov ebx, bmp.Height;
+			mov edx, diameter;
+			mov ecx, weight;
+			mov esi, bmp.Height;
+			sub esi, 1;
+			imul esi, bmp.ScanLineLength;
+			add esi, lpPixelBufferInitial;
+			add esi, column;
+			add esi, column;
+			add esi, column;
+			add esi, column;
+			// expected: esi pointing at end of column-th column, and each time esi-= bmp.ScanLineLength to point at the above pixel 
+start_loop_v_level_1:
+			push ecx;// ecx 停留在weight起点
+			push edx;// 高斯核循环次数, 记下来, 循环过一次高斯核之后恢复
+			mov eax, lpPixelBufferLine;
+start_loop_v_level_0:
+				push ebx;// ebx 停止表示循环次数
+				push eax;
+				
+				add ebx, m_radius;
 				sub ebx, edx;
-				add ebx, 1;
-				add ebx, row;
+				call correct_index;//calibri ebx
 
-				cmp ebx, lo;
-				jge gt_than_low2;
-ls_than_low2:
-				mov ebx, lo;
-gt_than_low2:
-				cmp ebx, hi;
-				jle ls_than_high2;
-gt_than_high2:
-				mov ebx, hi;
-ls_than_high2:
-				;矫正结束, ebx存放正确索引
-
-				mov eax, lpPixelBufferLine;
-				imul ebx, 4;
+				add eax, ebx;
+				add eax, ebx;
+				add eax, ebx;
 				add eax, ebx;
 
 				pmovzxbd xmm0, [eax];
@@ -157,23 +150,31 @@ ls_than_high2:
 				shufps xmm1, xmm1, 0x00;
 				mulps xmm0, xmm1;
 				addps xmm2, xmm0;
-
-				add ecx, 4;
+end_loop_v_level_0:
+				add ecx, 4;//在weight上前进一步
+				pop eax;
+				pop ebx;// ebx重新开始表示循环次数
 				dec edx;
-				jnz start_loop2;
-				movupd pixelSum, xmm2;
+				jnz start_loop_v_level_0;
 
-				; 想要把xmm2的每一个float取整截成byte,拼成一个long
-				cvtps2dq xmm2, xmm2;
-				packssdw xmm2, xmm2;
-				mov esi, lpPixelBuffer;
-				pextrw [esi], xmm2, 0;
-				pextrw [esi+1], xmm2, 1;
-				pextrw [esi+2], xmm2, 2;
-				;pextrw [esi+3], xmm2, 3;
-				mov [esi+3], 0xfe;这一位是alpha
-				emms;
-			}
+			; 想要把xmm2的每一个float取整截成byte,拼成一个long
+			cvtps2dq xmm2, xmm2;
+			packssdw xmm2, xmm2;
+
+			pextrw [esi], xmm2, 0;
+			pextrw [esi+1], xmm2, 1;
+			pextrw [esi+2], xmm2, 2;
+			;pextrw [esi+3], xmm2, 3;
+			mov [esi+3], 0xfe;这一位是alpha
+			;add esi, bmp.ScanLineLength;
+			sub esi, bmp.ScanLineLength;
+
+			pop edx; // edx回到2*m_radius+1
+			pop ecx; // ecx回到weight起点
+
+			dec ebx;
+			jnz start_loop_v_level_1;
+			emms;
 		}
 	}
 	free(lpPixelBufferTempInitial);

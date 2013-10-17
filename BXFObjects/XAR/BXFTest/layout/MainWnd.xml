@@ -27,7 +27,7 @@
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<image>penguin</image>
+					<image>tulips</image>
 				</attr>
 			</obj> 
  			<obj id="penguin" class="GaussianBlurObject">
@@ -89,13 +89,13 @@
 	
 <hostwndtemplate id="HelloBolt.Wnd" class="FrameHostWnd">
 		<attr> 
-			<mainwnd>1</mainwnd>
+			<!-- <mainwnd>1</mainwnd> -->
 			<title>Bolt</title>
 			<layered>1</layered>
 			<left>200</left> 
 			<top>100</top>
-			<width>1024</width>
-			<height>768</height>
+			<width>800</width>
+			<height>600</height>
 			<topmost>0</topmost>
 			<visible>1</visible>
 			<enable>1</enable>
