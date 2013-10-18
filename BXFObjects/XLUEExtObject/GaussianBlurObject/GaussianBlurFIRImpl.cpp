@@ -30,6 +30,7 @@ correct_index:
 		; index in ebx
 		; lo
 		; hi
+		
 		cmp ebx, lo;
 		jge gt_than_low_case;
 ls_than_low_case:
@@ -40,15 +41,16 @@ gt_than_low_case:
 gs_than_high_case:
 		mov ebx, hi;
 ls_than_high_case:
+
 		ret;
 done:
 	}
+	lo = 0;
+	hi = bmp.Width - 1;
 	for (int line = bmp.Height - 1; line >= 0; --line)
 	{
 		lpPixelBufferLine = lpPixelBufferInitial + bmp.ScanLineLength/4*line;
 
-		lo = 0;
-		hi = bmp.Width - 1;
 		_asm {
 			// ebx 记循环
 			// esi 记lpPixelBufferTemp
@@ -80,7 +82,7 @@ start_loop_h_level_0:
 
 				addps xmm2, xmm0;
 
-				; 结束循环体
+end_loop_h_level_0:
 				pop ebx
 				add ecx, 4;
 				dec edx;
@@ -106,11 +108,11 @@ end_loop_h_level_1:
 			emms;
 		}
 	}
+	lo = 0;
+	hi = bmp.Height - 1;
 	for (int column = bmp.Width - 1; column >= 0; --column)
 	{
 		lpPixelBufferLine = lpPixelBufferTempInitial + (bmp.Width-1-column) * bmp.Height;
-		lo = 0;
-		hi = bmp.Height - 1;
 		_asm{
 			// ebx记这一层的循环
 			// esi记要写的位置
@@ -141,10 +143,10 @@ start_loop_v_level_0:
 				add eax, ebx;
 				add eax, ebx;
 				add eax, ebx;
-				add eax, ebx;
+				add eax, ebx; //eax += 4ebx, eax指向当前要计算的点 
 
 				pmovzxbd xmm0, [eax];
-				cvtdq2ps xmm0, xmm0; 整形变浮点
+				cvtdq2ps xmm0, xmm0; //整形变浮点
 
 				movd xmm1, [ecx];
 				shufps xmm1, xmm1, 0x00;
@@ -166,7 +168,6 @@ end_loop_v_level_0:
 			pextrw [esi+2], xmm2, 2;
 			;pextrw [esi+3], xmm2, 3;
 			mov [esi+3], 0xfe;这一位是alpha
-			;add esi, bmp.ScanLineLength;
 			sub esi, bmp.ScanLineLength;
 
 			pop edx; // edx回到2*m_radius+1
@@ -180,6 +181,13 @@ end_loop_v_level_0:
 	free(lpPixelBufferTempInitial);
 }
 
+/*
+FIR高斯模糊的两个维度叠加模糊的c++实现;
+先做水平方向的模糊, 原图做输入, 结果写入原图buffer;
+再做垂直方向的模糊, 水平模糊过的原图做输入, 结果写入原图buffer
+没有进行转置, 也没有另外开辟图片一样大小的内存空间来放中间结果
+这个实现只是为了验证两个维度叠加的高斯模糊和两个维度同时计算的高斯模糊是一样的, 不会最终使用, 因为太慢了!
+*/
 void OneDimentionRender(XL_BITMAP_HANDLE hBitmap, double m_sigma, int m_radius)
 {
 	assert(hBitmap);
@@ -420,6 +428,11 @@ void GaussianFunction(double sigma, int r, float ** results)
 	{
 		(*results)[i] /= sum;
 	}
+	//float watch[49];
+	//for (int i = 0;i < 2*r+1; i++)
+	//{
+	//	watch[i] = (*results)[i];
+	//}
 }
 
 void GaussianFunction2(double sigma, int r, double **results)
@@ -459,5 +472,11 @@ void GaussianFunction2(double sigma, int r, double **results)
 			(*results)[i*D+j] = (*results)[(r*2-i)*D+(r*2-j)];
 			sum += (*results)[i*D+j];
 		}
+	}
+	double watch[49];
+	for (int i = 0;i < D*D; i++)
+	{
+		(*results)[i] /= sum;
+		watch[i] = (*results)[i];
 	}
 }

@@ -27,7 +27,7 @@
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<image>tulips</image>
+					<image>penguin</image>
 				</attr>
 			</obj> 
  			<obj id="penguin" class="GaussianBlurObject">
@@ -36,8 +36,8 @@
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<Sigma>5</Sigma>
-					<Radius>15</Radius>
+					<Sigma>1</Sigma>
+					<Radius>1</Radius>
 				</attr>
 				<eventlist>
 					<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
