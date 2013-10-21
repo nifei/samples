@@ -29,12 +29,11 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 	lo = 0;
 	hi = bmp.Width - 1;
 
-	int factor = 256;
+	int factor = 128;
 	__int16 *weightInt = new __int16[diameter];
 	for (int i = 0; i < diameter; i++)
 	{
-		weight[i] *= factor;
-		weightInt[i] = (int)(weight[i] + 0.5);
+		weightInt[i] = (__int16)(weight[i]*factor + 0.5);
 	}
 
 	for (int line = 0; line < bmp.Height; ++line)
@@ -104,7 +103,7 @@ ls_than_high_h:
 				mov esi, lpPixelBufferTemp; esi now points at destination
 
 				; mmx, 想要把mm2 每一个word右移若干位, 拼成一个long
-				psrlw mm2, 8;
+				psrlw mm2, 7;
 				packuswb mm2, mm2;
 				movd [esi], mm2;
 
@@ -113,10 +112,7 @@ ls_than_high_h:
 			lpPixelBufferTemp += bmp.Height;
 		}
 	}
-	for (int i = 0; i < diameter; i++)
-	{
-		weight[i] /= factor;
-	}
+
 	lo = 0;
 	hi = bmp.Height - 1;
 	for (int column = 0; column < bmp.Width; ++column)
