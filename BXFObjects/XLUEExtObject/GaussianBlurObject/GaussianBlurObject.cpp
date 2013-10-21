@@ -14,7 +14,7 @@ GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
 , m_radius(1)
-, m_type(DirecheIIRSSEIntrinsics)
+, m_type(OneDimention)
 {
 }
 

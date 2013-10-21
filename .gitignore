@@ -5,3 +5,7 @@ Debug
 /LuaClass/*.ncb
 /BXFObjects/HelloBolt.ncb
 /TreeView/*.ncb
+/BXFObjects/*.suo
+/BXFObjects/XLUEExtObject/Debug
+/BXFObjects/XLUEExtObject/*.user
+/BXFObjects/MyBolt/Debug
