@@ -30,7 +30,7 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 	hi = bmp.Width - 1;
 
 	int factor = 256;
-	__int32 *weightInt = new __int32[diameter];
+	__int16 *weightInt = new __int16[diameter];
 	for (int i = 0; i < diameter; i++)
 	{
 		weight[i] *= factor;
@@ -54,7 +54,7 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 			// Todo: 32bit的寄存器不够用的时候应该怎么办?
 			_asm{
 				mov edx, diameter;
-				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加4byte(1个float那么长)指向weight[m_radius+j];
+				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
 				pxor mm2, mm2;
 start_loop_h:
 				; 开始循环体
@@ -74,16 +74,13 @@ gt_than_low_h:
 ls_than_high_h:
 				;矫正完了, ebx存放着正确的索引 即col+j被矫正在0-width之内
 
-					; 行首地址放在eax, offset放在ebx, offset*dword长加在行首eax, 对eax代表的地址取值,
-					; 看起来很罗嗦但是不知道为什么 mov lpPixelBufferLine, [dword eax + indx]不工作
-					; Todo: 效率?
+				; 行首地址放在eax, offset放在ebx, offset*dword长加在行首eax, 对eax代表的地址取值,
+				; 看起来很罗嗦但是不知道为什么 mov lpPixelBufferLine, [dword eax + indx]不工作
+				; Todo: 效率?
 				mov eax, lpPixelBufferLine; 
 				imul ebx, 4;
 				add eax, ebx; 
 
-				;把pixelBuffer的四个8bit integer扩展成4个32bit integer, 放在128bit寄存器xmm0上
-				pmovzxbd xmm0, [eax];
-				cvtdq2ps xmm0, xmm0; eax用完了
 				; mmx
 				; 把pixelbuffer的四个8bit integer扩展成4个16bit integer, 放在64bit寄存器mmx0上
 				pxor mm0, mm0;
@@ -91,42 +88,26 @@ ls_than_high_h:
 				pxor mm1, mm1
 				PUNPCKLBW mm0, mm1;
 
-				; 先把weighting = weight[m_radius+j]读出来
-				; 此时ecx指向weight[m_radius+j]
-				movd xmm1, [ecx]; 现在xmm1的低四位存放weight[m_radius+j]了
-				shufps xmm1, xmm1, 0x00;
-				mulps xmm0, xmm1;
 				; mmx
 				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; now mm1 stands 4 4 weightInt[m_radius+j]
+				pshufw mm1, mm1, 0x00; now mm1 stands 4 weightInt[m_radius+j]
 				pmullw mm0, mm1;
 
-				addps xmm2, xmm0;
 				; mmx
 				paddw mm2, mm0;
 
 				; 结束循环体
-				add ecx, 4;
+				add ecx, 2;
 				dec edx;
 				jnz start_loop_h;
 
 				mov esi, lpPixelBufferTemp; esi now points at destination
-
-				; 想要把xmm2的每一个float取整截成byte,拼成一个long
-				cvtps2dq xmm2, xmm2;
-				packssdw xmm2, xmm2;
 
 				; mmx, 想要把mm2 每一个word右移若干位, 拼成一个long
 				psrlw mm2, 8;
 				packuswb mm2, mm2;
 				movd [esi], mm2;
 
-			/*	psrld xmm2, 6;
-				pextrw [esi], xmm2, 0;
-				pextrw [esi+1], xmm2, 1;
-				pextrw [esi+2], xmm2, 2;
-				;pextrw [esi+3], xmm2, 3;
-				mov [esi+3], 0xfe;*/
 				emms;
 			}
 			lpPixelBufferTemp += bmp.Height;
