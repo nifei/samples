@@ -11,7 +11,7 @@ end
 
 function OnMouseWheel(self, x, y, distance, flags)
 	local oldSigma = self:GetSigma()
-	local newSigma = oldSigma + distance/500
+	local newSigma = oldSigma + distance/50
 	if newSigma <= 0 then newSigma = 0 end
 	self:SetRadius(3*newSigma)
 	self:SetSigma(newSigma)

@@ -16,10 +16,12 @@ public:
 
 	enum Type {
 		OneDimention = 1, 
-		TwoDimention = 2, 
-		DirecheIIR = 3, 
-		DirecheIIRSSE = 4, 
-		DirecheIIRSSEIntrinsics = 5
+		OneDimentionSSE = 2,
+		OneDimentionMMX = 3, 
+		TwoDimention = 4, 
+		DirecheIIR = 5, 
+		DirecheIIRSSE = 6, 
+		DirecheIIRSSEIntrinsics = 7
 	};
 
 	// ExtLayoutObjMethodsImpl virtual funtions

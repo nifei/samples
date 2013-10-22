@@ -5,20 +5,108 @@
 
 void GaussianFunction(double sigma, int r, float ** results);
 void GaussianFunction2(double sigma, int r, double **results);
-
-void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_radius)
+void GaussianFunctionInteger(double i_sigma, int & io_radius, __int16 ** o_results, int shift)
 {
-	__int16 red = 256;
-	__int16 red2 = red<<6;
+	float *fWeights;
+	GaussianFunction(i_sigma, io_radius, &fWeights);
+	
+	int factor = 1;
+	while (shift > 0)
+	{
+		factor *= 2;
+		shift -= 1;
+	}
+
+	int diameter = 2*io_radius + 1;
+
+	*o_results = new __int16[diameter];
+	__int16 *weightInt = *o_results;
+	__int16 watch[9999];
+	int sum = 0;
+	int firstNonZero = -1;
+	for (int i = 0; i < diameter; i++)
+	{
+		weightInt[i] = (__int16)(fWeights[i]*factor + 0.5);
+		sum += weightInt[i];
+		watch[i] = weightInt[i];
+		if (weightInt[i] > 0 && firstNonZero == -1)
+		{
+			firstNonZero = i;
+		}
+	}
+
+	while(firstNonZero >= 1 && sum < factor)
+	{
+		weightInt[firstNonZero - 1]++;
+		watch[firstNonZero-1] = weightInt[firstNonZero - 1];
+		weightInt[diameter-firstNonZero]++;
+		watch[diameter-firstNonZero] = weightInt[diameter-firstNonZero];
+		sum += 2;
+		firstNonZero--;
+	}
+
+	if (sum > factor)
+	{
+		int diff = sum - factor;
+		int diffRadius = diff / 2;
+		for ( int i = -diffRadius; i <= diffRadius; i++)
+		{
+			weightInt[io_radius + i]--;
+			watch[io_radius + i] = weightInt[io_radius + i];
+			sum--;
+		}
+		if (diff %2 == 0)
+		{
+			weightInt[io_radius]++;
+			sum++;
+			watch[io_radius ] = weightInt[io_radius];
+		}
+	}
+
+	if (sum <factor)
+	{
+		int diff = factor - sum;
+		int diffRadius = diff / 2;
+		for ( int i = -diffRadius; i <= diffRadius; i++)
+		{
+			weightInt[io_radius + i]++;
+			watch[io_radius + i] = weightInt[io_radius + i];
+		}
+		if (diff%2 == 0)
+		{
+			weightInt[io_radius]--;
+			watch[io_radius] = weightInt[io_radius];
+		}
+	}
+	io_radius = io_radius - firstNonZero;
+	delete []fWeights;
+}
+
+void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_radius)
+{
 	assert(hBitmap);
 	XLBitmapInfo bmp;
 	XL_GetBitmapInfo(hBitmap, &bmp);
 
 	assert(bmp.ColorType == XLGRAPHIC_CT_ARGB32);
 
-	__int32 diameter = m_radius * 2 + 1;
-	float *weight;
-	GaussianFunction(m_sigma, m_radius, &weight);
+	__int16 *weightBufferInitial;
+	__int16 *weightInt;
+	if (i_radius > 128)
+	{
+		i_radius = 128;
+	}
+	__int32 radius = i_radius;
+	GaussianFunctionInteger(i_sigma, radius, &weightBufferInitial, 8);
+	weightInt = weightBufferInitial + i_radius - radius;
+/*
+	__int16 watch[9999];
+	for (int i = 0; i < 2*radius+1; i++)
+	{
+		watch[i] = weightInt[i];
+	}
+*/
+	__int32 diameter = 2 * radius +1;
 
 	unsigned long *lpPixelBufferLine;
 	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
@@ -29,13 +117,6 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 	lo = 0;
 	hi = bmp.Width - 1;
 
-	int factor = 128;
-	__int16 *weightInt = new __int16[diameter];
-	for (int i = 0; i < diameter; i++)
-	{
-		weightInt[i] = (__int16)(weight[i]*factor + 0.5);
-	}
-
 	for (int line = 0; line < bmp.Height; ++line)
 	{
 		lpPixelBufferLine = lpPixelBufferInitial + bmp.ScanLineLength/4*line;
@@ -45,7 +126,7 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 			// 这一段asm用到的内存变量有:
 			// lo - 这根线的索引最小值
 			// hi - 这根线的索引最大值
-			// m_radius, 高斯核半径, __int32
+			// radius, 高斯核半径, __int32
 			// weight, 高斯核矩阵
 			// col, 我们正在计算这根线上第col个像素
 			// lpPixelBufferLine - 这根线的首地址
@@ -54,11 +135,11 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 			_asm{
 				mov edx, diameter;
 				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
+				; mmx, mm2清零
 				pxor mm2, mm2;
 start_loop_h:
 				; 开始循环体
-				; mmx, mm2清零
-				mov ebx, m_radius;
+				mov ebx, radius;
 				sub ebx, edx;
 				add ebx, 1; // 现在bx = j
 				add ebx, col; // now bx = col + j
@@ -103,9 +184,172 @@ ls_than_high_h:
 				mov esi, lpPixelBufferTemp; esi now points at destination
 
 				; mmx, 想要把mm2 每一个word右移若干位, 拼成一个long
-				psrlw mm2, 7;
+				psrlw mm2, 8;
 				packuswb mm2, mm2;
 				movd [esi], mm2;
+
+				emms;
+			}
+			lpPixelBufferTemp += bmp.Height;
+		}
+	}
+
+	lo = 0;
+	hi = bmp.Height - 1;
+	for (int column = 0; column < bmp.Width; ++column)
+	{
+		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height;
+		for (int row = 0; row < bmp.Height; ++row)
+		{
+			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
+			_asm{
+				mov edx, radius;
+				imul edx, 2;
+				add edx, 1;
+				mov ecx, weightInt;
+				pxor mm2, mm2;
+start_loop_v:
+				mov ebx, radius;
+				sub ebx, edx;
+				add ebx, 1;
+				add ebx, row; now ebx = row + j
+
+				cmp ebx, lo;
+				jge gt_than_low_v;
+				mov ebx, lo;
+gt_than_low_v:
+				cmp ebx, hi;
+				jle ls_than_high_v;
+				mov ebx, hi;
+ls_than_high_v:
+				;矫正结束, ebx存放正确索引
+
+				mov eax, lpPixelBufferLine;
+				imul ebx, 4;
+				add eax, ebx;
+
+				; mmx
+				pxor mm0, mm0;
+				movd mm0, [eax];
+				pxor mm1, mm1;
+				punpcklbw mm0, mm1; 
+
+				; mmx
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm0, mm1;
+				paddw mm2, mm0;
+
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_v;
+
+				mov esi, lpPixelBuffer;
+				
+				; mmx
+				psrlw mm2, 8;
+				packuswb mm2, mm2;
+				movd [esi], mm2;
+				mov [esi+3], 0xfe;这一位是alpha
+				emms;
+			}
+		}
+	}
+	delete []weightBufferInitial;
+	free(lpPixelBufferTempInitial);
+}
+
+void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_radius)
+{
+	__int16 red = 256;
+	__int16 red2 = red<<6;
+	assert(hBitmap);
+	XLBitmapInfo bmp;
+	XL_GetBitmapInfo(hBitmap, &bmp);
+
+	assert(bmp.ColorType == XLGRAPHIC_CT_ARGB32);
+
+	__int32 diameter = m_radius * 2 + 1;
+	float *weight;
+	GaussianFunction(m_sigma, m_radius, &weight);
+
+	unsigned long *lpPixelBufferLine;
+	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
+	unsigned long *lpPixelBufferTempInitial = (unsigned long*)malloc(sizeof(unsigned long)*bmp.Height*bmp.Width);
+
+	__int32 lo = 0;
+	__int32 hi = 0;
+	lo = 0;
+	hi = bmp.Width - 1;
+
+	for (int line = 0; line < bmp.Height; ++line)
+	{
+		lpPixelBufferLine = lpPixelBufferInitial + bmp.ScanLineLength/4*line;
+		unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial + line;
+		for (__int32 col = 0; col < bmp.Width; ++col)
+		{
+			// 这一段asm用到的内存变量有:
+			// lo - 这根线的索引最小值
+			// hi - 这根线的索引最大值
+			// m_radius, 高斯核半径, __int32
+			// weight, 高斯核矩阵
+			// col, 我们正在计算这根线上第col个像素
+			// lpPixelBufferLine - 这根线的首地址
+			// pixelSum - 要在上面累积颜色分量的向量
+			// Todo: 32bit的寄存器不够用的时候应该怎么办?
+			_asm{
+				mov edx, diameter;
+				mov ecx, weight;让ecx指向weight的首地址, 每次循环加4byte(1个float那么长)指向weight[m_radius+j];
+start_loop_h:
+				; 开始循环体
+				mov ebx, m_radius;
+				sub ebx, edx;
+				add ebx, 1; // 现在bx = j
+				add ebx, col; // now bx = col + j
+
+				cmp ebx, lo;
+				jge gt_than_low_h;
+				mov ebx, lo;
+gt_than_low_h:
+				cmp ebx, hi;
+				jle ls_than_high_h;
+				mov ebx, hi;
+ls_than_high_h:
+				;矫正完了, ebx存放着正确的索引 即col+j被矫正在0-width之内
+
+				; 行首地址放在eax, offset放在ebx, offset*dword长加在行首eax, 对eax代表的地址取值,
+				; 看起来很罗嗦但是不知道为什么 mov lpPixelBufferLine, [dword eax + indx]不工作
+				; Todo: 效率?
+				mov eax, lpPixelBufferLine; 
+				imul ebx, 4;
+				add eax, ebx; 
+
+				; mmx
+				; 把pixelbuffer的四个8bit integer扩展成4个16bit integer, 放在64bit寄存器mmx0上 
+				pmovzxbd xmm0, [eax];
+				cvtdq2ps xmm0, xmm0; eax用完了
+					
+				movd xmm1, [ecx]; 现在xmm1的低四位存放weight[m_radius+j]了
+				shufps xmm1, xmm1, 0x00;
+				mulps xmm0, xmm1;
+
+				addps xmm2, xmm0;
+
+				; 结束循环体
+				add ecx, 4;
+				dec edx;
+				jnz start_loop_h;
+
+				mov esi, lpPixelBufferTemp; esi now points at destination
+
+				; 想要把xmm2的每一个float取整截成byte,拼成一个long
+				cvtps2dq xmm2, xmm2;
+				packssdw xmm2, xmm2;
+				pextrw [esi], xmm2, 0;
+				pextrw [esi+1], xmm2, 1;
+				pextrw [esi+2], xmm2, 2;
+				;pextrw [esi+3], xmm2, 3;
+				mov [esi+3], 0xfe;
 
 				emms;
 			}
@@ -149,7 +393,7 @@ ls_than_high_v:
 				pmovzxbd xmm0, [eax];
 				cvtdq2ps xmm0, xmm0; 整形变浮点
 
-					movd xmm1, [ecx];
+				movd xmm1, [ecx];
 				shufps xmm1, xmm1, 0x00;
 				mulps xmm0, xmm1;
 				addps xmm2, xmm0;

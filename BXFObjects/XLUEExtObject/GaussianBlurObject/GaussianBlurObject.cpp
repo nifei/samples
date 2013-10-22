@@ -14,7 +14,7 @@ GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
 , m_radius(1)
-, m_type(OneDimention)
+, m_type(OneDimentionMMX)
 {
 }
 
@@ -48,7 +48,11 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 		{
 			TwoDimentionRender(hClipBitmap, m_sigma, m_radius);
 		}
-		else if (m_type == OneDimention)
+		else if (m_type == OneDimentionMMX)
+		{
+			OneDimentionRenderMMX(hClipBitmap, m_sigma, m_radius);
+		}
+		else if (m_type == OneDimentionSSE)
 		{
 			OneDimentionRenderSSE(hClipBitmap, m_sigma, m_radius);
 		}
