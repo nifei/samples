@@ -14,7 +14,7 @@ GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
 , m_radius(1)
-, m_type(OneDimentionMMX)
+, m_type(DirecheIIRSSE)
 {
 }
 
@@ -67,6 +67,7 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 		}
 		else if (m_type == DirecheIIRSSE)
 		{
+			for (int i = 0; i < 1; i++)
 			DericheIIRRenderSSE(hClipBitmap, m_sigma);
 		}
 		else if (m_type == DirecheIIRSSEIntrinsics)

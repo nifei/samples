@@ -186,9 +186,12 @@ void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width,
 	}
 }
 // SSE指令计算
+// nifei
+// 第一遍从左往右的公式是: oTemp[i] = (a0*id[i] + a1*id[i-1]) - (b1*oTemp[i-1] + b2*oTemp[i-2])
+// 第二遍从右往左的公式是: od[i] = oTemp[i] + (a3*id[i+1] + a4*id[i+2]) - (b1*od[i+1]+b2*od[i+2])
 void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
-	__m128 prevIn, currIn, prevOut, prev2Out, coeft, coefa0, coefa1, coefb1, coefb2;
+	__m128 prevIn, currIn, prevOut, prev2Out, coeft;
 
 	coeft = _mm_load_ss((float*)cprev);
 	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
@@ -196,32 +199,59 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 	prev2Out = _mm_mul_ps(prevIn, coeft);
 	prevOut = prev2Out;
 
-	coefa0 = _mm_load_ss((float*)a0);
-	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
-	coefa1 = _mm_load_ss((float*)a1);
-	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
-	coefb1 = _mm_load_ss((float*)b1);
-	coefb1 = _mm_shuffle_ps(coefb1, coefb1, 0x00);
-	coefb2 = _mm_load_ss((float*)b2);
-	coefb2 = _mm_shuffle_ps(coefb2, coefb2, 0x00);
-
 	for (int x = 0; x < width; x++)
 	{
-		__m128 currIn = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i*)(id)));
-		__m128 currComp = _mm_mul_ps(currIn, coefa0);
-		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
-		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
-		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
-		currComp= _mm_add_ps(currComp, temp1);
-		temp2 = _mm_add_ps(temp2, temp3);
-		prev2Out = prevOut;
-		prevOut = _mm_sub_ps(currComp, temp2);
-		prevIn = currIn;
-		_mm_storeu_ps(oTemp, prevOut);
-		id += 1;
+		_asm{
+			mov eax, a0;
+			movups xmm1, [eax];
+			shufps xmm1, xmm1, 0x00;										xmm1 : a0;
+
+			mov eax, a1;
+			movups xmm3, [eax];												
+			shufps xmm3, xmm3, 0x00;										xmm3 : a1;
+
+			mov eax, b1;
+			movups xmm5, [eax]; 
+			shufps xmm5, xmm5, 0x00;										xmm5 := b1;
+
+			mov eax, b2;
+			movups xmm7, [eax];
+			shufps xmm7, xmm7, 0x00;										xmm7 := b2;
+
+			mov esi, id;
+			pmovzxbd xmm0, [esi];
+			cvtdq2ps xmm0, xmm0;											xmm0 : currIn;
+
+			mulps xmm0, xmm1;													xmm0 := currIn * a0;
+
+			movups xmm2, prevIn;											xmm2 : prevIn;
+			mulps xmm2, xmm3;												xmm2 := prevIn * a1;
+			addps xmm0, xmm2;												xmm0 := currIn * a0 + prevIn * a1;
+			movups xmm4, prevOut;											xmm4 : prevOut;
+
+			mulps xmm4, xmm5;												xmm4 := prevOut * b1;
+			movups xmm6, prev2Out;
+
+			mulps xmm6, xmm7;												xmm6 := prev2Out * b2;
+			subps xmm0, xmm4;
+			subps xmm0, xmm6; 
+			
+			movups xmm4, prevOut;
+			movups prev2Out, xmm4;										prev2Out = prevOut;
+
+			movups prevOut, xmm0;											prevOut = currIn * a0 + prevIn * a1 - prevOut * b1 - prev2Out * b2;
+
+			mov edi, oTemp;
+			movups [edi], xmm0;
+
+			pmovzxbd xmm0, [esi];
+			cvtdq2ps xmm0, xmm0;											xmm0 : currIn
+			movups prevIn, xmm0;											prevIn = currIn;
+			emms;
+		}
+		id++;
 		oTemp += 4;
 	}
-
 	id -= 1;
 	od += 4*height*(width-1);//输出的最后一行, 不一定是行首, 当前输入行在原图中时第y行, 则od的位置应指向输出的最后一行的第y列, 见上图id, oTemp, od的转换关系
 	oTemp -= 4;
@@ -233,29 +263,63 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 	prevOut = prev2Out;
 	currIn = prevIn;
 
-	coefa0 = _mm_load_ss((float*)a2);
-	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
-	coefa1 = _mm_load_ss((float*)a3);
-	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
-
 	for (int x = width - 1; x >= 0; x--)
 	{
-		__m128 inNext = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i*)(id)));
-		__m128 output = _mm_loadu_ps((float*)(oTemp));
-		__m128 currComp = _mm_mul_ps(currIn, coefa0);
-		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
-		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
-		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
-		currComp = _mm_add_ps(currComp, temp1);
-		temp2 = _mm_add_ps(temp2, temp3);
-		prev2Out = prevOut;
-		prevOut = _mm_sub_ps(currComp, temp2);
-		prevIn = currIn;
-		currIn = inNext;
-		output = _mm_add_ps(output, prevOut);
+		_asm{
+			movups xmm0, currIn;						xmm0 := currIn;
 
-		_mm_storeu_ps((float*)od, output);
-		
+			mov eax, a2;
+			movups xmm1, [eax];
+			shufps xmm1, xmm1, 0x00;					xmm1 := a0;
+
+			mov eax, a3;
+			movups xmm3, [eax];
+			shufps xmm3, xmm3, 0x00;					xmm3 := a1;
+
+			mov eax, b1;
+			movups xmm5, [eax];
+			shufps xmm5, xmm5, 0x00;					xmm5 := b1;
+
+			mov eax, b2;
+			movups xmm7, [eax];
+			shufps xmm7, xmm7, 0x00;					xmm7 := b2;
+
+			mulps xmm0, xmm1;								xmm0 := currIn * a0;
+
+			movups xmm2, prevIn;						xmm2 := prevIn;
+			mulps xmm2, xmm3;							xmm2 := prevIn * a1;
+
+			movups xmm4, prevOut;						xmm4 := prevOut;
+			mulps xmm4, xmm5;							xmm4 := prevOut * b1;
+
+			movups xmm6, prev2Out;					xmm6 := prev2Out;
+			mulps xmm6, xmm7;							xmm6 := prev2Out * b2;
+
+			addps xmm0, xmm2;							
+			addps xmm4, xmm6;
+			subps xmm0, xmm4;							xmm0 := currIn * a0 + prevIn * a1 - (prevOut * b1 + prev2Out * b2);
+
+			movups xmm4, prevOut;						xmm4 := prevOut;
+			movups prev2Out, xmm4;					prev2Out = prevOut;
+			movups prevOut, xmm0;						prevOut = xmm0; // result
+
+			mov esi, oTemp;
+			movups xmm2, [esi];
+			addps xmm0, xmm2;							xmm0 := oTemp + result			
+
+			mov edi, od;
+			movups [edi], xmm0;
+
+			movups xmm0, currIn;						xmm0 := currIn;
+			movups prevIn, xmm0;						prevIn = currIn;
+
+			mov esi, id;
+			pmovzxbd xmm0, [esi];
+			cvtdq2ps xmm0, xmm0;						xmm0 := iNext;
+			movups currIn, xmm0;						currIn = iNext;
+
+			emms;
+		}
 		id -= 1;
 		od -= 4*height;
 		oTemp -= 4;
@@ -515,6 +579,88 @@ void DerichIIRVerticalSSE(float *oTemp, float *id, unsigned long *od, int height
 	}
 }
 
+void DerichIIRVerticalSSEIntrinsics(float *oTemp, float *id, unsigned long *od, int height, int width, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
+{
+	__m128 prevIn, currIn, prevOut, prev2Out, coeft, coefa0, coefa1, coefb1, coefb2;
+
+	coeft = _mm_load_ss((float*)cprev);
+	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
+	prevIn = _mm_loadu_ps((float*)id);
+	prev2Out = _mm_mul_ps(prevIn, coeft);
+	prevOut = prev2Out;
+
+	coefa0 = _mm_load_ss((float*)a0);
+	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
+	coefa1 = _mm_load_ss((float*)a1);
+	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
+	coefb1 = _mm_load_ss((float*)b1);
+	coefb1 = _mm_shuffle_ps(coefb1, coefb1, 0x00);
+	coefb2 = _mm_load_ss((float*)b2);
+	coefb2 = _mm_shuffle_ps(coefb2, coefb2, 0x00);
+
+	for (int y = 0; y < height; y++)
+	{
+		currIn = _mm_loadu_ps((float*)id);
+		__m128 currComp = _mm_mul_ps(currIn, coefa0);
+		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
+		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
+		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
+		currComp = _mm_add_ps(currComp, temp1);
+		temp2 = _mm_add_ps(temp2, temp3);
+		prev2Out = prevOut;
+		prevOut = _mm_sub_ps(currComp, temp2);
+		prevIn = currIn;
+		_mm_storeu_ps((float*)(oTemp), prevOut);
+
+		id += 4;
+		oTemp += 4;
+	}
+
+	id -= 4;
+	oTemp -= 4;
+	od += width * (height - 1);
+
+	coeft = _mm_load_ss((float*)cnext);
+	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
+	prevIn = _mm_loadu_ps((float*)id);
+	currIn = prevIn;
+	prev2Out = _mm_mul_ps(prevIn, coeft);
+	prevOut = prev2Out;
+
+	coefa0 = _mm_load_ss((float*)a2);
+	coefa0 = _mm_shuffle_ps(coefa0, coefa0, 0x00);
+	coefa1 = _mm_load_ss((float*)a3);
+	coefa1 = _mm_shuffle_ps(coefa1, coefa1, 0x00);
+
+	for (int y = height - 1; y >= 0; y--)
+	{
+		__m128 inNext = _mm_loadu_ps((float*) id);
+		__m128 output = _mm_loadu_ps((float*)(oTemp));
+		__m128 currComp = _mm_mul_ps(currIn, coefa0);
+		__m128 temp1 = _mm_mul_ps(prevIn, coefa1);
+		__m128 temp2 = _mm_mul_ps(prevOut, coefb1);
+		__m128 temp3 = _mm_mul_ps(prev2Out, coefb2);
+		currComp = _mm_add_ps(currComp, temp1);
+		temp2 = _mm_add_ps(temp2, temp3);
+		prev2Out = prevOut;
+		prevOut = _mm_sub_ps(currComp, temp2);
+		prevIn = currIn;
+		currIn = inNext;
+		output = _mm_add_ps(output, prevOut);
+		__m128i outputi = _mm_cvttps_epi32(output);
+
+		outputi = _mm_packus_epi32(outputi, outputi);
+		outputi = _mm_packus_epi16(outputi, outputi);
+		//_mm_storel_epi64((__m128i *)od, outputi);//crash. bitmap damaged
+		// TODO: You should not reference the internal raw data directly. Get your way to fix it!
+		*od = outputi.m128i_i32[0];
+
+		id -= 4;
+		od -= width;
+		oTemp -= 4;
+	}
+}
+
 void DericheIIRRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma)
 {
 	SYSTEM_INFO sysInfo;
@@ -619,7 +765,7 @@ void DericheIIRRenderSSEIntrinsics(XL_BITMAP_HANDLE hBitmap, double m_sigma)
 		float *oTempThread = oTemp + bufferSizePerThread * tidx;
 		//DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int width, int height, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 		//DerichIIRVertical(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
-		DerichIIRVerticalSSE(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
+		DerichIIRVerticalSSEIntrinsics(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 	}
 
 	delete []oTemp;
