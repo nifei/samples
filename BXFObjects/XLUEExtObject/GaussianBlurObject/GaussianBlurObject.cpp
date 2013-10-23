@@ -35,6 +35,7 @@ void GaussianBlurObject::SetSigma(double sigma)
 void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char /*alpha*/ )
 {
 	clock_t time1 = clock();
+
 	assert(lpSrcClipRect);
 	const RECT* pos = GetPos();
 
@@ -50,6 +51,9 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 		}
 		else if (m_type == OneDimentionMMX)
 		{
+			// 亚星: 循环时对边界若干像素做单独处理, 中间像素没必要每一个比较范围(有提升)
+			// 司司: shift舍弃精度, 有很大提升, 半径>128时怎么处理还不知道-_-?!
+			// 
 			OneDimentionRenderMMX(hClipBitmap, m_sigma, m_radius);
 		}
 		else if (m_type == OneDimentionSSE)

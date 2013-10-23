@@ -3,83 +3,102 @@
 #include <cmath>
 #include <omp.h>
 
+#include <time.h>
+
 void GaussianFunction(double sigma, int r, float ** results);
 void GaussianFunction2(double sigma, int r, double **results);
+const double pi = 3.14159265358979323846;
+
 void GaussianFunctionInteger(double i_sigma, int & io_radius, __int16 ** o_results, int shift)
 {
+	clock_t time1 = clock();
 	float *fWeights;
-	GaussianFunction(i_sigma, io_radius, &fWeights);
-	
-	int factor = 1;
+
+	fWeights =new float[io_radius*2+1];
+	float fSum = 0;
+	// float fFactor = 1.0/i_sigma/sqrt(2*pi); // later we'll scale the weights to sum in 2^shift, so fFactor is not necessary to sum up to 1
+	for ( int i=0; i < io_radius+1; i++)
+	{
+		(fWeights)[i] = exp(0- (i-io_radius)*(i-io_radius)/(2*i_sigma*i_sigma));
+		fSum += (fWeights)[i];
+	}
+	for (int i = io_radius+1; i < io_radius*2+1; i++)
+	{
+		(fWeights)[i] = (fWeights)[io_radius*2-i];
+		fSum += (fWeights)[i];
+	} // normal distribution weights
+
+	int expectedSum = 1;
 	while (shift > 0)
 	{
-		factor *= 2;
+		expectedSum *= 2;
 		shift -= 1;
 	}
-
+	float tmpFactor = (float)expectedSum/fSum;
 	int diameter = 2*io_radius + 1;
 
 	*o_results = new __int16[diameter];
-	__int16 *weightInt = *o_results;
 	__int16 watch[9999];
 	int sum = 0;
 	int firstNonZero = -1;
 	for (int i = 0; i < diameter; i++)
 	{
-		weightInt[i] = (__int16)(fWeights[i]*factor + 0.5);
-		sum += weightInt[i];
-		watch[i] = weightInt[i];
-		if (weightInt[i] > 0 && firstNonZero == -1)
+		(*o_results)[i] = (__int16)(fWeights[i]*tmpFactor + 0.5);
+		sum += (*o_results)[i];
+		watch[i] = (*o_results)[i];
+		if ((*o_results)[i] > 0 && firstNonZero == -1)
 		{
 			firstNonZero = i;
 		}
 	}
 
-	while(firstNonZero >= 1 && sum < factor)
+	while(firstNonZero >= 1 && sum < expectedSum)
 	{
-		weightInt[firstNonZero - 1]++;
-		watch[firstNonZero-1] = weightInt[firstNonZero - 1];
-		weightInt[diameter-firstNonZero]++;
-		watch[diameter-firstNonZero] = weightInt[diameter-firstNonZero];
+		(*o_results)[firstNonZero - 1]++;
+		watch[firstNonZero-1] = (*o_results)[firstNonZero - 1];
+		(*o_results)[diameter-firstNonZero]++;
+		watch[diameter-firstNonZero] = (*o_results)[diameter-firstNonZero];
 		sum += 2;
 		firstNonZero--;
 	}
 
-	if (sum > factor)
+	if (sum > expectedSum)
 	{
-		int diff = sum - factor;
+		int diff = sum - expectedSum;
 		int diffRadius = diff / 2;
 		for ( int i = -diffRadius; i <= diffRadius; i++)
 		{
-			weightInt[io_radius + i]--;
-			watch[io_radius + i] = weightInt[io_radius + i];
+			(*o_results)[io_radius + i]--;
+			watch[io_radius + i] = (*o_results)[io_radius + i];
 			sum--;
 		}
 		if (diff %2 == 0)
 		{
-			weightInt[io_radius]++;
+			(*o_results)[io_radius]++;
 			sum++;
-			watch[io_radius ] = weightInt[io_radius];
+			watch[io_radius ] = (*o_results)[io_radius];
 		}
 	}
 
-	if (sum <factor)
+	if (sum <expectedSum)
 	{
-		int diff = factor - sum;
+		int diff = expectedSum - sum;
 		int diffRadius = diff / 2;
 		for ( int i = -diffRadius; i <= diffRadius; i++)
 		{
-			weightInt[io_radius + i]++;
-			watch[io_radius + i] = weightInt[io_radius + i];
+			(*o_results)[io_radius + i]++;
+			watch[io_radius + i] = (*o_results)[io_radius + i];
 		}
 		if (diff%2 == 0)
 		{
-			weightInt[io_radius]--;
-			watch[io_radius] = weightInt[io_radius];
+			(*o_results)[io_radius]--;
+			watch[io_radius] = (*o_results)[io_radius];
 		}
 	}
 	io_radius = io_radius - firstNonZero;
 	delete []fWeights;
+	clock_t time2=clock();
+	float diff = (((float)time2 - (float)time1) / 1000000.0F ) * 1000; 
 }
 
 void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_radius)
@@ -96,16 +115,11 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	{
 		i_radius = 128;
 	}
+	// TODO: 这里改一改, 太难看了. 
 	__int32 radius = i_radius;
 	GaussianFunctionInteger(i_sigma, radius, &weightBufferInitial, 8);
 	weightInt = weightBufferInitial + i_radius - radius;
-/*
-	__int16 watch[9999];
-	for (int i = 0; i < 2*radius+1; i++)
-	{
-		watch[i] = weightInt[i];
-	}
-*/
+
 	__int32 diameter = 2 * radius +1;
 
 	unsigned long *lpPixelBufferLine;
@@ -121,38 +135,68 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	{
 		lpPixelBufferLine = lpPixelBufferInitial + bmp.ScanLineLength/4*line;
 		unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial + line;
-		for (__int32 col = 0; col < bmp.Width; ++col)
-		{
-			// 这一段asm用到的内存变量有:
-			// lo - 这根线的索引最小值
-			// hi - 这根线的索引最大值
-			// radius, 高斯核半径, __int32
-			// weight, 高斯核矩阵
-			// col, 我们正在计算这根线上第col个像素
-			// lpPixelBufferLine - 这根线的首地址
-			// pixelSum - 要在上面累积颜色分量的向量
-			// Todo: 32bit的寄存器不够用的时候应该怎么办?
+		// col - radius, col, col + radius
+		for (__int32 col = 0; col < radius; ++col)
+		{	
 			_asm{
 				mov edx, diameter;
 				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
-				; mmx, mm2清零
 				pxor mm2, mm2;
-start_loop_h:
-				; 开始循环体
+start_loop_h_left:
 				mov ebx, radius;
 				sub ebx, edx;
 				add ebx, 1; // 现在bx = j
 				add ebx, col; // now bx = col + j
 
 				cmp ebx, lo;
-				jge gt_than_low_h;
+				jge gt_than_low_h_left;
 				mov ebx, lo;
-gt_than_low_h:
-				cmp ebx, hi;
-				jle ls_than_high_h;
-				mov ebx, hi;
-ls_than_high_h:
+gt_than_low_h_left:
 				;矫正完了, ebx存放着正确的索引 即col+j被矫正在0-width之内
+
+				mov eax, lpPixelBufferLine; 
+				imul ebx, 4;
+				add eax, ebx; 
+
+				pxor mm0, mm0;
+				movd mm0, [eax];
+				pxor mm1, mm1
+				PUNPCKLBW mm0, mm1;
+
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; now mm1 stands 4 weightInt[m_radius+j]
+				pmullw mm0, mm1;
+
+				paddw mm2, mm0;
+
+				; 结束循环体
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_h_left;
+
+				mov esi, lpPixelBufferTemp; esi now points at destination
+
+				psrlw mm2, 8;
+				packuswb mm2, mm2;
+				movd [esi], mm2;
+
+				emms;
+			}
+			lpPixelBufferTemp += bmp.Height;
+		}
+		for (__int32 col = radius; col < bmp.Width - radius; ++col)
+		{
+			_asm{
+				mov edx, diameter;
+				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
+				; mmx, mm2清零
+				pxor mm2, mm2;
+start_loop_h_mid:
+				; 开始循环体
+				mov ebx, radius;
+				sub ebx, edx;
+				add ebx, 1; // 现在bx = j
+				add ebx, col; // now bx = col + j
 
 				; 行首地址放在eax, offset放在ebx, offset*dword长加在行首eax, 对eax代表的地址取值,
 				; 看起来很罗嗦但是不知道为什么 mov lpPixelBufferLine, [dword eax + indx]不工作
@@ -179,7 +223,7 @@ ls_than_high_h:
 				; 结束循环体
 				add ecx, 2;
 				dec edx;
-				jnz start_loop_h;
+				jnz start_loop_h_mid;
 
 				mov esi, lpPixelBufferTemp; esi now points at destination
 
@@ -192,14 +236,62 @@ ls_than_high_h:
 			}
 			lpPixelBufferTemp += bmp.Height;
 		}
+		for (__int32 col = bmp.Width - radius; col < bmp.Width; ++col)
+		{
+			_asm{
+				mov edx, diameter;
+				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
+				pxor mm2, mm2;
+start_loop_h_right:
+				mov ebx, radius;
+				sub ebx, edx;
+				add ebx, 1; // 现在bx = j
+				add ebx, col; // now bx = col + j
+
+				cmp ebx, hi;
+				jle ls_than_high_h_right;
+				mov ebx, hi;
+ls_than_high_h_right:
+				;矫正完了, ebx存放着正确的索引 即col+j被矫正在0-width之内
+
+				mov eax, lpPixelBufferLine; 
+				imul ebx, 4;
+				add eax, ebx; 
+
+				pxor mm0, mm0;
+				movd mm0, [eax];
+				pxor mm1, mm1
+				PUNPCKLBW mm0, mm1;
+
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; now mm1 stands 4 weightInt[m_radius+j]
+				pmullw mm0, mm1;
+
+				paddw mm2, mm0;
+
+				; 结束循环体
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_h_right;
+
+				mov esi, lpPixelBufferTemp; esi now points at destination
+				psrlw mm2, 8;
+				packuswb mm2, mm2;
+				movd [esi], mm2;
+
+				emms;
+			}
+			lpPixelBufferTemp += bmp.Height;
+		}
 	}
 
 	lo = 0;
 	hi = bmp.Height - 1;
+
 	for (int column = 0; column < bmp.Width; ++column)
 	{
 		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height;
-		for (int row = 0; row < bmp.Height; ++row)
+		for (__int32 row = 0; row < radius; ++row)
 		{
 			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
 			_asm{
@@ -208,20 +300,16 @@ ls_than_high_h:
 				add edx, 1;
 				mov ecx, weightInt;
 				pxor mm2, mm2;
-start_loop_v:
+start_loop_v_low:
 				mov ebx, radius;
 				sub ebx, edx;
 				add ebx, 1;
 				add ebx, row; now ebx = row + j
 
 				cmp ebx, lo;
-				jge gt_than_low_v;
+				jge gt_than_low_v_low;
 				mov ebx, lo;
-gt_than_low_v:
-				cmp ebx, hi;
-				jle ls_than_high_v;
-				mov ebx, hi;
-ls_than_high_v:
+gt_than_low_v_low:
 				;矫正结束, ebx存放正确索引
 
 				mov eax, lpPixelBufferLine;
@@ -242,7 +330,103 @@ ls_than_high_v:
 
 				add ecx, 2;
 				dec edx;
-				jnz start_loop_v;
+				jnz start_loop_v_low;
+
+				mov esi, lpPixelBuffer;
+				
+				; mmx
+				psrlw mm2, 8;
+				packuswb mm2, mm2;
+				movd [esi], mm2;
+				mov [esi+3], 0xfe;这一位是alpha
+				emms;
+			}
+		}
+		for (__int32 row = radius; row < bmp.Height - radius; ++row)
+		{
+			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
+			_asm{
+				mov edx, radius;
+				imul edx, 2;
+				add edx, 1;
+				mov ecx, weightInt;
+				pxor mm2, mm2;
+start_loop_v_mid:
+				mov ebx, radius;
+				sub ebx, edx;
+				add ebx, 1;
+				add ebx, row; now ebx = row + j
+
+				mov eax, lpPixelBufferLine;
+				imul ebx, 4;
+				add eax, ebx;
+
+				; mmx
+				pxor mm0, mm0;
+				movd mm0, [eax];
+				pxor mm1, mm1;
+				punpcklbw mm0, mm1; 
+
+				; mmx
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm0, mm1;
+				paddw mm2, mm0;
+
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_v_mid;
+
+				mov esi, lpPixelBuffer;
+				
+				; mmx
+				psrlw mm2, 8;
+				packuswb mm2, mm2;
+				movd [esi], mm2;
+				mov [esi+3], 0xfe;这一位是alpha
+				emms;
+			}
+		}
+		for (__int32 row = bmp.Height - radius; row < bmp.Height; ++row)
+		{
+			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
+			_asm{
+				mov edx, radius;
+				imul edx, 2;
+				add edx, 1;
+				mov ecx, weightInt;
+				pxor mm2, mm2;
+start_loop_v_high:
+				mov ebx, radius;
+				sub ebx, edx;
+				add ebx, 1;
+				add ebx, row; now ebx = row + j
+
+				cmp ebx, hi;
+				jle ls_than_high_v_high;
+				mov ebx, hi;
+ls_than_high_v_high:
+				;矫正结束, ebx存放正确索引
+
+				mov eax, lpPixelBufferLine;
+				imul ebx, 4;
+				add eax, ebx;
+
+				; mmx
+				pxor mm0, mm0;
+				movd mm0, [eax];
+				pxor mm1, mm1;
+				punpcklbw mm0, mm1; 
+
+				; mmx
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm0, mm1;
+				paddw mm2, mm0;
+
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_v_high;
 
 				mov esi, lpPixelBuffer;
 				
@@ -644,7 +828,6 @@ void TwoDimentionRender(XL_BITMAP_HANDLE hBitmap, double m_sigma, int m_radius)
 	delete []lpPixelBufferLines;
 }
 
-const double pi = 3.14159265358979323846;
 void GaussianFunction(double sigma, int r, float ** results)
 {
 	*results =new float[r*2+1];
@@ -665,11 +848,6 @@ void GaussianFunction(double sigma, int r, float ** results)
 	{
 		(*results)[i] /= sum;
 	}
-	//float watch[49];
-	//for (int i = 0;i < 2*r+1; i++)
-	//{
-	//	watch[i] = (*results)[i];
-	//}
 }
 
 void GaussianFunction2(double sigma, int r, double **results)
