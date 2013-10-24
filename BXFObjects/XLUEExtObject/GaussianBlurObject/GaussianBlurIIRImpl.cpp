@@ -188,7 +188,6 @@ void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width,
 // SSE指令计算
 // nifei
 // 第一遍从左往右的公式是: oTemp[i] = (a0*id[i] + a1*id[i-1]) - (b1*oTemp[i-1] + b2*oTemp[i-2])
-// 第二遍从右往左的公式是: od[i] = oTemp[i] + (a3*id[i+1] + a4*id[i+2]) - (b1*od[i+1]+b2*od[i+2])
 void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
 	__m128 prevIn, currIn, prevOut, prev2Out, coeft;
@@ -199,9 +198,36 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 	prev2Out = _mm_mul_ps(prevIn, coeft);
 	prevOut = prev2Out;
 
-	for (int x = 0; x < width; x++)
-	{
-		_asm{
+	// @eax, coefficients
+	// @ecx, loop use
+	// @esi, id
+	// @edi, oTemp
+	// @xmm1, a0
+	// @xmm3, a1
+	// @xmm5, b1
+	// @xmm7, b2
+
+	// xmm0 = id[i]
+	// xmm0 *= a0
+	// suppose xmm2 = id[i-1]
+	// xmm2 *= a1
+	// xmm0 + xmm2
+	// suppose xmm4 = oTemp[i-1]
+	// xmm2 = xmm4
+	// xmm4 *= b1
+	// xmm0 -= xmm4
+	// suppose xmm6 = oTemp[i-2]
+	// xmm2 = xmm6
+	// xmm2 *= b2
+	// xmm0 -= xmm2
+
+	// oTemp[i] = xmm0
+
+	// xmm2 = id[i]
+	// xmm6 = xmm4
+	// xmm4 = xmm0
+	
+	_asm{
 			mov eax, a0;
 			movups xmm1, [eax];
 			shufps xmm1, xmm1, 0x00;										xmm1 : a0;
@@ -218,43 +244,48 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 			movups xmm7, [eax];
 			shufps xmm7, xmm7, 0x00;										xmm7 := b2;
 
-			mov esi, id;
-			pmovzxbd xmm0, [esi];
-			cvtdq2ps xmm0, xmm0;											xmm0 : currIn;
-
-			mulps xmm0, xmm1;													xmm0 := currIn * a0;
-
 			movups xmm2, prevIn;											xmm2 : prevIn;
-			mulps xmm2, xmm3;												xmm2 := prevIn * a1;
-			addps xmm0, xmm2;												xmm0 := currIn * a0 + prevIn * a1;
 			movups xmm4, prevOut;											xmm4 : prevOut;
+			movups xmm6, prev2Out;										xmm6 : prev2Out;
 
-			mulps xmm4, xmm5;												xmm4 := prevOut * b1;
-			movups xmm6, prev2Out;
-
-			mulps xmm6, xmm7;												xmm6 := prev2Out * b2;
-			subps xmm0, xmm4;
-			subps xmm0, xmm6; 
-			
-			movups xmm4, prevOut;
-			movups prev2Out, xmm4;										prev2Out = prevOut;
-
-			movups prevOut, xmm0;											prevOut = currIn * a0 + prevIn * a1 - prevOut * b1 - prev2Out * b2;
-
+			mov esi, id;
 			mov edi, oTemp;
-			movups [edi], xmm0;
+			mov ecx, width;
 
+loop_body_left_right_start:
 			pmovzxbd xmm0, [esi];
-			cvtdq2ps xmm0, xmm0;											xmm0 : currIn
-			movups prevIn, xmm0;											prevIn = currIn;
+			cvtdq2ps xmm0, xmm0;											xmm0: id[i]
+			mulps xmm0, xmm1;													xmm0: id[i] * a0;
+			mulps xmm2, xmm3;												xmm2: id[i-1] * a1;
+			addps xmm0, xmm2;												xmm0: id[i] * a0 + id[i-1] * a1;
+			movups xmm2, xmm4;												xmm2 = oTemp[i-1]
+			mulps xmm2, xmm5;												xmm2 = oTemp[i-1] * b1;
+			subps xmm0, xmm2;												xmm0: id[i] * a0 + id[i-1]*a1 - oTemp[i-1]*b1;
+			movups xmm2, xmm6;												xmm2 = oTemp[i-2];
+			mulps xmm2, xmm7;												xmm2 = oTemp[i-1] * b2;
+			subps xmm0, xmm2;												xmm0: result: id[i] * a0 + id[i-1]*a1 - oTemp[i-1]*b1 - oTemp[i-2]*b2;
+
+			movups [edi], xmm0;												oTemp = result;
+			pmovzxbd xmm2, [esi];												
+			cvtdq2ps xmm2, xmm2;											xmm2 = id[i]; for next round: xmm2 = id[i-1];
+			movups xmm6, xmm4;												xmm6 = oTemp[i-1]; for next round: xmm6 = oTemp[i-2];
+			movups xmm4, xmm0;												xmm4 = oTemp[i]; for next round: xmm4 = oTemp[i-1];
+
+			add esi, 0x04;
+			add edi, 0x10;
+loop_body_left_right_end:
+			dec ecx;
+			jnz loop_body_left_right_start;
+
+			sub esi, 0x04;
+			sub edi, 0x10;
+			mov id, esi;
+			mov oTemp, edi;
 			emms;
-		}
-		id++;
-		oTemp += 4;
 	}
-	id -= 1;
+
+
 	od += 4*height*(width-1);//输出的最后一行, 不一定是行首, 当前输入行在原图中时第y行, 则od的位置应指向输出的最后一行的第y列, 见上图id, oTemp, od的转换关系
-	oTemp -= 4;
 
 	coeft = _mm_load_ss((float*)cnext);
 	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
@@ -262,12 +293,10 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 	prev2Out = _mm_mul_ps(prevIn, coeft);
 	prevOut = prev2Out;
 	currIn = prevIn;
+	__m128 saveCurrIn = currIn;
 
-	for (int x = width - 1; x >= 0; x--)
-	{
-		_asm{
-			movups xmm0, currIn;						xmm0 := currIn;
-
+// 第二遍从右往左的公式是: od[i] = oTemp[i] + (a0*id[i+1] + a1*id[i+2]) - (b1*od[i+1]+b2*od[i+2])
+	_asm{
 			mov eax, a2;
 			movups xmm1, [eax];
 			shufps xmm1, xmm1, 0x00;					xmm1 := a0;
@@ -284,45 +313,51 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 			movups xmm7, [eax];
 			shufps xmm7, xmm7, 0x00;					xmm7 := b2;
 
-			mulps xmm0, xmm1;								xmm0 := currIn * a0;
-
-			movups xmm2, prevIn;						xmm2 := prevIn;
-			mulps xmm2, xmm3;							xmm2 := prevIn * a1;
-
-			movups xmm4, prevOut;						xmm4 := prevOut;
-			mulps xmm4, xmm5;							xmm4 := prevOut * b1;
-
-			movups xmm6, prev2Out;					xmm6 := prev2Out;
-			mulps xmm6, xmm7;							xmm6 := prev2Out * b2;
-
-			addps xmm0, xmm2;							
-			addps xmm4, xmm6;
-			subps xmm0, xmm4;							xmm0 := currIn * a0 + prevIn * a1 - (prevOut * b1 + prev2Out * b2);
-
-			movups xmm4, prevOut;						xmm4 := prevOut;
-			movups prev2Out, xmm4;					prev2Out = prevOut;
-			movups prevOut, xmm0;						prevOut = xmm0; // result
-
-			mov esi, oTemp;
-			movups xmm2, [esi];
-			addps xmm0, xmm2;							xmm0 := oTemp + result			
-
-			mov edi, od;
-			movups [edi], xmm0;
-
-			movups xmm0, currIn;						xmm0 := currIn;
-			movups prevIn, xmm0;						prevIn = currIn;
-
 			mov esi, id;
-			pmovzxbd xmm0, [esi];
-			cvtdq2ps xmm0, xmm0;						xmm0 := iNext;
-			movups currIn, xmm0;						currIn = iNext;
+			mov edi, od;
+			mov eax, oTemp;
+			mov ecx, width;
+			mov edx, height;
+			imul edx, 0x10;
 
+			movups xmm0, currIn;
+			movups xmm2, prevIn;
+			movups xmm4, prevOut;						xmm4 := prevOut;
+			movups xmm6, prev2Out;					xmm6 := prev2Out;
+
+loop_body_right_left_start:
+			movups currIn, xmm0;											currIn = xmm0;
+			mulps xmm0, xmm1;													xmm0 = id[i+1] * a0;
+			mulps xmm2, xmm3;												xmm2 = id[i+2] * a1;
+			addps xmm0, xmm2;												xmm0 = id[i+1] * a0 + id[i+2] * a1;
+			movups xmm2, xmm4;												xmm2 = od[i+1];
+			mulps xmm2, xmm5;												xmm2 = od[i+1] * b1;
+			subps xmm0, xmm2;												xmm0 = id[i+1] * a0 + id[i+2] * a1 - od[i+1] * b1;
+			movups xmm2, xmm6;												xmm2 = od[i+2];
+			mulps xmm2, xmm7;												xmm2 = od[i+2] * b2;
+			subps xmm0, xmm2;												xmm0 = id[i+1] * a0 + id[i+2] * a1 - od[i+1] * b1 - od[i+2] * b2;
+
+			movups xmm6, xmm4;												xmm6 = xmm4 = od[i+1] ->next round->od[i+2];
+			movups xmm4, xmm0;												xmm4 = xmm0 = od[i] -> next round->od[i+1];
+
+			movups xmm2, [eax];
+			addps xmm0, xmm2;												xmm0 = oTemp[i] + id[i+1] * a0 + id[i+2] * a1 - od[i+1] * b1 - od[i+2] * b2;
+			movups [edi], xmm0;												od[i] = xmm0;
+
+			pmovzxbd xmm0, [esi];
+			cvtdq2ps xmm0, xmm0;											xmm0: id[i] ->next round -> id[i+1]
+			movups xmm2, currIn;											xmm2 = currIn = id[i+1] ->next round->id[i+2];
+			sub esi, 0x04;
+			sub edi, edx;
+			sub eax, 0x10;
+loop_body_right_left_end:
+			dec ecx;
+			jnz loop_body_right_left_start;
+
+			mov id, esi;
+			mov od, edi;
+			mov oTemp, eax;
 			emms;
-		}
-		id -= 1;
-		od -= 4*height;
-		oTemp -= 4;
 	}
 }
 void DerichIIRHorizontalSSEIntrinsics(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)

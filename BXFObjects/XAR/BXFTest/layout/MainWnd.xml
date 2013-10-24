@@ -36,8 +36,8 @@
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<Sigma>8</Sigma>
-					<Radius>24</Radius>
+					<Sigma>10</Sigma>
+					<Radius>30</Radius>
 				</attr>
 				<eventlist>
 					<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
