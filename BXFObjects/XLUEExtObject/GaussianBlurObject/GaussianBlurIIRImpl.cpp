@@ -185,49 +185,37 @@ void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width,
 		oTemp -= 4;
 	}
 }
+
+extern "C" void horizontal_sse_iir_line(int destHeight,int dstWidth,int destScanLine,DWORD* pDstLine,
+			const unsigned char* pSrcBuffer,int srcScanline,unsigned long xrIntFloat16,
+			unsigned long yrIntFloat16);
 // SSE指令计算
 // nifei
 // 第一遍从左往右的公式是: oTemp[i] = (a0*id[i] + a1*id[i-1]) - (b1*oTemp[i-1] + b2*oTemp[i-2])
 void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
-	__m128 prevIn, currIn, prevOut, prev2Out, coeft;
+	horizontal_sse_iir_line(0,0,0,0,
+			NULL,0,0,
+			0);
+	float currIn[4], local[4];
 
-	coeft = _mm_load_ss((float*)cprev);
-	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
-	prevIn = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i *) (id)));
-	prev2Out = _mm_mul_ps(prevIn, coeft);
-	prevOut = prev2Out;
-
-	// @eax, coefficients
-	// @ecx, loop use
-	// @esi, id
-	// @edi, oTemp
-	// @xmm1, a0
-	// @xmm3, a1
-	// @xmm5, b1
-	// @xmm7, b2
-
-	// xmm0 = id[i]
-	// xmm0 *= a0
-	// suppose xmm2 = id[i-1]
-	// xmm2 *= a1
-	// xmm0 + xmm2
-	// suppose xmm4 = oTemp[i-1]
-	// xmm2 = xmm4
-	// xmm4 *= b1
-	// xmm0 -= xmm4
-	// suppose xmm6 = oTemp[i-2]
-	// xmm2 = xmm6
-	// xmm2 *= b2
-	// xmm0 -= xmm2
-
-	// oTemp[i] = xmm0
-
-	// xmm2 = id[i]
-	// xmm6 = xmm4
-	// xmm4 = xmm0
-	
 	_asm{
+		push ebp;
+
+		mov eax, cprev;
+		movups xmm1, [eax];
+		shufps xmm1, xmm1, 0x00;
+
+		mov esi, id;
+		pmovzxbd xmm0, [esi];
+		cvtdq2ps xmm0, xmm0;											xmm0: id[i];
+
+		movups xmm2, xmm0;												xmm2: prevIn;
+
+		mulps xmm0, xmm1;		
+		movups xmm6, xmm0;												xmm6: prev2Out;
+		movups xmm4, xmm0;												xmm4: prevOut;
+
 			mov eax, a0;
 			movups xmm1, [eax];
 			shufps xmm1, xmm1, 0x00;										xmm1 : a0;
@@ -244,11 +232,6 @@ void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int wid
 			movups xmm7, [eax];
 			shufps xmm7, xmm7, 0x00;										xmm7 := b2;
 
-			movups xmm2, prevIn;											xmm2 : prevIn;
-			movups xmm4, prevOut;											xmm4 : prevOut;
-			movups xmm6, prev2Out;										xmm6 : prev2Out;
-
-			mov esi, id;
 			mov edi, oTemp;
 			mov ecx, width;
 
@@ -282,21 +265,32 @@ loop_body_left_right_end:
 			mov id, esi;
 			mov oTemp, edi;
 			emms;
+			pop ebp;
 	}
 
 
 	od += 4*height*(width-1);//输出的最后一行, 不一定是行首, 当前输入行在原图中时第y行, 则od的位置应指向输出的最后一行的第y列, 见上图id, oTemp, od的转换关系
 
-	coeft = _mm_load_ss((float*)cnext);
-	coeft = _mm_shuffle_ps(coeft, coeft, 0x00);
-	prevIn = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(*(__m128i *)(id)));
-	prev2Out = _mm_mul_ps(prevIn, coeft);
-	prevOut = prev2Out;
-	currIn = prevIn;
-	__m128 saveCurrIn = currIn;
-
-// 第二遍从右往左的公式是: od[i] = oTemp[i] + (a0*id[i+1] + a1*id[i+2]) - (b1*od[i+1]+b2*od[i+2])
+// 第二遍从右往左的公式是: od[i] = oTemp[i] + (a0*id[i+1] + a1*id[i+2]) - (b1*od[i+1]+b2*od[i+2]), 这个公式有误, 但是我不知道怎么表达. 
 	_asm{
+		push ebp;
+		movups xmm0, [ebp - 0x10];
+		movups local, xmm0;
+
+		mov eax, cnext;
+		movups xmm1, [eax];
+		shufps xmm1, xmm1, 0x00;						xmm1: cnext;
+
+		mov esi, id;
+		pmovzxbd xmm0, [esi];
+		cvtdq2ps xmm0, xmm0;							xmm0: id[i];
+
+		movups xmm2, xmm0;								prevIn
+
+		movups xmm4, xmm0;								
+		mulps xmm4, xmm1;									prevOut;
+		movups xmm6, xmm4;								prev2Out;
+
 			mov eax, a2;
 			movups xmm1, [eax];
 			shufps xmm1, xmm1, 0x00;					xmm1 := a0;
@@ -313,20 +307,14 @@ loop_body_left_right_end:
 			movups xmm7, [eax];
 			shufps xmm7, xmm7, 0x00;					xmm7 := b2;
 
-			mov esi, id;
 			mov edi, od;
 			mov eax, oTemp;
 			mov ecx, width;
 			mov edx, height;
 			imul edx, 0x10;
 
-			movups xmm0, currIn;
-			movups xmm2, prevIn;
-			movups xmm4, prevOut;						xmm4 := prevOut;
-			movups xmm6, prev2Out;					xmm6 := prev2Out;
-
 loop_body_right_left_start:
-			movups currIn, xmm0;											currIn = xmm0;
+			movups [ebp - 0x10], xmm0;									currIn = xmm0;
 			mulps xmm0, xmm1;													xmm0 = id[i+1] * a0;
 			mulps xmm2, xmm3;												xmm2 = id[i+2] * a1;
 			addps xmm0, xmm2;												xmm0 = id[i+1] * a0 + id[i+2] * a1;
@@ -346,7 +334,7 @@ loop_body_right_left_start:
 
 			pmovzxbd xmm0, [esi];
 			cvtdq2ps xmm0, xmm0;											xmm0: id[i] ->next round -> id[i+1]
-			movups xmm2, currIn;											xmm2 = currIn = id[i+1] ->next round->id[i+2];
+			movups xmm2, [ebp - 0x10];											xmm2 = currIn = id[i+1] ->next round->id[i+2];
 			sub esi, 0x04;
 			sub edi, edx;
 			sub eax, 0x10;
@@ -358,6 +346,9 @@ loop_body_right_left_end:
 			mov od, edi;
 			mov oTemp, eax;
 			emms;
+			pop ebp;
+			movups xmm0, local;
+			movups [ebp - 0x10], xmm0;
 	}
 }
 void DerichIIRHorizontalSSEIntrinsics(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)

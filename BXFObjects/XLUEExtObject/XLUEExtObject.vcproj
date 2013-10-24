@@ -14,6 +14,9 @@
 		/>
 	</Platforms>
 	<ToolFiles>
+		<DefaultToolFile
+			FileName="nasm.rules"
+		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -28,6 +31,9 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="NASM"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -105,6 +111,9 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="NASM"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -327,6 +336,10 @@
 			</File>
 			<File
 				RelativePath=".\GaussianBlurObject\GaussianBlurObjectRegister.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\HorizontalSSEIIRLine.asm"
 				>
 			</File>
 			<File
