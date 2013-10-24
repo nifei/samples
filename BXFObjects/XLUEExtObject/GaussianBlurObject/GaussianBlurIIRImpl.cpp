@@ -186,17 +186,18 @@ void DerichIIRHorizontal(float *oTemp,  unsigned long* id, float *od, int width,
 	}
 }
 
-extern "C" void horizontal_sse_iir_line(int destHeight,int dstWidth,int destScanLine,DWORD* pDstLine,
-			const unsigned char* pSrcBuffer,int srcScanline,unsigned long xrIntFloat16,
-			unsigned long yrIntFloat16);
+float foo(float * a)
+{
+	return *a;
+}
+extern "C" float horizontal_sse_iir_line(float *oTemp,  unsigned long* id, float *od, int width, int height, float *a0, float *a1, float *b1, float *b2, float *cprev);
 // SSE指令计算
 // nifei
 // 第一遍从左往右的公式是: oTemp[i] = (a0*id[i] + a1*id[i-1]) - (b1*oTemp[i-1] + b2*oTemp[i-2])
 void DerichIIRHorizontalSSE(float *oTemp,  unsigned long* id, float *od, int width, int height, int Nwidth, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
 {
-	horizontal_sse_iir_line(0,0,0,0,
-			NULL,0,0,
-			0);
+a2	float test = foo(a0);
+	test = horizontal_sse_iir_line(oTemp, id, od, width, height, a0, a1, b1, b2, cprev);
 	float currIn[4], local[4];
 
 	_asm{
