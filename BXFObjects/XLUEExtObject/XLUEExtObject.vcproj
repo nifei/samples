@@ -350,6 +350,10 @@
 				RelativePath=".\GaussianBlurObject\LuaGaussianBlurObject.h"
 				>
 			</File>
+			<File
+				RelativePath=".\GaussianBlurObject\VerticalSSEIIRLine.asm"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

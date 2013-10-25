@@ -508,11 +508,10 @@ ls_than_high_h:
 				imul ebx, 4;
 				add eax, ebx; 
 
-				; mmx
 				; 把pixelbuffer的四个8bit integer扩展成4个16bit integer, 放在64bit寄存器mmx0上 
 				pmovzxbd xmm0, [eax];
 				cvtdq2ps xmm0, xmm0; eax用完了
-					
+
 				movd xmm1, [ecx]; 现在xmm1的低四位存放weight[m_radius+j]了
 				shufps xmm1, xmm1, 0x00;
 				mulps xmm0, xmm1;
