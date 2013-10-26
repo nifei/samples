@@ -339,6 +339,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GaussianBlurObject\HorizontalMMXFIRLine.asm"
+				>
+			</File>
+			<File
 				RelativePath=".\GaussianBlurObject\HorizontalSSEIIRLine.asm"
 				>
 			</File>

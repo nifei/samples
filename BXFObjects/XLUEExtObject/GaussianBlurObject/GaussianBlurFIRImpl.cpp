@@ -101,6 +101,7 @@ void GaussianFunctionInteger(double i_sigma, int & io_radius, __int16 ** o_resul
 	float diff = (((float)time2 - (float)time1) / 1000000.0F ) * 1000; 
 }
 
+extern "C" void horizontal_mmx_fir_line(__int32 radius, __int32 width, __int32 height, __int16 *weightInt, unsigned long *lpPixelBufferTemp, unsigned long *lpPixelBufferLine);
 void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_radius)
 {
 	assert(hBitmap);
@@ -127,203 +128,21 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
 	unsigned long *lpPixelBufferTempInitial = (unsigned long*)malloc(sizeof(unsigned long)*bmp.Height*bmp.Width);
 
-	__int32 lo = 0;
-	__int32 hi = 0;
-	lo = 0;
-	hi = bmp.Width - 1;
 	int scanLengthInDW = bmp.ScanLineLength/4;
 	lpPixelBufferLine = lpPixelBufferInitial;
 
-	__int32 height = bmp.Height;
-	unsigned long heightInBytes = height * 4;
-	__int32 width = bmp.Width;
-	unsigned long *lpPixelBufferTempEnd = lpPixelBufferTempInitial +  height * (width - 1);
+	unsigned long heightInBytes = bmp.Height * 4;
+	unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial +  bmp.Height * (bmp.Width - 1);
 
-	for (int line = 0; line < height; ++line)
+	for (int line = 0; line < bmp.Height; ++line)
 	{
-		unsigned long *lpPixelBufferTemp = lpPixelBufferTempEnd + line;
-		_asm {
-;for (__int32 col =bmp.Width - 1; col >= bmp.Width - radius; col--)
-			mov ecx, radius;
-border_right_loop_start:
-			push ecx;
-			mov ebx, ecx; 
-			add ebx, width;
-			sub ebx, 1;
-			sub ebx, radius;ebx for column
-				mov ecx, weightInt;
-				pxor mm2, mm2;
-
-				mov edx, radius;
-				add edx, 1;
-				add edx, hi;
-				sub edx, ebx;
-
-				mov eax, ebx;
-				mov esi, lpPixelBufferLine; 
-				sub ebx, radius;
-				sal ebx, 2;
-				add esi, ebx; 
-start_loop_h_right:
-				pxor mm0, mm0;
-				movd mm0, [esi];
-				pxor mm1, mm1
-				PUNPCKLBW mm0, mm1;
-
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm0, mm1;
-
-				paddw mm2, mm0;
-end_loop_h_right:
-				add ecx, 2;
-				add esi, 4;
-				dec edx;
-				jnz start_loop_h_right;
-
-				mov edx, eax;
-				add edx, radius;
-				sub edx, hi; 
-
-				sub esi, 0x04;
-				pxor mm0, mm0;
-				movd mm0, [esi];
-				pxor mm1, mm1
-				PUNPCKLBW mm0, mm1;
-start_loop_h_right_2:
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm1, mm0;
-				paddw mm2, mm1;
-end_loop_h_right_2:
-				add ecx, 2;
-				dec edx;
-				jnz start_loop_h_right_2;
-
-				mov edi, lpPixelBufferTemp;
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [edi], mm2;
-
-				sub edi, heightInBytes;
-				mov lpPixelBufferTemp, edi;
-				emms;
-			pop ecx;
-border_right_loop_end:
-			dec ecx; 
-			jnz border_right_loop_start;
-
-;for (__int32 col = bmp.Width - radius - 1; col >= radius; col--)
-			mov ecx, width;
-			sub ecx, radius;
-			sub ecx, radius;
-mid_loop_start:
-			push ecx;
-			mov eax, ecx;
-			sub eax, 1;
-			add eax, radius; eax for column
-				mov ecx, weightInt;
-				pxor mm2, mm2;
-				mov edx, diameter;
-
-				mov ebx, eax;
-				sub ebx, radius;
-				sal ebx, 2;
-				mov esi, lpPixelBufferLine; 
-				add esi, ebx; 
-start_loop_h_mid:
-				pxor mm0, mm0;
-				movd mm0, [esi];
-				pxor mm1, mm1
-				PUNPCKLBW mm0, mm1;
-
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00;
-				pmullw mm0, mm1;
-
-				paddw mm2, mm0;
-end_loop_h_mid:
-				add ecx, 2;
-				add esi, 4;
-				dec edx;
-				jnz start_loop_h_mid;
-
-				mov edi, lpPixelBufferTemp; 
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [edi], mm2;
-
-				sub edi, heightInBytes;
-				mov lpPixelBufferTemp, edi;
-				emms;
-			pop ecx;
-mid_loop_end:
-			dec ecx;
-			jnz mid_loop_start;
-;for (__int32 col = radius - 1; col >= 0; col--)
-			mov ecx, radius;
-border_left_loop_start:
-			push ecx;
-			mov eax, ecx;
-			sub eax, 1; eax for column
-				mov ecx, weightInt;
-				pxor mm2, mm2;
-				mov edx, radius;
-				sub edx, eax; 
-
-				mov ebx, lo;
-				sal ebx, 2;
-				mov esi, lpPixelBufferLine; 
-				add esi, ebx; 
-				pxor mm0, mm0;
-				movd mm0, [esi];
-				pxor mm1, mm1
-				PUNPCKLBW mm0, mm1;
-start_loop_h_left_2:
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm1, mm0;
-				paddw mm2, mm1;
-end_loop_h_left_2:
-				add ecx, 2;
-				dec edx;
-				jnz start_loop_h_left_2;
-
-				mov edx, eax;
-				add edx, radius;
-				add edx, 1;
-start_loop_h_left:
-				pxor mm0, mm0;
-				movd mm0, [esi];
-				pxor mm1, mm1
-				PUNPCKLBW mm0, mm1;
-
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm1, mm0;
-
-				paddw mm2, mm1;
-end_loop_h_left:
-				add ecx, 2;
-				add esi, 4;
-				dec edx;
-				jnz start_loop_h_left;
-
-				mov edi, lpPixelBufferTemp; 
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [edi], mm2;
-				sub edi, heightInBytes;
-				mov lpPixelBufferTemp, edi;
-				emms;
-			pop ecx;
-border_left_loop_end:
-			dec ecx;
-			jnz border_left_loop_start;
-		}
+		horizontal_mmx_fir_line(radius,  bmp.Width,  heightInBytes,  weightInt, lpPixelBufferTemp, lpPixelBufferLine);
 		lpPixelBufferLine += scanLengthInDW;
+		lpPixelBufferTemp++;
 	}
 
+	__int32 lo = 0;
+	__int32 hi = 0;
 	lo = 0;
 	hi = bmp.Height - 1;
 
