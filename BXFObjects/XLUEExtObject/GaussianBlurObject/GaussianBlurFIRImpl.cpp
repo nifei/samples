@@ -110,7 +110,7 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	assert(bmp.ColorType == XLGRAPHIC_CT_ARGB32);
 
 	__int16 *weightBufferInitial;
-	__int16 *weightInt;
+	__int16 *weightInt, *weights;
 	if (i_radius > 128)
 	{
 		i_radius = 128;
@@ -119,6 +119,7 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	__int32 radius = i_radius;
 	GaussianFunctionInteger(i_sigma, radius, &weightBufferInitial, 8);
 	weightInt = weightBufferInitial + i_radius - radius;
+	weights = weightInt;
 
 	__int32 diameter = 2 * radius +1;
 
@@ -130,159 +131,197 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	__int32 hi = 0;
 	lo = 0;
 	hi = bmp.Width - 1;
+	int scanLengthInDW = bmp.ScanLineLength/4;
+	lpPixelBufferLine = lpPixelBufferInitial;
 
-	for (int line = 0; line < bmp.Height; ++line)
+	__int32 height = bmp.Height;
+	unsigned long heightInBytes = height * 4;
+	__int32 width = bmp.Width;
+	unsigned long *lpPixelBufferTempEnd = lpPixelBufferTempInitial +  height * (width - 1);
+
+	for (int line = 0; line < height; ++line)
 	{
-		lpPixelBufferLine = lpPixelBufferInitial + bmp.ScanLineLength/4*line;
-		unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial + line;
-		// col - radius, col, col + radius
-		for (__int32 col = 0; col < radius; ++col)
-		{	
-			_asm{
-				mov edx, diameter;
-				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
+		unsigned long *lpPixelBufferTemp = lpPixelBufferTempEnd + line;
+		_asm {
+;for (__int32 col =bmp.Width - 1; col >= bmp.Width - radius; col--)
+			mov ecx, radius;
+border_right_loop_start:
+			push ecx;
+			mov ebx, ecx; 
+			add ebx, width;
+			sub ebx, 1;
+			sub ebx, radius;ebx for column
+				mov ecx, weightInt;
 				pxor mm2, mm2;
-start_loop_h_left:
-				mov ebx, radius;
-				sub ebx, edx;
-				add ebx, 1; // 现在bx = j
-				add ebx, col; // now bx = col + j
 
-				cmp ebx, lo;
-				jge gt_than_low_h_left;
-				mov ebx, lo;
-gt_than_low_h_left:
-				;矫正完了, ebx存放着正确的索引 即col+j被矫正在0-width之内
+				mov edx, radius;
+				add edx, 1;
+				add edx, hi;
+				sub edx, ebx;
 
-				mov eax, lpPixelBufferLine; 
-				imul ebx, 4;
-				add eax, ebx; 
-
-				pxor mm0, mm0;
-				movd mm0, [eax];
-				pxor mm1, mm1
-				PUNPCKLBW mm0, mm1;
-
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; now mm1 stands 4 weightInt[m_radius+j]
-				pmullw mm0, mm1;
-
-				paddw mm2, mm0;
-
-				; 结束循环体
-				add ecx, 2;
-				dec edx;
-				jnz start_loop_h_left;
-
-				mov esi, lpPixelBufferTemp; esi now points at destination
-
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [esi], mm2;
-
-				emms;
-			}
-			lpPixelBufferTemp += bmp.Height;
-		}
-		for (__int32 col = radius; col < bmp.Width - radius; ++col)
-		{
-			_asm{
-				mov edx, diameter;
-				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
-				; mmx, mm2清零
-				pxor mm2, mm2;
-start_loop_h_mid:
-				; 开始循环体
-				mov ebx, radius;
-				sub ebx, edx;
-				add ebx, 1; // 现在bx = j
-				add ebx, col; // now bx = col + j
-
-				; 行首地址放在eax, offset放在ebx, offset*dword长加在行首eax, 对eax代表的地址取值,
-				; 看起来很罗嗦但是不知道为什么 mov lpPixelBufferLine, [dword eax + indx]不工作
-				; Todo: 效率?
-				mov eax, lpPixelBufferLine; 
-				imul ebx, 4;
-				add eax, ebx; 
-
-				; mmx
-				; 把pixelbuffer的四个8bit integer扩展成4个16bit integer, 放在64bit寄存器mmx0上
-				pxor mm0, mm0;
-				movd mm0, [eax];
-				pxor mm1, mm1
-				PUNPCKLBW mm0, mm1;
-
-				; mmx
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; now mm1 stands 4 weightInt[m_radius+j]
-				pmullw mm0, mm1;
-
-				; mmx
-				paddw mm2, mm0;
-
-				; 结束循环体
-				add ecx, 2;
-				dec edx;
-				jnz start_loop_h_mid;
-
-				mov esi, lpPixelBufferTemp; esi now points at destination
-
-				; mmx, 想要把mm2 每一个word右移若干位, 拼成一个long
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [esi], mm2;
-
-				emms;
-			}
-			lpPixelBufferTemp += bmp.Height;
-		}
-		for (__int32 col = bmp.Width - radius; col < bmp.Width; ++col)
-		{
-			_asm{
-				mov edx, diameter;
-				mov ecx, weightInt;mov ecx, weight;让ecx指向weight的首地址, 每次循环加2byte(1个__int16那么长)指向weight[m_radius+j];
-				pxor mm2, mm2;
+				mov eax, ebx;
+				mov esi, lpPixelBufferLine; 
+				sub ebx, radius;
+				sal ebx, 2;
+				add esi, ebx; 
 start_loop_h_right:
-				mov ebx, radius;
-				sub ebx, edx;
-				add ebx, 1; // 现在bx = j
-				add ebx, col; // now bx = col + j
-
-				cmp ebx, hi;
-				jle ls_than_high_h_right;
-				mov ebx, hi;
-ls_than_high_h_right:
-				;矫正完了, ebx存放着正确的索引 即col+j被矫正在0-width之内
-
-				mov eax, lpPixelBufferLine; 
-				imul ebx, 4;
-				add eax, ebx; 
-
 				pxor mm0, mm0;
-				movd mm0, [eax];
+				movd mm0, [esi];
 				pxor mm1, mm1
 				PUNPCKLBW mm0, mm1;
 
 				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; now mm1 stands 4 weightInt[m_radius+j]
+				pshufw mm1, mm1, 0x00; 
 				pmullw mm0, mm1;
 
 				paddw mm2, mm0;
-
-				; 结束循环体
+end_loop_h_right:
 				add ecx, 2;
+				add esi, 4;
 				dec edx;
 				jnz start_loop_h_right;
 
-				mov esi, lpPixelBufferTemp; esi now points at destination
+				mov edx, eax;
+				add edx, radius;
+				sub edx, hi; 
+
+				sub esi, 0x04;
+				pxor mm0, mm0;
+				movd mm0, [esi];
+				pxor mm1, mm1
+				PUNPCKLBW mm0, mm1;
+start_loop_h_right_2:
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm1, mm0;
+				paddw mm2, mm1;
+end_loop_h_right_2:
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_h_right_2;
+
+				mov edi, lpPixelBufferTemp;
 				psrlw mm2, 8;
 				packuswb mm2, mm2;
-				movd [esi], mm2;
+				movd [edi], mm2;
 
+				sub edi, heightInBytes;
+				mov lpPixelBufferTemp, edi;
 				emms;
-			}
-			lpPixelBufferTemp += bmp.Height;
+			pop ecx;
+border_right_loop_end:
+			dec ecx; 
+			jnz border_right_loop_start;
+
+;for (__int32 col = bmp.Width - radius - 1; col >= radius; col--)
+			mov ecx, width;
+			sub ecx, radius;
+			sub ecx, radius;
+mid_loop_start:
+			push ecx;
+			mov eax, ecx;
+			sub eax, 1;
+			add eax, radius; eax for column
+				mov ecx, weightInt;
+				pxor mm2, mm2;
+				mov edx, diameter;
+
+				mov ebx, eax;
+				sub ebx, radius;
+				sal ebx, 2;
+				mov esi, lpPixelBufferLine; 
+				add esi, ebx; 
+start_loop_h_mid:
+				pxor mm0, mm0;
+				movd mm0, [esi];
+				pxor mm1, mm1
+				PUNPCKLBW mm0, mm1;
+
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00;
+				pmullw mm0, mm1;
+
+				paddw mm2, mm0;
+end_loop_h_mid:
+				add ecx, 2;
+				add esi, 4;
+				dec edx;
+				jnz start_loop_h_mid;
+
+				mov edi, lpPixelBufferTemp; 
+				psrlw mm2, 8;
+				packuswb mm2, mm2;
+				movd [edi], mm2;
+
+				sub edi, heightInBytes;
+				mov lpPixelBufferTemp, edi;
+				emms;
+			pop ecx;
+mid_loop_end:
+			dec ecx;
+			jnz mid_loop_start;
+;for (__int32 col = radius - 1; col >= 0; col--)
+			mov ecx, radius;
+border_left_loop_start:
+			push ecx;
+			mov eax, ecx;
+			sub eax, 1; eax for column
+				mov ecx, weightInt;
+				pxor mm2, mm2;
+				mov edx, radius;
+				sub edx, eax; 
+
+				mov ebx, lo;
+				sal ebx, 2;
+				mov esi, lpPixelBufferLine; 
+				add esi, ebx; 
+				pxor mm0, mm0;
+				movd mm0, [esi];
+				pxor mm1, mm1
+				PUNPCKLBW mm0, mm1;
+start_loop_h_left_2:
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm1, mm0;
+				paddw mm2, mm1;
+end_loop_h_left_2:
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_h_left_2;
+
+				mov edx, eax;
+				add edx, radius;
+				add edx, 1;
+start_loop_h_left:
+				pxor mm0, mm0;
+				movd mm0, [esi];
+				pxor mm1, mm1
+				PUNPCKLBW mm0, mm1;
+
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm1, mm0;
+
+				paddw mm2, mm1;
+end_loop_h_left:
+				add ecx, 2;
+				add esi, 4;
+				dec edx;
+				jnz start_loop_h_left;
+
+				mov edi, lpPixelBufferTemp; 
+				psrlw mm2, 8;
+				packuswb mm2, mm2;
+				movd [edi], mm2;
+				sub edi, heightInBytes;
+				mov lpPixelBufferTemp, edi;
+				emms;
+			pop ecx;
+border_left_loop_end:
+			dec ecx;
+			jnz border_left_loop_start;
 		}
+		lpPixelBufferLine += scanLengthInDW;
 	}
 
 	lo = 0;
@@ -293,48 +332,55 @@ ls_than_high_h_right:
 		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height;
 		for (__int32 row = 0; row < radius; ++row)
 		{
-			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
+			unsigned long *lpPixelBuffer = lpPixelBufferInitial + scanLengthInDW*row + column;
 			_asm{
-				mov edx, radius;
-				imul edx, 2;
-				add edx, 1;
 				mov ecx, weightInt;
 				pxor mm2, mm2;
-start_loop_v_low:
-				mov ebx, radius;
-				sub ebx, edx;
-				add ebx, 1;
-				add ebx, row; now ebx = row + j
 
-				cmp ebx, lo;
-				jge gt_than_low_v_low;
+				mov edx, radius;
+				sub edx, row;
+; 需要矫正到lo的一部分
 				mov ebx, lo;
-gt_than_low_v_low:
-				;矫正结束, ebx存放正确索引
-
+				sal ebx, 2;
 				mov eax, lpPixelBufferLine;
-				imul ebx, 4;
 				add eax, ebx;
+				pxor mm0, mm0;
+				movd mm0, [eax];
+				pxor mm1, mm1;
+				punpcklbw mm0, mm1; 
+start_loop_v_low:
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm1, mm0;
+				paddw mm2, mm1;
+end_loop_v_low:
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_v_low;
 
-				; mmx
+; 不需要矫正的一部分:
+				mov edx, row;
+				add edx, radius;
+				add edx, 1;
+				mov eax, lpPixelBufferLine;
+start_loop_v_low_2:
 				pxor mm0, mm0;
 				movd mm0, [eax];
 				pxor mm1, mm1;
 				punpcklbw mm0, mm1; 
 
-				; mmx
 				movd mm1, [ecx];
 				pshufw mm1, mm1, 0x00; 
-				pmullw mm0, mm1;
-				paddw mm2, mm0;
+				pmullw mm1, mm0;
+				paddw mm2, mm1;
 
 				add ecx, 2;
+				add eax, 4;
 				dec edx;
-				jnz start_loop_v_low;
+				jnz start_loop_v_low_2;
 
 				mov esi, lpPixelBuffer;
 				
-				; mmx
 				psrlw mm2, 8;
 				packuswb mm2, mm2;
 				movd [esi], mm2;
@@ -344,42 +390,35 @@ gt_than_low_v_low:
 		}
 		for (__int32 row = radius; row < bmp.Height - radius; ++row)
 		{
-			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
+			unsigned long *lpPixelBuffer = lpPixelBufferInitial + scanLengthInDW*row + column;
 			_asm{
-				mov edx, radius;
-				imul edx, 2;
-				add edx, 1;
 				mov ecx, weightInt;
 				pxor mm2, mm2;
-start_loop_v_mid:
-				mov ebx, radius;
-				sub ebx, edx;
-				add ebx, 1;
-				add ebx, row; now ebx = row + j
 
+				mov edx, diameter;
+				mov ebx, row;
+				sub ebx, radius;
+				sal ebx, 2;
 				mov eax, lpPixelBufferLine;
-				imul ebx, 4;
 				add eax, ebx;
-
-				; mmx
+start_loop_v_mid:
 				pxor mm0, mm0;
 				movd mm0, [eax];
 				pxor mm1, mm1;
 				punpcklbw mm0, mm1; 
 
-				; mmx
 				movd mm1, [ecx];
 				pshufw mm1, mm1, 0x00; 
 				pmullw mm0, mm1;
 				paddw mm2, mm0;
 
 				add ecx, 2;
+				add eax, 4;
 				dec edx;
 				jnz start_loop_v_mid;
 
 				mov esi, lpPixelBuffer;
 				
-				; mmx
 				psrlw mm2, 8;
 				packuswb mm2, mm2;
 				movd [esi], mm2;
@@ -389,48 +428,61 @@ start_loop_v_mid:
 		}
 		for (__int32 row = bmp.Height - radius; row < bmp.Height; ++row)
 		{
-			unsigned long *lpPixelBuffer = lpPixelBufferInitial + bmp.ScanLineLength/4*row + column;
+			unsigned long *lpPixelBuffer = lpPixelBufferInitial + scanLengthInDW*row + column;
 			_asm{
-				mov edx, radius;
-				imul edx, 2;
-				add edx, 1;
 				mov ecx, weightInt;
 				pxor mm2, mm2;
-start_loop_v_high:
-				mov ebx, radius;
-				sub ebx, edx;
-				add ebx, 1;
-				add ebx, row; now ebx = row + j
 
-				cmp ebx, hi;
-				jle ls_than_high_v_high;
-				mov ebx, hi;
-ls_than_high_v_high:
-				;矫正结束, ebx存放正确索引
-
+				mov edx, diameter;
+				sub edx, radius;
+				sub edx, row;
+				add edx, hi;
+; 不需要矫正的一部分
+				; ebx :=  row - radius;
+				mov ebx, row;
+				sub ebx, radius;
+				sal ebx, 2;
 				mov eax, lpPixelBufferLine;
-				imul ebx, 4;
 				add eax, ebx;
-
-				; mmx
+start_loop_v_high:
 				pxor mm0, mm0;
 				movd mm0, [eax];
 				pxor mm1, mm1;
 				punpcklbw mm0, mm1; 
 
-				; mmx
 				movd mm1, [ecx];
 				pshufw mm1, mm1, 0x00; 
 				pmullw mm0, mm1;
 				paddw mm2, mm0;
-
+end_loop_v_high:
 				add ecx, 2;
+				add eax, 4;
 				dec edx;
 				jnz start_loop_v_high;
 
+; 需要矫正的一部分:
+				mov edx, radius;
+				add edx, row;
+				sub edx, hi;
+				mov ebx, hi;
+				mov eax, lpPixelBufferLine;
+				sal ebx, 2;
+				add eax, ebx;
+				pxor mm0, mm0;
+				movd mm0, [eax];
+				pxor mm1, mm1;
+				punpcklbw mm0, mm1; 
+start_loop_v_high_2:
+				movd mm1, [ecx];
+				pshufw mm1, mm1, 0x00; 
+				pmullw mm1, mm0;
+				paddw mm2, mm1;
+end_loop_v_high_2:
+				add ecx, 2;
+				dec edx;
+				jnz start_loop_v_high_2;
+
 				mov esi, lpPixelBuffer;
-				
-				; mmx
 				psrlw mm2, 8;
 				packuswb mm2, mm2;
 				movd [esi], mm2;

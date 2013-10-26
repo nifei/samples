@@ -30,14 +30,23 @@
 					<image>penguin</image>
 				</attr>
 			</obj> 
+			<obj id="text" class = "TextObject">
+				<attr>
+					<left>0</left>
+					<top>0</top>
+					<width>father.width</width>
+					<height>father.height</height>
+					<text>我爱企鹅的白肚皮</text>
+				</attr>
+			</obj>
  			<obj id="penguin" class="GaussianBlurObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<Sigma>10</Sigma>
-					<Radius>30</Radius>
+					<Sigma>1</Sigma>
+					<Radius>3</Radius>
 				</attr>
 				<eventlist>
 					<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />

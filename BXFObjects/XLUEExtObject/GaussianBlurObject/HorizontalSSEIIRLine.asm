@@ -10,7 +10,7 @@ global _horizontal_sse_iir_line
 _horizontal_sse_iir_line:
 	push ebp
 	mov ebp, esp
-	sub esp, 0x10; 减多少合适, 局部变量那么多 
+	sub esp, 0x10;  
 	push edi
 	push esi
 	push eax
