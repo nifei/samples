@@ -23,7 +23,6 @@ _horizontal_mmx_fir_line:
 	%define lpPixelBufferTemp [dword ebp + 0x18]
 	%define lpPixelBufferLine [dword ebp+0x1c]
 
-
 	mov edi, lpPixelBufferTemp;
 ;for (__int32 col =bmp.Width - 1; col >= bmp.Width - radius; col--)
 			mov ecx, radius;

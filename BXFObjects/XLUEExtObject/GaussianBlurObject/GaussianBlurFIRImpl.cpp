@@ -102,6 +102,7 @@ void GaussianFunctionInteger(double i_sigma, int & io_radius, __int16 ** o_resul
 }
 
 extern "C" void horizontal_mmx_fir_line(__int32 radius, __int32 width, __int32 height, __int16 *weightInt, unsigned long *lpPixelBufferTemp, unsigned long *lpPixelBufferLine);
+extern "C" void vertical_mmx_fir_line(__int32 radius, __int32 width, __int32 height, __int16 *weightInt, unsigned long *lpPixelBufferDest, unsigned long *lpPixelBufferLine);
 void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_radius)
 {
 	assert(hBitmap);
@@ -122,7 +123,7 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	weightInt = weightBufferInitial + i_radius - radius;
 	weights = weightInt;
 
-	__int32 diameter = 2 * radius +1;
+	//__int32 diameter = 2 * radius +1;
 
 	unsigned long *lpPixelBufferLine;
 	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
@@ -141,174 +142,185 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 		lpPixelBufferTemp++;
 	}
 
-	__int32 lo = 0;
-	__int32 hi = 0;
-	lo = 0;
-	hi = bmp.Height - 1;
 
+	__int32 width = scanLengthInDW;
+	__int32 scanLengthInBytes = bmp.ScanLineLength;
+	__int32 height = bmp.Height;
 	for (int column = 0; column < bmp.Width; ++column)
 	{
 		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height;
-		for (__int32 row = 0; row < radius; ++row)
-		{
-			unsigned long *lpPixelBuffer = lpPixelBufferInitial + scanLengthInDW*row + column;
-			_asm{
-				mov ecx, weightInt;
-				pxor mm2, mm2;
+		unsigned long *lpPixelBufferDest = lpPixelBufferInitial + column + scanLengthInDW * (bmp.Height - 1);
+//vertical_mmx_fir_line(__int32 radius, __int32 width, __int32 height, __int16 *weightInt, unsigned long *lpPixelBufferDest, unsigned long *lpPixelBufferLine)
+		vertical_mmx_fir_line(radius, scanLengthInBytes, height, weightInt, lpPixelBufferDest, lpPixelBufferLine);
+/*
+		_asm{
+			mov edi, lpPixelBufferDest;
+			mov ecx, radius;
+border_bottom_loop_start:
 
-				mov edx, radius;
-				sub edx, row;
-; 需要矫正到lo的一部分
-				mov ebx, lo;
-				sal ebx, 2;
-				mov eax, lpPixelBufferLine;
-				add eax, ebx;
-				pxor mm0, mm0;
-				movd mm0, [eax];
-				pxor mm1, mm1;
-				punpcklbw mm0, mm1; 
-start_loop_v_low:
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm1, mm0;
-				paddw mm2, mm1;
-end_loop_v_low:
-				add ecx, 2;
-				dec edx;
-				jnz start_loop_v_low;
+			mov eax, weightInt;
+			pxor mm2, mm2;
 
-; 不需要矫正的一部分:
-				mov edx, row;
-				add edx, radius;
-				add edx, 1;
-				mov eax, lpPixelBufferLine;
-start_loop_v_low_2:
-				pxor mm0, mm0;
-				movd mm0, [eax];
-				pxor mm1, mm1;
-				punpcklbw mm0, mm1; 
+			mov edx, height;
+			sub edx, radius;
+			sub edx, radius;
+			sub edx, 1;
+			add edx, ecx;
+			sal edx, 2;
 
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm1, mm0;
-				paddw mm2, mm1;
+			mov esi, lpPixelBufferLine;
+			add esi, edx;
 
-				add ecx, 2;
-				add eax, 4;
-				dec edx;
-				jnz start_loop_v_low_2;
+			mov edx, radius;
+			add edx, radius;
+			add edx, 1;
+			sub edx, ecx;
 
-				mov esi, lpPixelBuffer;
-				
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [esi], mm2;
-				mov [esi+3], 0xfe;这一位是alpha
-				emms;
-			}
-		}
-		for (__int32 row = radius; row < bmp.Height - radius; ++row)
-		{
-			unsigned long *lpPixelBuffer = lpPixelBufferInitial + scanLengthInDW*row + column;
-			_asm{
-				mov ecx, weightInt;
-				pxor mm2, mm2;
-
-				mov edx, diameter;
-				mov ebx, row;
-				sub ebx, radius;
-				sal ebx, 2;
-				mov eax, lpPixelBufferLine;
-				add eax, ebx;
-start_loop_v_mid:
-				pxor mm0, mm0;
-				movd mm0, [eax];
-				pxor mm1, mm1;
-				punpcklbw mm0, mm1; 
-
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm0, mm1;
-				paddw mm2, mm0;
-
-				add ecx, 2;
-				add eax, 4;
-				dec edx;
-				jnz start_loop_v_mid;
-
-				mov esi, lpPixelBuffer;
-				
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [esi], mm2;
-				mov [esi+3], 0xfe;这一位是alpha
-				emms;
-			}
-		}
-		for (__int32 row = bmp.Height - radius; row < bmp.Height; ++row)
-		{
-			unsigned long *lpPixelBuffer = lpPixelBufferInitial + scanLengthInDW*row + column;
-			_asm{
-				mov ecx, weightInt;
-				pxor mm2, mm2;
-
-				mov edx, diameter;
-				sub edx, radius;
-				sub edx, row;
-				add edx, hi;
-; 不需要矫正的一部分
-				; ebx :=  row - radius;
-				mov ebx, row;
-				sub ebx, radius;
-				sal ebx, 2;
-				mov eax, lpPixelBufferLine;
-				add eax, ebx;
 start_loop_v_high:
-				pxor mm0, mm0;
-				movd mm0, [eax];
-				pxor mm1, mm1;
-				punpcklbw mm0, mm1; 
+			pxor mm0, mm0;
+			movd mm0, [esi];
+			pxor mm1, mm1;
+			punpcklbw mm0, mm1; 
 
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm0, mm1;
-				paddw mm2, mm0;
+			movd mm1, [eax];
+			pshufw mm1, mm1, 0x00; 
+			pmullw mm0, mm1;
+			paddw mm2, mm0;
 end_loop_v_high:
-				add ecx, 2;
-				add eax, 4;
-				dec edx;
-				jnz start_loop_v_high;
 
-; 需要矫正的一部分:
-				mov edx, radius;
-				add edx, row;
-				sub edx, hi;
-				mov ebx, hi;
-				mov eax, lpPixelBufferLine;
-				sal ebx, 2;
-				add eax, ebx;
-				pxor mm0, mm0;
-				movd mm0, [eax];
-				pxor mm1, mm1;
-				punpcklbw mm0, mm1; 
+			add eax, 2;
+			add esi, 4;
+			dec edx;
+			jnz start_loop_v_high;
+
+			mov edx, height;
+			sub edx, 1;
+			sal edx, 2;
+			mov esi, lpPixelBufferLine;
+			add esi, edx;
+
+			mov edx, ecx;
+
+			pxor mm0, mm0;
+			movd mm0, [esi];
+			pxor mm1, mm1;
+			punpcklbw mm0, mm1; 
 start_loop_v_high_2:
-				movd mm1, [ecx];
-				pshufw mm1, mm1, 0x00; 
-				pmullw mm1, mm0;
-				paddw mm2, mm1;
+			movd mm1, [eax];
+			pshufw mm1, mm1, 0x00; 
+			pmullw mm1, mm0;
+			paddw mm2, mm1;
 end_loop_v_high_2:
-				add ecx, 2;
-				dec edx;
-				jnz start_loop_v_high_2;
+			add eax, 2;
+			dec edx;
+			jnz start_loop_v_high_2;
 
-				mov esi, lpPixelBuffer;
-				psrlw mm2, 8;
-				packuswb mm2, mm2;
-				movd [esi], mm2;
-				mov [esi+3], 0xfe;这一位是alpha
-				emms;
-			}
-		}
+			psrlw mm2, 8;
+			packuswb mm2, mm2;
+			movd [edi], mm2;
+			mov [edi+3], 0xfe;这一位是alpha
+			sub edi, scanLengthInBytes;
+border_bottom_loop_end:
+			dec ecx;
+			jnz border_bottom_loop_start;
+
+			mov ecx, height;
+			sub ecx, radius;
+			sub ecx, radius;
+mid_loop_start:
+			mov eax, weightInt;
+			pxor mm2, mm2;
+
+			mov edx, ecx;
+			sub edx, 1;
+			sal edx, 2;
+
+			mov esi, lpPixelBufferLine;
+			add esi, edx;
+
+			mov edx, radius;
+			add edx, radius;
+			add edx, 1;
+start_loop_v_mid:
+			pxor mm0, mm0;
+			movd mm0, [esi];
+			pxor mm1, mm1;
+			punpcklbw mm0, mm1; 
+
+			movd mm1, [eax];
+			pshufw mm1, mm1, 0x00; 
+			pmullw mm0, mm1;
+			paddw mm2, mm0;
+
+			add eax, 2;
+			add esi, 4;
+			dec edx;
+			jnz start_loop_v_mid;
+
+			psrlw mm2, 8;
+			packuswb mm2, mm2;
+			movd [edi], mm2;
+			mov [edi+3], 0xfe;这一位是alpha;
+			sub edi, scanLengthInBytes;
+mid_loop_end:
+			dec ecx;
+			jnz mid_loop_start;
+
+			mov ecx, radius;
+border_top_loop_start:
+			mov eax, weightInt;
+			pxor mm2, mm2;
+
+			mov edx, radius;
+			add edx, 1;
+			sub edx, ecx;
+
+			mov esi, lpPixelBufferLine;
+			pxor mm0, mm0;
+			movd mm0, [esi];
+			pxor mm1, mm1;
+			punpcklbw mm0, mm1; 
+start_loop_v_low:
+			movd mm1, [eax];
+			pshufw mm1, mm1, 0x00; 
+			pmullw mm1, mm0;
+			paddw mm2, mm1;
+end_loop_v_low:
+			add eax, 2;
+			dec edx;
+			jnz start_loop_v_low;
+
+			; 不需要矫正的一部分:
+			mov edx, ecx;
+			add edx, radius;
+start_loop_v_low_2:
+			pxor mm0, mm0;
+			movd mm0, [esi];
+			pxor mm1, mm1;
+			punpcklbw mm0, mm1; 
+
+			movd mm1, [eax];
+			pshufw mm1, mm1, 0x00; 
+			pmullw mm1, mm0;
+			paddw mm2, mm1;
+
+			add eax, 2;
+			add esi, 4;
+			dec edx;
+			jnz start_loop_v_low_2;
+
+
+			psrlw mm2, 8;
+			packuswb mm2, mm2;
+			movd [edi], mm2;
+			mov [edi+3], 0xfe;这一位是alpha;
+			sub edi, scanLengthInBytes;
+border_top_loop_end:
+			dec ecx;
+			jnz border_top_loop_start;
+			emms;
+		}	
+		*/
 	}
 	delete []weightBufferInitial;
 	free(lpPixelBufferTempInitial);
