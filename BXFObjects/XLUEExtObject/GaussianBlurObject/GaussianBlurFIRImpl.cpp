@@ -120,6 +120,10 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	// TODO: 这里改一改, 太难看了. 
 	__int32 radius = i_radius;
 	GaussianFunctionInteger(i_sigma, radius, &weightBufferInitial, 8);
+	if (radius == 0)
+	{
+		radius = 1;
+	}
 	weightInt = weightBufferInitial + i_radius - radius;
 	weights = weightInt;
 
