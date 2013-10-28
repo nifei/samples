@@ -1,9 +1,14 @@
 # 1 介绍
 这部手册是如下系列的第二部:
+
 1. 优化c++软件: Windows, Linux 和 Mac 平台上的优化指南. 
+
 2. 优化汇编语言的子程序: X86 平台的优化指南. 
+
 3. Intel, AMD 和 VIA CPU 的微结构(*microarchicture*): 汇编程序员和编译器作者的指南. 
+
 4. 指令表: Intel, AMD 和 VIA CPU 的指令背后的潜在操作, 数据吞吐量和指令操作分解. 
+
 5. 不同 C++ 编译器和操作系统下的调用惯例. 
 
 这些手册的最新版本在这里: http://www.agner.org/optimize/. 
