@@ -123,204 +123,32 @@ void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmap, double i_sigma, __int32 i_r
 	weightInt = weightBufferInitial + i_radius - radius;
 	weights = weightInt;
 
-	//__int32 diameter = 2 * radius +1;
-
 	unsigned long *lpPixelBufferLine;
 	unsigned long *lpPixelBufferInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, 0, 0);
 	unsigned long *lpPixelBufferTempInitial = (unsigned long*)malloc(sizeof(unsigned long)*bmp.Height*bmp.Width);
-
-	int scanLengthInDW = bmp.ScanLineLength/4;
-	lpPixelBufferLine = lpPixelBufferInitial;
+	__int32 scanLengthInDW = bmp.ScanLineLength/4;
 
 	unsigned long heightInBytes = bmp.Height * 4;
 	unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial +  bmp.Height * (bmp.Width - 1);
-
+	unsigned long *lpPixelBufferTempEnd = lpPixelBufferTempInitial +  bmp.Height * (bmp.Width - 1);
+	
+#pragma omp parallel for 
 	for (int line = 0; line < bmp.Height; ++line)
 	{
+		lpPixelBufferLine = lpPixelBufferInitial + scanLengthInDW*line;
+		lpPixelBufferTemp = lpPixelBufferTempEnd + line;
 		horizontal_mmx_fir_line(radius,  bmp.Width,  heightInBytes,  weightInt, lpPixelBufferTemp, lpPixelBufferLine);
-		lpPixelBufferLine += scanLengthInDW;
-		lpPixelBufferTemp++;
 	}
 
-
-	__int32 width = scanLengthInDW;
-	__int32 scanLengthInBytes = bmp.ScanLineLength;
-	__int32 height = bmp.Height;
+	unsigned long *lpPixelBufferDest;
+	unsigned long *lpPixelBufferDestEnd = lpPixelBufferInitial + scanLengthInDW * (bmp.Height - 1);
+	
+#pragma omp parallel for 
 	for (int column = 0; column < bmp.Width; ++column)
 	{
-		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height;
-		unsigned long *lpPixelBufferDest = lpPixelBufferInitial + column + scanLengthInDW * (bmp.Height - 1);
-//vertical_mmx_fir_line(__int32 radius, __int32 width, __int32 height, __int16 *weightInt, unsigned long *lpPixelBufferDest, unsigned long *lpPixelBufferLine)
-		vertical_mmx_fir_line(radius, scanLengthInBytes, height, weightInt, lpPixelBufferDest, lpPixelBufferLine);
-/*
-		_asm{
-			mov edi, lpPixelBufferDest;
-			mov ecx, radius;
-border_bottom_loop_start:
-
-			mov eax, weightInt;
-			pxor mm2, mm2;
-
-			mov edx, height;
-			sub edx, radius;
-			sub edx, radius;
-			sub edx, 1;
-			add edx, ecx;
-			sal edx, 2;
-
-			mov esi, lpPixelBufferLine;
-			add esi, edx;
-
-			mov edx, radius;
-			add edx, radius;
-			add edx, 1;
-			sub edx, ecx;
-
-start_loop_v_high:
-			pxor mm0, mm0;
-			movd mm0, [esi];
-			pxor mm1, mm1;
-			punpcklbw mm0, mm1; 
-
-			movd mm1, [eax];
-			pshufw mm1, mm1, 0x00; 
-			pmullw mm0, mm1;
-			paddw mm2, mm0;
-end_loop_v_high:
-
-			add eax, 2;
-			add esi, 4;
-			dec edx;
-			jnz start_loop_v_high;
-
-			mov edx, height;
-			sub edx, 1;
-			sal edx, 2;
-			mov esi, lpPixelBufferLine;
-			add esi, edx;
-
-			mov edx, ecx;
-
-			pxor mm0, mm0;
-			movd mm0, [esi];
-			pxor mm1, mm1;
-			punpcklbw mm0, mm1; 
-start_loop_v_high_2:
-			movd mm1, [eax];
-			pshufw mm1, mm1, 0x00; 
-			pmullw mm1, mm0;
-			paddw mm2, mm1;
-end_loop_v_high_2:
-			add eax, 2;
-			dec edx;
-			jnz start_loop_v_high_2;
-
-			psrlw mm2, 8;
-			packuswb mm2, mm2;
-			movd [edi], mm2;
-			mov [edi+3], 0xfe;这一位是alpha
-			sub edi, scanLengthInBytes;
-border_bottom_loop_end:
-			dec ecx;
-			jnz border_bottom_loop_start;
-
-			mov ecx, height;
-			sub ecx, radius;
-			sub ecx, radius;
-mid_loop_start:
-			mov eax, weightInt;
-			pxor mm2, mm2;
-
-			mov edx, ecx;
-			sub edx, 1;
-			sal edx, 2;
-
-			mov esi, lpPixelBufferLine;
-			add esi, edx;
-
-			mov edx, radius;
-			add edx, radius;
-			add edx, 1;
-start_loop_v_mid:
-			pxor mm0, mm0;
-			movd mm0, [esi];
-			pxor mm1, mm1;
-			punpcklbw mm0, mm1; 
-
-			movd mm1, [eax];
-			pshufw mm1, mm1, 0x00; 
-			pmullw mm0, mm1;
-			paddw mm2, mm0;
-
-			add eax, 2;
-			add esi, 4;
-			dec edx;
-			jnz start_loop_v_mid;
-
-			psrlw mm2, 8;
-			packuswb mm2, mm2;
-			movd [edi], mm2;
-			mov [edi+3], 0xfe;这一位是alpha;
-			sub edi, scanLengthInBytes;
-mid_loop_end:
-			dec ecx;
-			jnz mid_loop_start;
-
-			mov ecx, radius;
-border_top_loop_start:
-			mov eax, weightInt;
-			pxor mm2, mm2;
-
-			mov edx, radius;
-			add edx, 1;
-			sub edx, ecx;
-
-			mov esi, lpPixelBufferLine;
-			pxor mm0, mm0;
-			movd mm0, [esi];
-			pxor mm1, mm1;
-			punpcklbw mm0, mm1; 
-start_loop_v_low:
-			movd mm1, [eax];
-			pshufw mm1, mm1, 0x00; 
-			pmullw mm1, mm0;
-			paddw mm2, mm1;
-end_loop_v_low:
-			add eax, 2;
-			dec edx;
-			jnz start_loop_v_low;
-
-			; 不需要矫正的一部分:
-			mov edx, ecx;
-			add edx, radius;
-start_loop_v_low_2:
-			pxor mm0, mm0;
-			movd mm0, [esi];
-			pxor mm1, mm1;
-			punpcklbw mm0, mm1; 
-
-			movd mm1, [eax];
-			pshufw mm1, mm1, 0x00; 
-			pmullw mm1, mm0;
-			paddw mm2, mm1;
-
-			add eax, 2;
-			add esi, 4;
-			dec edx;
-			jnz start_loop_v_low_2;
-
-
-			psrlw mm2, 8;
-			packuswb mm2, mm2;
-			movd [edi], mm2;
-			mov [edi+3], 0xfe;这一位是alpha;
-			sub edi, scanLengthInBytes;
-border_top_loop_end:
-			dec ecx;
-			jnz border_top_loop_start;
-			emms;
-		}	
-		*/
+		lpPixelBufferLine = lpPixelBufferTempInitial + column * bmp.Height; // 线头
+		lpPixelBufferDest = lpPixelBufferDestEnd + column; // 线尾
+		vertical_mmx_fir_line(radius, bmp.ScanLineLength, bmp.Height, weightInt, lpPixelBufferDest, lpPixelBufferLine);
 	}
 	delete []weightBufferInitial;
 	free(lpPixelBufferTempInitial);
@@ -355,15 +183,6 @@ void OneDimentionRenderSSE(XL_BITMAP_HANDLE hBitmap, double m_sigma, __int32 m_r
 		unsigned long *lpPixelBufferTemp = lpPixelBufferTempInitial + line;
 		for (__int32 col = 0; col < bmp.Width; ++col)
 		{
-			// 这一段asm用到的内存变量有:
-			// lo - 这根线的索引最小值
-			// hi - 这根线的索引最大值
-			// m_radius, 高斯核半径, __int32
-			// weight, 高斯核矩阵
-			// col, 我们正在计算这根线上第col个像素
-			// lpPixelBufferLine - 这根线的首地址
-			// pixelSum - 要在上面累积颜色分量的向量
-			// Todo: 32bit的寄存器不够用的时候应该怎么办?
 			_asm{
 				mov edx, diameter;
 				mov ecx, weight;让ecx指向weight的首地址, 每次循环加4byte(1个float那么长)指向weight[m_radius+j];

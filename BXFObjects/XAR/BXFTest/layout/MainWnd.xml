@@ -21,7 +21,7 @@
 					<zorder>-1000</zorder>
 				</attr>
 			</obj>
- 			<obj class="ImageObject">
+   			<obj class="ImageObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
@@ -29,82 +29,44 @@
 					<height>father.height</height>
 					<image>penguin</image>
 				</attr>
+			</obj>   
+ 			<obj class="SeqImageObject">
+						<attr>
+							<width>father.width</width>
+							<height>father.height</height>
+							<gif>cat</gif>
+							<loop>1</loop>
+						</attr>
+						<eventlist>
+							<event name="OnInitControl">
+								local arg = {...}
+								local self = arg[1]
+								self:Play()
+							</event>
+						</eventlist>
 			</obj> 
-			<obj id="text" class = "TextObject">
+ 			<obj id="text" class = "TextObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<text>我爱企鹅的白肚皮</text>
+					<text>我爱企鹅的白肚脐, 我爱企鹅的黄嘴皮</text>
 				</attr>
-			</obj>
-  			<obj id="penguin" class="GaussianBlurObject">
+			</obj> 
+   			<obj id="penguin" class="GaussianBlurObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<Sigma>1</Sigma>
-					<Radius>3</Radius>
+					<Sigma>2</Sigma>
+					<Radius>6</Radius>
 				</attr>
 				<eventlist>
 					<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
 				</eventlist>
 			</obj>  
-<!--  			<obj id="penguin" class="GaussianBlurObject">
-				<attr>
-					<left>father.width/4</left>
-					<top>father.height/4</top>
-					<width>father.width/2</width>
-					<height>father.height/2</height>
-					<Sigma>1</Sigma>
-					<Radius>3</Radius>
-				</attr>
-				<eventlist>
-					<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
-				</eventlist>
-			</obj>  -->
-			<!-- <obj class="GaussianBlurObject">
-				<attr>
-					<left>0</left>
-					<top>0</top>
-					<width>father.width/2</width>
-					<height>father.height/2</height>
-					<Sigma>0</Sigma>
-					<Radius>0</Radius>
-				</attr>
-			</obj>
- 			<obj class="GaussianBlurObject">
-				<attr>
-					<left>father.width/2</left>
-					<top>0</top>
-					<width>father.width/2</width>
-					<height>father.height/2</height>
-					<Sigma>1</Sigma>
-					<Radius>9</Radius>
-				</attr>
-			</obj>
-			<obj class="GaussianBlurObject">
-				<attr>
-					<left>0</left>
-					<top>father.height/2</top>
-					<width>father.width/2</width>
-					<height>father.height/2</height>
-					<Sigma>3</Sigma>
-					<Radius>3</Radius>
-				</attr>
-			</obj>
- 			<obj class="GaussianBlurObject">
-				<attr>
-					<left>father.width/2</left>
-					<top>father.height/2</top>
-					<width>father.width/2</width>
-					<height>father.height/2</height>
-					<Sigma>3</Sigma>
-					<Radius>9</Radius>
-				</attr>
-			</obj> -->
 		</children>
 	</obj>
 </objtreetemplate>
