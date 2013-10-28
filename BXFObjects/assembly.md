@@ -1,3 +1,5 @@
+原文在这里: http://www.agner.org/optimize/
+
 # 1 介绍
 这部手册是如下系列的第二部:
 
