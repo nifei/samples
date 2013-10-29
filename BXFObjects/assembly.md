@@ -187,21 +187,108 @@ C++ compiler. (3) Use an assembler. These three methods and their relative
 advantages and disadvantages are described in chapter 5, 6 and 7 respectively
 (page 34, 36 and 45 respectively).
 
-+ 
++ 有三种汇编编程方法可选: (1) 在C++编译器中使用伪指令函数和向量类. (2) 在C++编译器中使用内联汇编. (3)使用汇编编译器. 这三种方法和它们的优缺点在第5, 6, 7章讲述(见34, 36, 45页). 
 
 * If you are using an assembler then you have to choose between different syntax
 dialects. It may be preferred to use an assembler that is compatible with the
 assembly code that your C++ compiler can generate.
+
++ 使用汇编编译器的话还要在不同的语法中选择. (作者?)倾向使用和你的C++编译器生成的汇编代码兼容的汇编编译器. 
+
 * Make your code in C++ first and optimize it as much as you can, using the methods
 described in manual 1: "Optimizing software in C++". Make the compiler translate
 the code to assembly. Look at the compiler-generated code and see if there are any
 possibilities for improvement in the code.
+
++ 先使用C++实现并且尽可能用手册1: "优化C++软件"中介绍的方法优化它. 让编译器把代码翻译成汇编代码. 看看编译器生成的汇编代码, 看看你的(C++)代码是否还有改进余地. 
+
 * Highly optimized code tends to be very difficult to read and understand for others
 and even for yourself when you get back to it after some time. In order to make it
 possible to maintain the code, it is important that you organize it into small logical
 units (procedures or macros) with a well-defined interface and calling convention and
 appropriate comments. Decide on a consistent strategy for code comments and
 documentation.
+
++ 高度优化的代码对其他人来说是很难阅读和理解的,即使你自己过段时间回来看也这样. 为了让代码可维护, 把汇编代码组织成小一些的逻辑单位(过程或者宏), 遵循良好的接口定义和调用规范, 适当的注释都是很重要的. 制定一个可持续化的注释和文档策略. 
+
 * Save the compiler, assembler and all other development tools together with the
 source code and project files for later maintenance. Compatible tools may not be
 available in a few years when updates and modifications in the code are needed.
+
++ 保存编译器, 汇编编译器和所有开发工具, 连同源代码和项目文件, 以备来日维护可用. 几年之后需要更新和修改代码的时候, 兼容的工具可能就没有了. (纳尼?)
+
+## 2.2 Make a test strategy
+Assembly code is error prone, difficult to debug, difficult to make in a clearly structured way,
+difficult to read, and difficult to maintain, as I have already mentioned. A consistent test
+strategy can ameliorate some of these problems and save you a lot of time.
+
+## 2.2 制定测试策略
+
+正如前文所述, 汇编代码爱出错, 难调试, 难写得条理清晰, 难读, 还难维护. 持续的测试策略可以改善这些问题, 节省很多时间. 
+
+My recommendation is to make the assembly code as an isolated module, function, class or
+library with a well-defined interface to the calling program. Make it all in C++ first. Then
+make a test program which can test all aspects of the code you want to optimize. It is easier
+and safer to use a test program than to test the module in the final application.
+
+我的建议是让汇编代码自成一体, 模块, 方法, 类或者接口对调用者易用的库. 先全用C++实现. 然后写一个覆盖所有待优化代码的测试程序. 使用测试程序和在最终产品中测试模块相比更安全也更容易. 
+
+The test program has two purposes. The first purpose is to verify that the assembly code
+works correctly in all situations. And the second purpose is to test the speed of the
+assembly code without invoking the user interface, file access and other parts of the final
+application program that may make the speed measurements less accurate and less
+reproducible.
+
+测试程序有两个目的. 其一是验证汇编代码在所有分支下都正常工作. 其二是测试汇编代码的速度时, 可以不启动界面, 不访问文件, 也不调用应用程序的其他部分, 这样测试结果更准确并且可重现. 
+
+You should use the test program repeatedly after each step in the development process and
+after each modification of the code.
+
+开发过程中的每一步, 每一次对代码的修改之后, 都应该使用测试程序. 
+
+Make sure the test program works correctly. It is quite common to spend a lot of time
+looking for an error in the code under test when in fact the error is in the test program.
+There are different test methods that can be used for verifying that the code works correctly.
+A white box test supplies a carefully chosen series of different sets of input data to make
+sure that all branches, paths and special cases in the code are tested. A black box test
+supplies a series of random input data and verifies that the output is correct. A very long
+series of random data from a good random number generator can sometimes find rarely
+occurring errors that the white box test hasn't found.
+
+保证测试程序正确地工作. 花很多时间根据测试结果在代码里面找错误, 结果实际上是测试程序出错了这样的事情也不少. 
+
+有各种测试方法可以用来验证代码是否工作正常. 白盒测试提供一系列精挑细选的输入数据集合保证代码中的各个分支路径和特例都会被测试到. 黑盒测试提供一系列随机输入数据并验证输出结果是否正确. 优秀并且足够长的随机生成机制有时可以发现白盒测试发现不了的极小概率错误.
+
+The test program may compare the output of the assembly code with the output of a C++
+implementation to verify that it is correct. The test should cover all boundary cases and
+preferably also illegal input data to see if the code generates the correct error responses.
+The speed test should supply a realistic set of input data. A significant part of the CPU time
+may be spent on branch mispredictions in code that contains a lot of branches. The amount
+of branch mispredictions depends on the degree of randomness in the input data. You may
+experiment with the degree of randomness in the input data to see how much it influences
+the computation time, and then decide on a realistic degree of randomness that matches a
+typical real application.
+
+测试程序可以通过对比汇编代码输出和C++代码输出来验证是否正确. 测试应覆盖所有边界条件并且最好有一些非法输入来验证代码生成的错误反馈是否正确. 
+
+速度测试应提供真实输入数据. 在包含很多分支的代码中, CPU的时间很大一部分可能消耗在错误的分支预测上. 错误的分支预测数量取决于输入数据的随机程度. 你可以先试验一下输入数据的随机程度对计算时间的影响, 然后定下一个符合典型真实应用(场景)的随机度. 
+
+An automatic test program that supplies a long stream of test data will typically find more
+errors and find them much faster than testing the code in the final application. A good test
+program will find most errors, but you cannot be sure that it finds all errors. It is possible that
+some errors show up only in combination with the final application.
+
+提供长测试数据流的自动化测试程序通常比在最终软件中测试更多更快地找到错误. 好的测试程序可以找到大部分错误, 但是你不能保证它找到所有错误. 有可能有些错误只有在最终产品中(模块)结合起来时才会出现. 
+
+2.3 Common coding pitfalls
+The following list points out some of the most common programming errors in assembly
+code.
+1. Forgetting to save registers. Some registers have callee-save status, for example
+'EBX'. These registers must be saved in the prolog of a function and restored in the
+epilog if they are modified inside the function. Remember that the order of 'POP'
+instructions must be the opposite of the order of 'PUSH' instructions. See page 28 for a
+list of callee-save registers.
+
+## 2.3 常见编程陷阱
+下面列出了一些汇编编程时最经常犯的错误.
+1. 忘记保存寄存器. 有些寄存器保存调用者状态, 例如'EBX'. 
