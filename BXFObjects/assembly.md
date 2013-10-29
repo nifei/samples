@@ -314,6 +314,7 @@ address.
 
 例子2.1. 不配对的 push/pop
 	<code>
+	
 	push ebx
 	
 	test ecx, ecx
@@ -340,12 +341,12 @@ different purpose in inline assembly can cause errors.
 stack pointer, you must take into account all preceding instructions that modify the
 stack pointer. Example:
 Example 2.2. Stack-relative addressing
-	<code>
-	mov [esp+4], edi
-	push ebp
-	push ebx
-	cmp esi, [esp+4] ; Probably wrong!
-	</code>
+		<code>
+		mov [esp+4], edi
+		push ebp
+		push ebx
+		cmp esi, [esp+4] ; Probably wrong!
+		</code>
 Here, the programmer probably intended to compare ESI with EDI, but the value of
 ESP that is used for addressing has been changed by the two PUSH instructions, so
 that ESI is in fact compared with EBP instead.
@@ -353,9 +354,9 @@ that ESI is in fact compared with EBP instead.
 4. 压栈后的相对栈取址. 相对栈指针对变量取址时, 必须把之前修改栈指针的操作都考虑进去. 例如:
 
 例 2.2. 相对栈取址
-	<code>
-	mov [esp+4], edi
-	push ebp
-	push ebx
-	cmp esi, [esp+4] ; Probably wrong!
-	</code>
+		<code>
+		mov [esp+4], edi
+		push ebp
+		push ebx
+		cmp esi, [esp+4] ; Probably wrong!
+		</code>
