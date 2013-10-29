@@ -534,7 +534,6 @@ void DericheIIRRenderSSEIntrinsics(XL_BITMAP_HANDLE hBitmap, double m_sigma)
 		10,			11,			12
 		*/
 		unsigned long *lpColInitial = lpPixelBufferInitial + col;
-		//unsigned long *lpColInitial = (unsigned long*)XL_GetBitmapBuffer(hBitmap, col, 0);
 		/*
 		od作为输入指针
 		00, 10
@@ -543,8 +542,6 @@ void DericheIIRRenderSSEIntrinsics(XL_BITMAP_HANDLE hBitmap, double m_sigma)
 		*/
 		float *lpRowInitial = od+bmp.Height*col*4;
 		float *oTempThread = oTemp + bufferSizePerThread * tidx;
-		//DerichIIRVertical(float *oTemp, float *id, unsigned long *od, int width, int height, float *a0, float *a1, float *a2, float *a3, float *b1, float *b2, float *cprev, float *cnext)
-		//DerichIIRVertical(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 		DerichIIRVerticalSSEIntrinsics(oTempThread, lpRowInitial, lpColInitial, bmp.Height, bmp.ScanLineLength/4, &a0, &a1, &a2, &a3, &b1, &b2, &cprev, &cnext);
 	}
 

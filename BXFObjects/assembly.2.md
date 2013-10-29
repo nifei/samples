@@ -243,5 +243,122 @@ that ESI is in fact compared with EBP instead.
 		mov [esp+4], edi
 		push ebp
 		push ebx
-		cmp esi, [esp+4] ; Probably wrong!
+		cmp esi, [esp+4] ; 可能出错!
 	</code></pre>
+在此程序员可能意图比较`ESI`和`EDI`, 但是`ESP`寄存器的值已经被两次`PUSH`操作修改了, 所以`ESI`实际上在和`EBP`作比较. 
+
+5. Confusing value and address of a variable. Example:
+Example 2.3. Value versus address (MASM syntax)
+	<pre><code>
+	.data
+	MyVariable DD 0 ; Define variable
+	.code
+	mov eax, MyVariable ; Gets value of MyVariable
+	mov eax, offset MyVariable; Gets address of MyVariable
+	lea eax, MyVariable ; Gets address of MyVariable
+	mov ebx, [eax] ; Gets value of MyVariable through pointer
+	mov ebx, [100] ; Gets the constant 100 despite brackets
+	mov ebx, ds:[100] ; Gets value from address 100
+	</code></pre>
+
+5. 混淆变量的值和地址. 例如: 
+例 2.3. 值与地址(MASM语法)
+	<pre><code>
+	.data
+	MyVariable DD 0 ; 定义变量
+	.code
+	mov eax, MyVariable ; 读取变量MyVariable的值
+	mov eax, offset MyVariable; 读取MyVariable的地址
+	lea eax, MyVariable ; 读取MyVariable的地址
+	mov ebx, [eax] ; 通过指针读取MyVariable的值
+	mov ebx, [100] ; 忽略括号, 读取常量100
+	mov ebx, ds:[100] ; 从地址100读取变量
+	</code></pre>
+
+6. Ignoring calling conventions. It is important to observe the calling conventions for
+functions, such as the order of parameters, whether parameters are transferred on
+the stack or in registers, and whether the stack is cleaned up by the caller or the
+called function. See page 27.
+
+6. 忽略调用惯例. 遵守调用惯例是很重要的, 比如参数的顺序, 参数是通过栈还是寄存器传递, 以及被调用者或者被调用函数有没有清空栈. 见27页. 
+
+7. Function name **mangling**. A C++ code that calls an assembly function should use
+extern "C" to avoid name mangling. Some systems require that an underscore (_)
+is put in front of the name in the assembly code. See page 30.
+
+7. 函数名称**压延**. C++代码调用汇编函数要使用extern "C"避免名字压延. 有些系统要求汇编函数名称前有下划线`_`. 见30页. 
+
+8. Forgetting return. A function declaration must end with both RET and ENDP. Using
+one of these is not enough. The execution will continue in the code after the
+procedure if there is no RET.
+
+8. 忘记返回. 函数声明必须以`RET`和`ENDP`结尾. 只使用一个是不够的. 没有`RET`的话过程调用之后操作会继续在代码中执行. 
+
+9. Forgetting stack alignment. The stack pointer must point to an address divisible by
+16 before any call statement, except in 16-bit systems and 32-bit Windows. See
+page 27.
+
+9. 忘记栈对齐. 在任何调用之前栈指针必须指向可以被16整除的地址, 除非在16位或者32位Windows下. 见27页. 
+
+10. Forgetting **shadow space** in 64-bit Windows. It is required to reserve 32 bytes of
+empty stack space before any function call in 64-bit Windows. See page 30.
+
+10. 忘记64位Windows的**shadow space**. 在64位Windows下任何函数调用之前都要保留32 个字节的空栈控件. 见30页. 
+
+11. Mixing calling conventions. The calling conventions in 64-bit Windows and 64-bit
+Linux are different. See page 27.
+
+11. 混用调用惯例. 64位Windows和64位Linux的调用惯例是不同的. 见27页. 
+
+12. Forgetting to clean up floating point register stack. All floating point stack registers
+that are used by a function must be cleared, typically with FSTP ST(0), before the
+function returns, except for ST(0) if it is used for return value. It is necessary to keep
+track of exactly how many floating point registers are in use. If a functions pushes
+more values on the floating point register stack than it pops, then the register stack
+will grow each time the function is called. An exception is generated when the stack
+is full. This exception may occur somewhere else in the program.
+
+12. 忘记清空浮点寄存器栈. 所有函数中用到的浮点栈寄存器都要被清空, 通常通过在返回前调用指令`FSTP ST(0)`来清空, 除了`ST(0)`, 如果它被用作存放返回值的话. 有必要记录有多少个浮点寄存器被使用. 如果一个函数压栈到浮点寄存器栈的次数比出栈的次数多, 寄存器栈就会每次函数调用都增长. 栈溢出的时候就会产生异常. 这个异常可能在程序其他地方冒出来. 
+
+13. Forgetting to clear MMX state. A function that uses MMX registers must clear these
+with the EMMS instruction before any call or return.
+
+13. 忘记清空MMX状态. 使用MMx寄存器的函数需要用`EMMS`指令在调用或返回前清空它们. 
+
+14. Forgetting to clear YMM state. A function that uses YMM registers must clear these
+with the VZEROUPPER or VZEROALL instruction before any call or return.
+
+14. 忘记清空YMM状态. 使用YMM寄存器的函数要在调用或返回前使用`VZEROUPPER`或`VZEROALL`清空它们. 
+
+15. Forgetting to clear direction flag. Any function that sets the direction flag with STD
+must clear it with CLD before any call or return.
+
+15. 忘记清空方向标记位. 任何使用`STD`设置方向标记位的函数都要在调用或返回前使用`CLD`清空它. 
+
+16. Mixing signed and unsigned integers. Unsigned integers are compared using the JB
+and JA instructions. Signed integers are compared using the JL and JG instructions.
+Mixing signed and unsigned integers can have unintended consequences.
+
+16. 混用有符号和无符号整形. 无符号整形通过`JB`和`JA`来比较. 有符号整形通过`JL`和`JG`. 混用有符号和无符号整形数会有意想不到的后果. 
+
+17. Forgetting to scale array index. An array index must be multiplied by the size of one
+array element. For example mov eax, MyIntegerArray[ebx*4].
+
+17. 忘记按比例缩放数组索引. 数组索引要乘以数组元素的大小. 例如`mov eax, MyIntegerArray[ebx*4]`. 
+
+18. Exceeding array bounds. An array with n elements is indexed from 0 to n - 1, not
+from 1 to n. A defective loop writing outside the bounds of an array can cause errors
+elsewhere in the program that are hard to find.
+
+18. 数组越界. n个元素的数组索引是0到n-1, 不是1到n. 有问题的循环在数组中越界写入, 会在程序中其他地方引起问题, 很难找到. 
+
+19. Loop with ECX = 0. A loop that ends with the LOOP instruction will repeat 232 times if
+ECX is zero. Be sure to check if ECX is zero before the loop.
+
+19. 用`ECX=0`来做循环. `ECX`等于0的话以`LOOP`指令结尾的循环会被执行232次. 确保在循环调用之前`ECX`等于0. 
+
+20. Reading carry flag after INC or DEC. The INC and DEC instructions do not change the
+carry flag. Do not use instructions that read the carry flag, such as ADC, SBB, JC, JBE,
+SETA, etc. after INC or DEC. Use ADD and SUB instead of INC and DEC to avoid this problem. 
+
+20. 在`INC`或`DEC`之后读**carry**标记位. `INC`或`DEC`指令并不修改**carry** 标记位. 不要在调用它们之后使用诸如`ADC`, `SBB`, `JC`, `JBE`, `SETA`等指令读取**carry**标记位. 使用`ADD`和`SUB`代替`INC`和`DEC来避免这类问题. 
