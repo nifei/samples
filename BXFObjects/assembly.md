@@ -313,22 +313,15 @@ address.
 2. 不配对的`PUSH`和`POP`指令. 在方法的所有可能路径中, `PUSH`和`POP`指令的数目都必须相等. 例如:
 
 例子2.1. 不配对的 push/pop
-	<code>
-	
+	<pre><code>
 	push ebx
-	
 	test ecx, ecx
-	
 	jz Finished
-	
 	...
-	
 	pop ebx
-	
 	Finished: ; 错误! 标记要在pop ebx之前跳转. 
-	
 	ret
-	</code>
+	</code></pre>
 此处若`ECX`的值为0则被压栈的`EBX`没有出栈. 结果就是`RET`会弹出`EBX`之前的值从而跳到错误的地址去. 
 
 3. Using a register that is reserved for another purpose. Some compilers reserve the
