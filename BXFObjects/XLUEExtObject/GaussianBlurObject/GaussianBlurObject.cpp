@@ -14,7 +14,7 @@ GaussianBlurObject::GaussianBlurObject( XLUE_LAYOUTOBJ_HANDLE hObj )
 :ExtLayoutObjMethodsImpl(hObj)
 , m_sigma(0)
 , m_radius(1)
-, m_type(OneDimentionMMX/*Intrinsics*/)
+, m_type(Default)
 {
 }
 
@@ -32,6 +32,44 @@ void GaussianBlurObject::SetSigma(double sigma)
 	PushDirtyRect(NULL);
 }
 
+void GaussianBlurObject::SetType(const char *type)
+{
+	Type iType = UnDefined;
+	if (strcmp(type, "IIR"))
+	{
+		iType = DirecheIIRSSE;
+	} 
+	else if (strcmp(type, "FIR"))
+	{
+		iType = OneDimentionMMX;
+	}
+	else if (strcmp(type, "Default"))
+	{
+		iType = Default;
+	}
+	if (iType != m_type && iType != UnDefined)
+	{
+		m_type = iType;
+		PushDirtyRect(NULL);
+	}
+}
+
+const char *GaussianBlurObject::GetType()const
+{
+	if (m_type == DirecheIIRSSE)
+	{
+		return "IIR";
+	}
+	else if (m_type == OneDimentionMMX)
+	{
+		return "FIR";
+	}
+	else if (m_type == Default)
+	{
+		return "Default";
+	}
+}
+
 void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char /*alpha*/ )
 {
 	clock_t time1 = clock();
@@ -45,32 +83,30 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 	if (m_radius > 0 && m_sigma >0)
 	{
 		// FIR ÐÍÂË²¨
-		if (m_type == TwoDimention)
-		{
-			TwoDimentionRender(hClipBitmap, m_sigma, m_radius);
-		}
-		else if (m_type == OneDimentionMMX)
+		if (m_type == OneDimentionMMX)
 		{
 			for (int i = 0; i < 1; i++)
 			OneDimentionRenderMMX(hClipBitmap, m_sigma, m_radius);
 		}
-		else if (m_type == OneDimentionSSE)
-		{
-			OneDimentionRenderSSE(hClipBitmap, m_sigma, m_radius);
-		}
 		// IIR ÐÍÂË²¨
-		else if (m_type == DirecheIIR)
-		{
-			DericheIIRRender(hClipBitmap, m_sigma);
-		}
 		else if (m_type == DirecheIIRSSE)
 		{
-			for (int i = 0; i < 10; i++)
+			for (int i = 0; i < 1; i++)
 			DericheIIRRenderSSE(hClipBitmap, m_sigma);
 		}
-		else if (m_type == DirecheIIRSSEIntrinsics)
+		else if (m_type == Default)
 		{
-			DericheIIRRenderSSEIntrinsics(hClipBitmap, m_sigma);
+				DericheIIRRenderSSE(hClipBitmap, m_sigma);
+			/*
+			if (m_radius <= 10)
+			{
+				OneDimentionRenderMMX(hClipBitmap, m_sigma, m_radius);
+			}
+			else
+			{
+				DericheIIRRenderSSE(hClipBitmap, m_sigma);
+			}
+			*/
 		}
 	}
 

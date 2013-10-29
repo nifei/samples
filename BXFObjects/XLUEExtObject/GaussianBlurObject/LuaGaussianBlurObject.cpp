@@ -26,6 +26,8 @@ const XLLRTGlobalAPI LuaGaussianBlurObject::s_szLuaMemberFuncs[] =
 	{"GetSigma", GetSigma},
 	{"SetRadius", SetRadius},
 	{"GetRadius", GetRadius}, 
+	{"SetType", SetType},
+	{"GetType", GetType},
 	{NULL, NULL}
 };
 
@@ -75,6 +77,32 @@ int LuaGaussianBlurObject::GetRadius( lua_State* luaState )
 	{
 		int radius = lpExtObj->GetRadius();
 		lua_pushinteger(luaState, radius);
+		return 1;
+	}
+
+	lua_pushnil(luaState);
+	return 1;
+}
+
+int LuaGaussianBlurObject::SetType( lua_State* luaState )
+{
+	GaussianBlurObject* lpExtObj = CheckExtObject(luaState, 1);
+	if (lpExtObj != NULL)
+	{
+		const char* type = luaL_checkstring(luaState, 2);
+		lpExtObj->SetType(type);
+	}
+
+	return 0;
+}
+
+int LuaGaussianBlurObject::GetType( lua_State* luaState )
+{
+	GaussianBlurObject* lpExtObj = CheckExtObject(luaState, 1);
+	if (lpExtObj != NULL)
+	{
+		const char* type = lpExtObj->GetType();
+		lua_pushstring(luaState, type);
 		return 1;
 	}
 

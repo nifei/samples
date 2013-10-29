@@ -21,19 +21,31 @@
 					<zorder>-1000</zorder>
 				</attr>
 			</obj>
-   			<obj class="ImageObject">
+			
+			<obj class="LayerObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<image>penguin</image>
+					<clipsens>1</clipsens>
 				</attr>
-			</obj>   
- 			<obj class="SeqImageObject">
+				<children>
+					<obj class="ImageObject">
 						<attr>
+							<left>0</left>
+							<top>0</top>
 							<width>father.width</width>
 							<height>father.height</height>
+							<image>jellyfish</image>
+						</attr>
+					</obj>   
+					<obj class="SeqImageObject">
+						<attr>
+							<left>(father.width-800)/2</left>
+							<top>(father.height-600)/2+600-272</top>
+							<width>500</width>
+							<height>272</height>
 							<gif>cat</gif>
 							<loop>1</loop>
 						</attr>
@@ -44,29 +56,33 @@
 								self:Play()
 							</event>
 						</eventlist>
-			</obj> 
- 			<obj id="text" class = "TextObject">
-				<attr>
-					<left>0</left>
-					<top>0</top>
-					<width>father.width</width>
-					<height>father.height</height>
-					<text>我爱企鹅的白肚脐, 我爱企鹅的黄嘴皮</text>
-				</attr>
-			</obj> 
-   			<obj id="penguin" class="GaussianBlurObject">
-				<attr>
-					<left>0</left>
-					<top>0</top>
-					<width>father.width</width>
-					<height>father.height</height>
-					<Sigma>4</Sigma>
-					<Radius>12</Radius>
-				</attr>
-				<eventlist>
-					<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
-				</eventlist>
-			</obj>  
+					</obj>   
+					<obj id="text" class = "TextObject">
+						<attr>
+							<left>0</left>
+							<top>0</top>
+							<width>father.width</width>
+							<height>father.height</height>
+							<text>请滚动鼠标滚轮</text>
+							<font>msg.font</font>
+							<textcolor>system.white</textcolor>
+						</attr>
+					</obj> 
+					<obj id="penguin" class="GaussianBlurObject">
+						<attr>
+							<left>(father.width-800)/2</left>
+							<top>(father.height-600)/2</top>
+							<width>800</width>
+							<height>600</height>
+							<Sigma>4</Sigma>
+							<Radius>12</Radius>
+						</attr>
+						<eventlist>
+							<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
+						</eventlist>
+					</obj>  
+				</children>
+			</obj>
 		</children>
 	</obj>
 </objtreetemplate>
@@ -78,8 +94,8 @@
 			<layered>1</layered>
 			<left>200</left> 
 			<top>100</top>
-			<width>800</width>
-			<height>600</height>
+			<width>1024</width>
+			<height>768</height>
 			<topmost>0</topmost>
 			<visible>1</visible>
 			<enable>1</enable>

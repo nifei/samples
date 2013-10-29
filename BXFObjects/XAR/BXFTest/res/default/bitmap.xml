@@ -1,6 +1,6 @@
 <XLUE>
 <resource>
 	<gif id="cat"  file="bitmap\penguins.gif" />
-	<bitmap id="penguin" path="bitmap\penguins.png"/>
+	<bitmap id="jellyfish" path="bitmap\Jellyfish.png"/>
 </resource>
 </XLUE>

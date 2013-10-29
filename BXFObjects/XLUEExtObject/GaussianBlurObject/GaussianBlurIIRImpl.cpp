@@ -71,8 +71,8 @@ void calGaussianCoeff( float sigma,  float *a0, float *a1, float *a2, float *a3,
 {
   float alpha, lamma,  k; 
   // defensive check
-  if (sigma < 0.5f)
-	  sigma = 0.5f;
+//  if (sigma < 0.5f)
+//	  sigma = 0.5f;
 
   alpha = (float) exp((0.726)*(0.726)) / sigma;
   lamma = (float)exp(-alpha);

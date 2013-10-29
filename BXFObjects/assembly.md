@@ -71,4 +71,134 @@
 
 6. 应用代码可以使用伪指令函数或者向量类代替汇编. 最好的当代C++编译器提供伪指令代码来实现向量操作和其他之前需要汇编编程的特殊指令. 为了利用SIMD的优越性, 我们不再非使用老式汇编代码不可了. 见34页. 
 
-7. 可移植性. 
+7. 可移植性. 汇编代码的平台相关性强. 移植到不同的平台上有困难. 而使用伪指令函数来代替汇编的代码可以移植到所有x86和x86-64的平台上. 
+
+8. 编译器已经进步很多了. 现在最好的编译器在大多数情况下已经比汇编程序员的平均水平干得还要好. 
+
+9. 编译代码有可能比汇编代码还要快, 因为编译器可以做过程间(inter-procedural)优化和全局优化. 为了让代码可以被测试和验证, 汇编程序员必须遵循函数与调用之间的调用规则. 很多编译器使用的优化方法因此不能使用, 比如内联函数, 寄存器分布, 常量传递(constant propagation), 从函数中剔除通用子表达式, 函数之间的调度等等. 这些优点可以通过使用伪指令代码加上c++代码来代替汇编代码加以利用. 
+
+## 1.3 Operating systems covered by this manual
+The following operating systems can use x86 family microprocessors:
+16 bit: DOS, Windows 3.x.
+32 bit: Windows, Linux, FreeBSD, OpenBSD, NetBSD, Intel-based Mac OS X.
+64 bit: Windows, Linux, FreeBSD, OpenBSD, NetBSD, Intel-based Mac OS X.
+
+All the UNIX-like operating systems (Linux, BSD, Mac OS) use the same calling
+conventions, with very few exceptions. Everything that is said in this manual about Linux
+also applies to other UNIX-like systems, possibly including systems not mentioned here.
+
+## 1.3 这本手册谈论的操作系统
+
+以下操作系统可以使用x86家族的微处理器:
+16位: Dos, Windows 3.x.
+32位: Windows, Linux, FreeBSD, OpenBSD, NetBSD, Intel-based Mac OS X.
+64位: Windows, Linux, FreeBSD, OpenBSD, NetBSD, Intel-based Mac OS X.
+
+所有类Unix操作系统(Linux, BSD, Mac OS)使用一样的调用惯例, 鲜有例外. 这本手册里提到的Linux相关的信息也适用于其他类Unix系统, 有些没被提到的系统也适用. 
+
+# 2 Before you start
+## 2.1 Things to decide before you start programming
+Before you start to program in assembly, you have to think about why you want to use
+assembly language, which part of your program you need to make in assembly, and what
+programming method to use. If you haven't made your development strategy clear, then you
+will soon find yourself wasting time optimizing the wrong parts of the program, doing things
+in assembly that could have been done in C++, attempting to optimize things that cannot be
+optimized further, making spaghetti code that is difficult to maintain, and making code that is
+full or errors and difficult to debug.
+Here is a checklist of things to consider before you start programming:
+
+# 2 开始之前
+
+## 2.1 开始编程之前要决定的事情
+
+使用汇编开始编程之前, 你得好好想想为什么你要使用汇编语言, 你的程序的哪部分需要使用汇编来完成, 以及使用什么样的编程方法. 要是开发策略还不明了, 很快你就会发现自己在浪费时间, 优化程序中错误的部分, 使用汇编来干本来可以用c++干的事儿, 尝试优化不可能再优化的东西, 写出一堆一堆难以维护的代码, 或者充斥着错误而且无法调试的代码. 
+
+下面列出了开始编程之前需要考虑的几件事: 
+
+* Never make the whole program in assembly. That is a waste of time. Assembly code
+should be used only where speed is critical and where a significant improvement in
+speed can be obtained. Most of the program should be made in C or C++. These are
+the programming languages that are most easily combined with assembly code.
+
++ 不要用汇编写整个程序. 那会浪费时间. 只应该在追求速度而且可以取得大幅速度提升的地方使用汇编代码. 要用c或者c++实现大部分的程序. 它们是最容易和汇编代码混合使用的语言了. 
+
+* If the purpose of using assembly is to make system code or use special instructions
+that are not available in standard C++ then you should isolate the part of the
+program that needs these instructions in a separate function or class with a well
+defined functionality. Use intrinsic functions (see p. 34) if possible.
+
++ 如果使用汇编的目的是完成系统代码或者使用某些标准c++不提供的指令, 应使用函数或者功能完备的类把汇编代码和程序的其他部分隔离开来. 可能的话使用伪指令函数(见34页)
+
+* If the purpose of using assembly is to optimize for speed then you have to identify
+the part of the program that consumes the most CPU time, possibly with the use of a
+_profiler_. Check if the bottleneck is file access, memory access, CPU instructions, or
+something else, as described in manual 1: "Optimizing software in C++". Isolate the
+critical part of the program into a function or class with a well-defined functionality.
+
++ 如果使用汇编的目的是优化速度就得先定位出程序的哪一部分最消耗cpu时间, 可能得用_profiler_.看看瓶颈是访问文件, 访问内存, CPU指令还是别的什么, 就像手册1: "优化c++软件" 中讲的那样. 把程序的关键部分用函数或者功能完备的类隔离出来.  
+
+* If the purpose of using assembly is to make a function library then you should clearly
+define the functionality of the library. Decide whether to make a function library or a
+class library. Decide whether to use static linking (.lib in Windows, .a in Linux) or
+dynamic linking (.dll in Windows, .so in Linux). Static linking is usually more
+efficient, but dynamic linking may be necessary if the library is called from languages
+such as C# and Visual Basic. You may possibly make both a static and a dynamic
+link version of the library.
+
++ 如果使用汇编是为了完成函数库, 要清楚地定义库的功能. 先定下是要完成函数库还是类库. 再定下是要使用静态链接(Windows的.lib, Linux的.a)还是动态链接(Windows的.dll, Linux的.so). 静态链接更高效, 但是从C#或者VB调用的话只能用动态链接库了. 可能动态和静态的版本都要事先. 
+
+* If the purpose of using assembly is to optimize an embedded application for size or
+speed then find a development tool that supports both C/C++ and assembly and
+make as much as possible in C or C++.
+
++ 如果使用汇编是为了优化嵌入式应用的空间和速度, 找个支持C/C++和汇编的开发工具, 并且尽可能用C/C++实现. 
+
+* Decide if the code is reusable or application-specific. Spending time on careful
+optimization is more justified if the code is reusable. A reusable code is most
+appropriately implemented as a function library or class library.
+
++ 代码是可重用的还是应用独有的. 用心优化可重用代码更合理. 可重用代码最合适的实现方式是函数库或者类库. 
+
+* Decide if the code should support multithreading. A multithreading application can
+take advantage of microprocessors with multiple cores. _Any data that must be
+preserved from one function call to the next on a per-thread basis should be stored
+in a C++ class or a per-thread buffer supplied by the calling program_.
+
++ 代码是否支持多线程. 多线程应用可以使用多核微处理器. _在线程之内需要保存以函数调用之间传递的数据应该由调用程序保存在C++类或者线程缓冲区内. _
+
+* Decide if portability is important for your application. Should the application work in
+both Windows, Linux and Intel-based Mac OS? Should it work in both 32 bit and 64
+bit mode? Should it work on non-x86 platforms? This is important for the choice of
+compiler, assembler and programming method.
+
++ 可移植性对应用软件是否重要. 软件要在Windows, Linux和Intel-based Mac OS下都工作吗? 32位和64位模式都要支持吗? 非x86平台呢? 这些事情对编译器的选择, 汇编编译器的选择和编程方法都很重要. 
+
+* Decide if your application should work on old microprocessors. If so, then you may
+make one version for microprocessors with, for example, the SSE2 instruction set,
+and another version which is compatible with old microprocessors. You may even
+make several versions, each optimized for a particular CPU. It is recommended to
+make _automatic CPU dispatching_ (see page 137).
+
++ 软件是否要支持旧的微处理器? 如果是的话, 你可能要实现一个SSE2指令集之类的版本给微处理器用, 另一个版本用来和旧微处理器兼容. 甚至可以为每个特殊的CPU都实现一个优化版本. 建议使用_自动CPU分配_(见137页). 
+
+* There are three assembly programming methods to choose between: (1) Use
+intrinsic functions and vector classes in a C++ compiler. (2) Use inline assembly in a
+C++ compiler. (3) Use an assembler. These three methods and their relative
+advantages and disadvantages are described in chapter 5, 6 and 7 respectively
+(page 34, 36 and 45 respectively).
+* If you are using an assembler then you have to choose between different syntax
+dialects. It may be preferred to use an assembler that is compatible with the
+assembly code that your C++ compiler can generate.
+* Make your code in C++ first and optimize it as much as you can, using the methods
+described in manual 1: "Optimizing software in C++". Make the compiler translate
+the code to assembly. Look at the compiler-generated code and see if there are any
+possibilities for improvement in the code.
+* Highly optimized code tends to be very difficult to read and understand for others
+and even for yourself when you get back to it after some time. In order to make it
+possible to maintain the code, it is important that you organize it into small logical
+units (procedures or macros) with a well-defined interface and calling convention and
+appropriate comments. Decide on a consistent strategy for code comments and
+documentation.
+* Save the compiler, assembler and all other development tools together with the
+source code and project files for later maintenance. Compatible tools may not be
+available in a few years when updates and modifications in the code are needed.

@@ -33,6 +33,10 @@ bool GaussianBlurObjectParser::ParserAttribute( GaussianBlurObject* lpObj, const
 		int radius = atoi(value);
 		lpObj->SetRadius(radius);
 	}
+	else if(strcmp(key, "Type") == 0)
+	{
+		lpObj->SetType(value);
+	}
 	else
 	{
 		assert(false);

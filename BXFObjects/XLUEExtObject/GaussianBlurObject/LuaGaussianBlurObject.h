@@ -20,6 +20,9 @@ private:
 	static int SetRadius(lua_State *luaState);
 	static int GetRadius(lua_State *luaState);
 
+	static int SetType(lua_State *luaState);
+	static int GetType(lua_State *luaState);
+
 public:
 	static const XLLRTGlobalAPI s_szLuaMemberFuncs[];
 };

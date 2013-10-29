@@ -185,26 +185,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\LuaMirrorObject.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObject.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObjectCreator.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObjectParser.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObjectRegister.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -252,26 +232,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\LuaMirrorObject.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObject.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObjectCreator.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObjectParser.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MirrorObjectRegister.h"
-				>
-			</File>
 			<File
 				RelativePath=".\stdafx.h"
 				>

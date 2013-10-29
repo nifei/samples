@@ -15,13 +15,15 @@ public:
 public:
 
 	enum Type {
-		OneDimention = 1, 
-		OneDimentionSSE = 2,
+		UnDefined = 0,
+//		OneDimention = 1, 
+//		OneDimentionSSE = 2,
 		OneDimentionMMX = 3, 
-		TwoDimention = 4, 
-		DirecheIIR = 5, 
+//		TwoDimention = 4, 
+//		DirecheIIR = 5, 
 		DirecheIIRSSE = 6, 
-		DirecheIIRSSEIntrinsics = 7
+//		DirecheIIRSSEIntrinsics = 7, 
+		Default = 8
 	};
 
 	// ExtLayoutObjMethodsImpl virtual funtions
@@ -34,6 +36,9 @@ public:
 
 	void SetRadius(int radius) {m_radius = radius;}
 	int GetRadius()const {return m_radius;}
+
+	void SetType(const char *type) ;
+	const char* GetType()const;
 
 private:
 	double m_sigma;
