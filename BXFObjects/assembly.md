@@ -295,19 +295,9 @@ list of callee-save registers.
 
 2. Unmatched PUSH and POP instructions. The number of PUSH and POP instructions
 must be equal for all possible paths through a function. Example:
-Example 2.1. Unmatched push/pop
-push ebx
-test ecx, ecx
-jz Finished
-...
-pop ebx
-Finished: ; Wrong! Label should be before pop ebx
-ret
-Here, the value of EBX that is pushed is not popped again if ECX is zero. The result is
-that the RET instruction will pop the former value of EBX and jump to a wrong
-address.
 
-2. 不配对的`PUSH`和`POP`指令. 在方法的所有可能路径中, `PUSH`和`POP`指令的数目都必须相等. 例如:
+Example 2.1. Unmatched push/pop
+	<code>
 	push ebx
 	test ecx, ecx
 	jz Finished
@@ -315,5 +305,51 @@ address.
 	pop ebx
 	Finished: ; 错误! 标记要在pop ebx之前跳转. 
 	ret
+	</code>
+Here, the value of EBX that is pushed is not popped again if ECX is zero. The result is
+that the RET instruction will pop the former value of EBX and jump to a wrong
+address.
+
+2. 不配对的`PUSH`和`POP`指令. 在方法的所有可能路径中, `PUSH`和`POP`指令的数目都必须相等. 例如:
+
+例子2.1. 不配对的 push/pop
+	<code>
+	push ebx
+	test ecx, ecx
+	jz Finished
+	...
+	pop ebx
+	Finished: ; 错误! 标记要在pop ebx之前跳转. 
+	ret
+	</code>
 此处若`ECX`的值为0则被压栈的`EBX`没有出栈. 结果就是`RET`会弹出`EBX`之前的值从而跳到错误的地址去. 
 
+3. Using a register that is reserved for another purpose. Some compilers reserve the
+use of EBP or EBX for a **frame** pointer or other purpose. Using these registers for a
+different purpose in inline assembly can cause errors.
+
+3. 用了另有他用的寄存器. 有些编译器保留`EBX`或`EBP`用作**帧**指针或者其他用处. 在内联汇编中使用这些寄存器做别的事情可能会引起错误. 
+
+4. Stack-relative addressing after push. When addressing a variable relative to the
+stack pointer, you must take into account all preceding instructions that modify the
+stack pointer. Example:
+Example 2.2. Stack-relative addressing
+	<code>
+	mov [esp+4], edi
+	push ebp
+	push ebx
+	cmp esi, [esp+4] ; Probably wrong!
+	</code>
+Here, the programmer probably intended to compare ESI with EDI, but the value of
+ESP that is used for addressing has been changed by the two PUSH instructions, so
+that ESI is in fact compared with EBP instead.
+
+4. 压栈后的相对栈取址. 相对栈指针对变量取址时, 必须把之前修改栈指针的操作都考虑进去. 例如:
+
+例 2.2. 相对栈取址
+	<code>
+	mov [esp+4], edi
+	push ebp
+	push ebx
+	cmp esi, [esp+4] ; Probably wrong!
+	</code>
