@@ -131,11 +131,11 @@ defined functionality. Use intrinsic functions (see p. 34) if possible.
 
 * If the purpose of using assembly is to optimize for speed then you have to identify
 the part of the program that consumes the most CPU time, possibly with the use of a
-_profiler_. Check if the bottleneck is file access, memory access, CPU instructions, or
+**profiler**. Check if the bottleneck is file access, memory access, CPU instructions, or
 something else, as described in manual 1: "Optimizing software in C++". Isolate the
 critical part of the program into a function or class with a well-defined functionality.
 
-+ 如果使用汇编的目的是优化速度就得先定位出程序的哪一部分最消耗cpu时间, 可能得用_profiler_.看看瓶颈是访问文件, 访问内存, CPU指令还是别的什么, 就像手册1: "优化c++软件" 中讲的那样. 把程序的关键部分用函数或者功能完备的类隔离出来.  
++ 如果使用汇编的目的是优化速度就得先定位出程序的哪一部分最消耗cpu时间, 可能得用**profiler** .看看瓶颈是访问文件, 访问内存, CPU指令还是别的什么, 就像手册1: "优化c++软件" 中讲的那样. 把程序的关键部分用函数或者功能完备的类隔离出来.  
 
 * If the purpose of using assembly is to make a function library then you should clearly
 define the functionality of the library. Decide whether to make a function library or a
@@ -160,11 +160,11 @@ appropriately implemented as a function library or class library.
 + 代码是可重用的还是应用独有的. 用心优化可重用代码更合理. 可重用代码最合适的实现方式是函数库或者类库. 
 
 * Decide if the code should support multithreading. A multithreading application can
-take advantage of microprocessors with multiple cores. _Any data that must be
+take advantage of microprocessors with multiple cores. **Any data that must be
 preserved from one function call to the next on a per-thread basis should be stored
-in a C++ class or a per-thread buffer supplied by the calling program_.
+in a C++ class or a per-thread buffer supplied by the calling program**.
 
-+ 代码是否支持多线程. 多线程应用可以使用多核微处理器. _在线程之内需要保存以函数调用之间传递的数据应该由调用程序保存在C++类或者线程缓冲区内. _
++ 代码是否支持多线程. 多线程应用可以使用多核微处理器. **在线程之内需要保存以函数调用之间传递的数据应该由调用程序保存在C++类或者线程缓冲区内**
 
 * Decide if portability is important for your application. Should the application work in
 both Windows, Linux and Intel-based Mac OS? Should it work in both 32 bit and 64
@@ -177,15 +177,18 @@ compiler, assembler and programming method.
 make one version for microprocessors with, for example, the SSE2 instruction set,
 and another version which is compatible with old microprocessors. You may even
 make several versions, each optimized for a particular CPU. It is recommended to
-make _automatic CPU dispatching_ (see page 137).
+make **automatic CPU dispatching** (see page 137).
 
-+ 软件是否要支持旧的微处理器? 如果是的话, 你可能要实现一个SSE2指令集之类的版本给微处理器用, 另一个版本用来和旧微处理器兼容. 甚至可以为每个特殊的CPU都实现一个优化版本. 建议使用_自动CPU分配_(见137页). 
++ 软件是否要支持旧的微处理器? 如果是的话, 你可能要实现一个SSE2指令集之类的版本给微处理器用, 另一个版本用来和旧微处理器兼容. 甚至可以为每个特殊的CPU都实现一个优化版本. 建议使用**自动CPU分配**(见137页). 
 
 * There are three assembly programming methods to choose between: (1) Use
 intrinsic functions and vector classes in a C++ compiler. (2) Use inline assembly in a
 C++ compiler. (3) Use an assembler. These three methods and their relative
 advantages and disadvantages are described in chapter 5, 6 and 7 respectively
 (page 34, 36 and 45 respectively).
+
++ 
+
 * If you are using an assembler then you have to choose between different syntax
 dialects. It may be preferred to use an assembler that is compatible with the
 assembly code that your C++ compiler can generate.
