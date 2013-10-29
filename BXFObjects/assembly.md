@@ -284,11 +284,11 @@ some errors show up only in combination with the final application.
 The following list points out some of the most common programming errors in assembly
 code.
 1. Forgetting to save registers. Some registers have callee-save status, for example
-'EBX'. These registers must be saved in the prolog of a function and restored in the
-epilog if they are modified inside the function. Remember that the order of 'POP'
+ 'EBX '. These registers must be saved in the prolog of a function and restored in the
+epilog if they are modified inside the function. Remember that the order of ' POP '
 instructions must be the opposite of the order of 'PUSH' instructions. See page 28 for a
 list of callee-save registers.
 
 ## 2.3 常见编程陷阱
 下面列出了一些汇编编程时最经常犯的错误.
-1. 忘记保存寄存器. 有些寄存器保存调用者状态, 例如'EBX'. 
+1. 忘记保存寄存器. 有些寄存器保存调用者状态, 例如 'EBX' . 
