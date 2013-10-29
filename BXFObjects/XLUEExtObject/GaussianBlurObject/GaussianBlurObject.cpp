@@ -96,9 +96,7 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 		}
 		else if (m_type == Default)
 		{
-				DericheIIRRenderSSE(hClipBitmap, m_sigma);
-			/*
-			if (m_radius <= 10)
+			if (m_radius <= 3)
 			{
 				OneDimentionRenderMMX(hClipBitmap, m_sigma, m_radius);
 			}
@@ -106,7 +104,6 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 			{
 				DericheIIRRenderSSE(hClipBitmap, m_sigma);
 			}
-			*/
 		}
 	}
 

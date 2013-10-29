@@ -292,3 +292,28 @@ list of callee-save registers.
 ## 2.3 常见编程陷阱
 下面列出了一些汇编编程时最经常犯的错误.
 1. 忘记保存寄存器. 有些寄存器保存调用者状态, 例如`EBX`. 如果函数中修改了这些寄存器的状态, 那要在函数开始时保存它们, 在退出前回复它们. 记住`POP`指令的顺序要和`PUSH`指令的顺序正好相反. 调用者会保存的寄存器列表见28页. 
+
+2. Unmatched PUSH and POP instructions. The number of PUSH and POP instructions
+must be equal for all possible paths through a function. Example:
+Example 2.1. Unmatched push/pop
+push ebx
+test ecx, ecx
+jz Finished
+...
+pop ebx
+Finished: ; Wrong! Label should be before pop ebx
+ret
+Here, the value of EBX that is pushed is not popped again if ECX is zero. The result is
+that the RET instruction will pop the former value of EBX and jump to a wrong
+address.
+
+2. 不配对的`PUSH`和`POP`指令. 在方法的所有可能路径中, `PUSH`和`POP`指令的数目都必须相等. 例如:
+	push ebx
+	test ecx, ecx
+	jz Finished
+	...
+	pop ebx
+	Finished: ; 错误! 标记要在pop ebx之前跳转. 
+	ret
+此处若`ECX`的值为0则被压栈的`EBX`没有出栈. 结果就是`RET`会弹出`EBX`之前的值从而跳到错误的地址去. 
+
