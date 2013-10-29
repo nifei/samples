@@ -315,11 +315,17 @@ address.
 例子2.1. 不配对的 push/pop
 	<code>
 	push ebx
+	
 	test ecx, ecx
+	
 	jz Finished
+	
 	...
+	
 	pop ebx
+	
 	Finished: ; 错误! 标记要在pop ebx之前跳转. 
+	
 	ret
 	</code>
 此处若`ECX`的值为0则被压栈的`EBX`没有出栈. 结果就是`RET`会弹出`EBX`之前的值从而跳到错误的地址去. 
