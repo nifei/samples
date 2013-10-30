@@ -301,6 +301,7 @@ available if supported by microprocessor and operating system.
 微处理器支持的话MMX寄存器也可以用. 微处理器和操作系统支持的话XMM寄存器可以使用. 
 
 > **Segment registers**
+
 >|Full register|
 |:---------:|
 |bit 0 - 15
@@ -332,7 +333,7 @@ FS和GS寄存器可能可用.
 > Registers in 32 bit mode
 > General purpose and integer registers
 
->|Full register bit 0 - 31||Partial register bit 0 - 15|Partial register bit 8 - 15|Partial register bit 0 - 7
+> |Full register bit 0 - 31||Partial register bit 0 - 15|Partial register bit 8 - 15|Partial register bit 0 - 7|
 |:--------:|:--------:|:--------:|:--------:|
 |EAX |AX |AH |AL
 |EBX |BX |BH |BL
@@ -369,6 +370,7 @@ FS和GS寄存器可能可用.
 |:--------:|
 
 >Floating point and 64-bit vector registers
+
 > |Full register bit 0 - 79 |Partial register bit 0 - 63|
 |:--------:|:--------:|
 |ST(0) |MM0
@@ -407,6 +409,7 @@ an EMMS instruction.
 MMX寄存器只在微处理器支持的情况下可用. ST和MMX寄存器在同一块代码里不可混用. 使用MMX寄存器的代码要调用`EMMS`指令来和后续的使用ST寄存器部分划清界限. 
 
 >128- and 256-bit integer and floating point vector registers
+
 > |Full register bit 0 - 255 |Full or partial register bit 0 - 127|
 |:----:|:----:|
 |YMM0 |XMM0
