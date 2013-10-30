@@ -206,16 +206,6 @@ General purpose and integer registers
 ## 3.2 寄存器集和基本指令
 16位模式寄存器
 
-<table>
-    <tr>
-        <td>Foo</td>
-    </tr>
-</table>
-
-| Left align | Right align | Center align |
-|:-----------|------------:|:------------:|
-| This       |        This |     This     
-| column     |      column |    column    
-| will       |        will |     will     
-| be         |          be |      be      
-| left       |       right |    center    
+| A | B | C |
+|:-----------|:------------|:------------|
+| a|b |c     
