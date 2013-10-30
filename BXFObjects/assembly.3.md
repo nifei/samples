@@ -234,9 +234,9 @@ www.agner.org/optimize 有各种语法手册, 编码手册和论坛的链接.
 
 ## 3.2 寄存器集和基本指令
 
-16位模式寄存器
+<u>16位模式寄存器</u>
 
-通用寄存器(General Purpose)和整形寄存器
+**通用寄存器(General Purpose)和整形寄存器**
 
 | 全寄存器(Full Register) | 部分寄存器(Partial register) | 部分寄存器(Partial register)|
 |:-----------|:------------|:------------|
@@ -259,6 +259,8 @@ www.agner.org/optimize 有各种语法手册, 编码手册和论坛的链接.
 and operating system. The high word of ESP should not be used because it is not saved
 during interrupts.
 
+微处理器和操作系统支持的话, 32位寄存器在16位模式下也可用. `ESP`的高位字不要用, 在跳转时它不会被保存. 
+
 > Floating point registers
 
 > |Full register|
@@ -276,11 +278,12 @@ during interrupts.
 >|Table 3.2. Floating point stack registers|
 |:--------|
 
-微处理器和操作系统支持的话, 32位寄存器在16位模式下也可用. `ESP`的高位字不要用, 在跳转时它不会被保存. 
+> MMX registers may be available if supported by the microprocessor. XMM registers may be
+available if supported by microprocessor and operating system.
 
-浮点寄存器(Floating Point Registers)
+**浮点寄存器(Floating Point Registers)**
 
-> |全寄存器|
+|全寄存器|
 |:-----------|
 |bit 0 - 79
 |ST(0)
@@ -292,5 +295,74 @@ during interrupts.
 |ST(6)
 |ST(7)
 
->|表 3.2. 浮点栈寄存器|
+|表 3.2. 浮点栈寄存器|
 |:--------|
+
+微处理器支持的话MMX寄存器也可以用. 微处理器和操作系统支持的话XMM寄存器可以使用. 
+
+> **Segment registers**
+>|Full register|
+|:---------:|
+|bit 0 - 15
+|CS
+|DS
+|ES
+|SS
+
+>|Table 3.3. Segment registers in 16 bit mode|
+|:--------:|
+
+> Register FS and GS may be available.
+
+**段寄存器**
+
+|全寄存器|
+|:---------:|
+|0-15位
+|CS
+|DS
+|ES
+|SS
+
+|表 3.3. 16位模式下的段寄存器|
+|:--------:|
+
+FS和GS寄存器可能可用. 
+
+> Registers in 32 bit mode
+> General purpose and integer registers
+
+>|Full register bit 0 - 31||Partial register bit 0 - 15|Partial register bit 8 - 15|Partial register bit 0 - 7
+|:--------:|:--------:|:--------:|:--------:|
+|EAX |AX |AH |AL
+|EBX |BX |BH |BL
+|ECX |CX |CH |CL
+|EDX |DX |DH |DL
+|ESI |SI
+|EDI |DI
+|EBP |BP
+|ESP |SP
+|EFlags |Flags
+|EIP |IP
+
+>|Table 3.4. General purpose registers in 32 bit mode|
+|:--------:|
+
+**32位模式下的寄存器**
+<u>通用寄存器和整形寄存器</u>
+
+|全寄存器 0-31位|部分寄存器 0-15位|部分寄存器 8-15位|部分寄存器 0-7位
+|:--------:|:--------:|:--------:|:--------:|
+|EAX |AX |AH |AL
+|EBX |BX |BH |BL
+|ECX |CX |CH |CL
+|EDX |DX |DH |DL
+|ESI |SI
+|EDI |DI
+|EBP |BP
+|ESP |SP
+|EFlags |Flags
+|EIP |IP
+
+|表 3.4. 32位模式下的通用寄存器|
+|:--------:|

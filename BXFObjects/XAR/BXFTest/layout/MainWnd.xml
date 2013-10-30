@@ -60,7 +60,7 @@
 					<obj id="text" class = "TextObject">
 						<attr>
 							<left>0</left>
-							<top>0</top>
+							<top>100</top>
 							<width>father.width</width>
 							<height>father.height</height>
 							<text>请滚动鼠标滚轮</text>
@@ -74,8 +74,9 @@
 							<top>(father.height-600)/2</top>
 							<width>800</width>
 							<height>600</height>
-							<Sigma>4</Sigma>
-							<Radius>12</Radius>
+							<sigma>4</sigma>
+							<radius>12</radius>
+							<gaussiantype>Default</gaussiantype>
 						</attr>
 						<eventlist>
 							<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
