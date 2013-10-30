@@ -463,7 +463,7 @@ the processor and the operating system supports the AVX instruction set.
 
 **段寄存器**
 
-> |全寄存器0-15位|
+|全寄存器0-15位|
 |:----:|
 |CS
 |DS
@@ -472,5 +472,5 @@ the processor and the operating system supports the AVX instruction set.
 |GS
 |SS
 
-> |表 3.7. 32位模式下的段寄存器|
+|表 3.7. 32位模式下的段寄存器|
 |:----:|
