@@ -206,6 +206,7 @@ www.agner.org/optimize有各种语法手册, 编码手册和论坛的链接.
 ## 3.2 Register set and basic instructions
 Registers in 16 bit mode
 General purpose and integer registers
+
 | Full register | Partial register |   Partial register |
 |:-----------|:------------|:------------|
 |bit 0 - 15 |bit 8 - 15 |bit 0 - 7
