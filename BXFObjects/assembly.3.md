@@ -333,7 +333,7 @@ FS和GS寄存器可能可用.
 > Registers in 32 bit mode
 > General purpose and integer registers
 
-> |Full register bit 0 - 31||Partial register bit 0 - 15|Partial register bit 8 - 15|Partial register bit 0 - 7|
+> |Full register bit 0 - 31|Partial register bit 0 - 15|Partial register bit 8 - 15|Partial register bit 0 - 7|
 |:--------:|:--------:|:--------:|:--------:|
 |EAX |AX |AH |AL
 |EBX |BX |BH |BL
