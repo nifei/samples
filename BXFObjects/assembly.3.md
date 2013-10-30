@@ -203,9 +203,9 @@ discussion forums.
 
 很多情况下NASM汇编器是一个合适的选择, 它支持多平台和对象文件格式, 维护的不错, 通常跟的上最新的指令集. 
 
-除非特别说明, 这本手册的例子使用MASM语法. MASM语法在msdn.microsoft.com的微软Macro汇编器文档中有讲. 
+除非特别说明, 这本手册的例子使用MASM语法. MASM语法在 msdn.microsoft.com 的微软Macro汇编器文档中有讲. 
 
-www.agner.org/optimize有各种语法手册, 编码手册和论坛的链接. 
+www.agner.org/optimize 有各种语法手册, 编码手册和论坛的链接. 
 
 | A | B | C |
 |:-----------|:------------|:------------|
@@ -229,7 +229,7 @@ www.agner.org/optimize有各种语法手册, 编码手册和论坛的链接.
 |Flags
 |IP
 
-|Table 3.1. General purpose registers in 16 bit mode.|
+> |Table 3.1. General purpose registers in 16 bit mode.|
 |:-----------|
 
 ## 3.2 寄存器集和基本指令
@@ -259,3 +259,38 @@ www.agner.org/optimize有各种语法手册, 编码手册和论坛的链接.
 and operating system. The high word of ESP should not be used because it is not saved
 during interrupts.
 
+> Floating point registers
+
+> |Full register|
+|:-----------|
+|bit 0 - 79
+|ST(0)
+|ST(1)
+|ST(2)
+|ST(3)
+|ST(4)
+|ST(5)
+|ST(6)
+|ST(7)
+
+>|Table 3.2. Floating point stack registers|
+|:--------|
+
+微处理器和操作系统支持的话, 32位寄存器在16位模式下也可用. `ESP`的高位字不要用, 在跳转时它不会被保存. 
+
+浮点寄存器(Floating Point Registers)
+
+> |全寄存器|
+|:-----------|
+|bit 0 - 79
+|ST(0)
+|ST(1)
+|ST(2)
+|ST(3)
+|ST(4)
+|ST(5)
+|ST(6)
+|ST(7)
+
+>|表 3.2. 浮点栈寄存器|
+|:--------|
