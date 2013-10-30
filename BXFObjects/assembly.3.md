@@ -199,13 +199,33 @@ discussion forums.
 
 www.agner.org/optimize有各种语法手册, 编码手册和论坛的链接. 
 
-## 3.2 Register set and basic instructions
-Registers in 16 bit mode
-General purpose and integer registers
-
-## 3.2 寄存器集和基本指令
-16位模式寄存器
-
 | A | B | C |
 |:-----------|:------------|:------------|
 | a|b |c     
+
+## 3.2 Register set and basic instructions
+Registers in 16 bit mode
+General purpose and integer registers
+| Full register | Partial register |   Partial register |
+|:-----------|:------------|:------------|
+|bit 0 - 15 |bit 8 - 15 |bit 0 - 7
+|AX |AH |AL
+|BX |BH |BL
+|CX |CH |CL
+|DX |DH |DL
+|SI
+|DI
+|BP
+|SP
+|Flags
+|IP
+
+|:-----------|
+|Table 3.1. General purpose registers in 16 bit mode.
+
+## 3.2 寄存器集和基本指令
+
+16位模式寄存器
+
+通用寄存器(General Purpose)和整形寄存器
+
