@@ -222,7 +222,8 @@ General purpose and integer registers
 |IP
 
 |:-----------|
-|Table 3.1. General purpose registers in 16 bit mode.
+
+|Table 3.1. General purpose registers in 16 bit mode.|
 
 ## 3.2 寄存器集和基本指令
 
