@@ -27,7 +27,7 @@ Newer versions can run only when the compiler is installed and only in Windows X
 Version 6 and earlier can run in any system, including Linux with a Windows emulator. Such
 versions are circulating on the web.
 
-#MASM#
++MASM+
 微软汇编编译器被包含在微软C++编译器里. 免费版本可以通过下载**微软Windows驱动工具包** (WDK) 或者**平台软件开发工具包** (SDK)得到, 也作为免费Visual C++ Express的插件.  MASM事实上充当了好多年的Windows标准, 而且大多数Windows编译器也是用MASM语法输出汇编. MASM具有很多高级语言特性. 由于衍生自8086处理器的最早的汇编编译器, 该语法某种程度上有点混乱和不一致. 微软至今仍在维护MASM以期为Windows提供一套完备的开发工具, 但这显然已经无利可图了, 对MASM的维护也只是勉力为之. 新指令会定期加进来, 但是64位版本有些缺陷. 新版本只能在Windows XP和之后的操作系统上运行, 还得是在安装了编译器的情况下. 第6版之前(含)可以在任何系统上运行, 包括安装了Windows 仿真器的Linux. 这些版本散落在网上. 
 
 GAS
