@@ -203,9 +203,9 @@ www.agner.org/optimize有各种语法手册, 编码手册和论坛的链接.
 |:-----------|:------------|:------------|
 | a|b |c     
 
-## 3.2 Register set and basic instructions
-Registers in 16 bit mode
-General purpose and integer registers
+> ## 3.2 Register set and basic instructions
+> Registers in 16 bit mode
+> General purpose and integer registers
 
 | Full register | Partial register |   Partial register |
 |:-----------|:------------|:------------|
@@ -220,6 +220,7 @@ General purpose and integer registers
 |SP
 |Flags
 |IP
+
 |Table 3.1. General purpose registers in 16 bit mode.|
 |:-----------|
 
@@ -228,4 +229,25 @@ General purpose and integer registers
 16位模式寄存器
 
 通用寄存器(General Purpose)和整形寄存器
+
+| 全寄存器(Full Register) | 部分寄存器(Partial register) | 部分寄存器(Partial register)|
+|:-----------|:------------|:------------|
+|bit 0 - 15 |bit 8 - 15 |bit 0 - 7
+|AX |AH |AL
+|BX |BH |BL
+|CX |CH |CL
+|DX |DH |DL
+|SI
+|DI
+|BP
+|SP
+|Flags
+|IP
+
+|表 3.1. 16位模式下的通用寄存器.|
+|:----------:|
+
+> The 32-bit registers are also available in 16-bit mode if supported by the microprocessor
+and operating system. The high word of ESP should not be used because it is not saved
+during interrupts.
 
