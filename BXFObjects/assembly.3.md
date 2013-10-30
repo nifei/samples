@@ -444,3 +444,33 @@ the processor and the operating system supports the AVX instruction set.
 
 |表 3.6. 32位模式下的XMM寄存器和YMM寄存器|
 |:----:|
+
+只有在微处理器和操作系统都支持的情况下XMM寄存器可用. 浮点向量的指令在单精度和双精度下分别只使用32位或64位的XMM寄存器. **(Scalar floating point instructions use only 32 or 64 bits of the XMM registers for single or double precision, respectively) 这句话是说XMM寄存器还分32位和64位的, 还是说只有寄存器中的一部分被使用了?** YMM寄存器只在处理器和操作系统都支持AVX指令集的情况下可用. 
+
+>Segment registers
+
+> |Full register bit 0 - 15|
+|:----:|
+|CS
+|DS
+|ES
+|FS
+|GS
+|SS
+
+> |Table 3.7. Segment registers in 32 bit mode|
+|:----:|
+
+**段寄存器**
+
+> |全寄存器0-15位|
+|:----:|
+|CS
+|DS
+|ES
+|FS
+|GS
+|SS
+
+> |表 3.7. 32位模式下的段寄存器|
+|:----:|
