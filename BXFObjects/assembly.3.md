@@ -349,6 +349,7 @@ FS和GS寄存器可能可用.
 |:--------:|
 
 **32位模式下的寄存器**
+
 <u>通用寄存器和整形寄存器</u>
 
 |全寄存器 0-31位|部分寄存器 0-15位|部分寄存器 8-15位|部分寄存器 0-7位
@@ -366,3 +367,77 @@ FS和GS寄存器可能可用.
 
 |表 3.4. 32位模式下的通用寄存器|
 |:--------:|
+
+>Floating point and 64-bit vector registers
+> |Full register bit 0 - 79 |Partial register bit 0 - 63|
+|:--------:|:--------:|
+|ST(0) |MM0
+|ST(1) |MM1
+|ST(2) |MM2
+|ST(3) |MM3
+|ST(4) |MM4
+|ST(5) |MM5
+|ST(6) |MM6
+|ST(7) |MM7
+
+>|Table 3.5. Floating point and MMX registers|
+|:-----:|
+
+>The MMX registers are only available if supported by the microprocessor. The ST and MMX
+registers cannot be used in the same part of the code. A section of code using MMX
+registers must be separated from any subsequent section using ST registers by executing
+an EMMS instruction.
+
+**浮点和64位向量寄存器**
+
+ |全寄存器0-79位 |部分寄存器0-63位|
+|:--------:|:--------:|
+|ST(0) |MM0
+|ST(1) |MM1
+|ST(2) |MM2
+|ST(3) |MM3
+|ST(4) |MM4
+|ST(5) |MM5
+|ST(6) |MM6
+|ST(7) |MM7
+
+|表 3.5. 浮点和MMX寄存器|
+|:-----:|
+
+MMX寄存器只在微处理器支持的情况下可用. ST和MMX寄存器在同一块代码里不可混用. 使用MMX寄存器的代码要调用`EMMS`指令来和后续的使用ST寄存器部分划清界限. 
+
+>128- and 256-bit integer and floating point vector registers
+> |Full register bit 0 - 255 |Full or partial register bit 0 - 127|
+|:----:|:----:|
+|YMM0 |XMM0
+|YMM1 |XMM1
+|YMM2 |XMM2
+|YMM3 |XMM3
+|YMM4 |XMM4
+|YMM5 |XMM5
+|YMM6 |XMM6
+|YMM7 |XMM7
+
+>|Table 3.6. XMM and YMM registers in 32 bit mode|
+|:----:|
+
+>The XMM registers are only available if supported both by the microprocessor and the
+operating system. Scalar floating point instructions use only 32 or 64 bits of the XMM
+registers for single or double precision, respectively. The YMM registers are available only if
+the processor and the operating system supports the AVX instruction set.
+
+**128和256位整形向量和浮点向量寄存器**
+
+|全寄存器0-255位 |全寄存器或部分寄存器0-127位|
+|:----:|:----:|
+|YMM0 |XMM0
+|YMM1 |XMM1
+|YMM2 |XMM2
+|YMM3 |XMM3
+|YMM4 |XMM4
+|YMM5 |XMM5
+|YMM6 |XMM6
+|YMM7 |XMM7
+
+|表 3.6. 32位模式下的XMM寄存器和YMM寄存器|
+|:----:|
