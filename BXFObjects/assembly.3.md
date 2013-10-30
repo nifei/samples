@@ -220,8 +220,6 @@ General purpose and integer registers
 |SP
 |Flags
 |IP
-
-
 |Table 3.1. General purpose registers in 16 bit mode.|
 |:-----------|
 
