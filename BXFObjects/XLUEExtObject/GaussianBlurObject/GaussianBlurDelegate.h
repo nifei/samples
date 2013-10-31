@@ -10,6 +10,7 @@
 
 void DericheIIRRenderSSE(XL_BITMAP_HANDLE hBitmap, const float &sigma);
 void OneDimentionRenderMMX(XL_BITMAP_HANDLE hBitmpa, const float &sigma, int radius);
+void Test();
 
 #ifdef DEBUG
 void DericheIIRRenderSSEIntrinsics(XL_BITMAP_HANDLE hBitmap, float m_sigma);

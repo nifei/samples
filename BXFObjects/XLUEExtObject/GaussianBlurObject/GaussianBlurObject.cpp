@@ -30,6 +30,10 @@ void GaussianBlurObject::SetSigma(const float &sigma)
 		return;
 	}
 	m_sigma = sigma;
+	if (m_type == Default)
+	{
+		m_radius = m_sigma * 3;
+	}
 	PushDirtyRect(NULL);
 }
 
@@ -96,6 +100,8 @@ const char *GaussianBlurObject::GetGaussianType()const
 
 void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char /*alpha*/ )
 {
+			Test();
+			return;
 	if (m_radius > 0 && m_sigma >0 && m_type > UnDefined && m_type < ValidType)
 	{
 		assert(lpSrcClipRect);
@@ -113,8 +119,10 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 		{
 			DericheIIRRenderSSE(hClipBitmap, m_sigma);
 		}
+		// »ìÓÃ
 		else if (m_type == Default)
 		{
+			/*
 			if (m_radius <= 3)
 			{
 				OneDimentionRenderMMX(hClipBitmap, m_sigma, m_radius);
@@ -123,6 +131,7 @@ void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDe
 			{
 				DericheIIRRenderSSE(hClipBitmap, m_sigma);
 			}
+			*/
 		}
 		XL_ReleaseBitmap(hClipBitmap);
 	}

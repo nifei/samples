@@ -14,17 +14,15 @@ function OnMouseWheel(self, x, y, distance, flags)
 	local newSigma = oldSigma + distance/250
 	local oldRadius = self:GetRadius()
 	if newSigma <= 0 then newSigma = 0 end
-	local newRadius = 3 * newSigma;
+	local newRadius =  3 * newSigma;
+	newSigma = newSigma - newSigma % 0.01;
+	newRadius = newRadius - newRadius %1;
+	
 	self:SetRadius(newRadius)
 	self:SetSigma(newSigma)
 	
-	local type_ = "IIR"
-	if newRadius <= 5 then type_ = "FIR" end
-	self:SetGaussianType(type_)
-	
-	local objectTree = self:GetOwner()
-	local textObj = objectTree:GetUIObject("text")
-	if textObj then textObj:SetText("模糊系数:"..newSigma.." 模糊方法:"..type_) end
+	local textObj = self:GetObject("father:gaussian.text")
+	if textObj then textObj:SetText("模糊系数:"..newSigma.." 模糊半径:"..newRadius) end
 	return 0, true, true
 end
 

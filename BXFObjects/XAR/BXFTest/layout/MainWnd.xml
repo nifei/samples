@@ -1,5 +1,49 @@
 <!--XML最好存储为UTF-8编码-->
 <xlue>
+<control class="GaussianUnit">
+	<attr_def>
+		<attr name="Type" type="string"/>
+	</attr_def>
+	<objtemplate>
+		<children>
+			<obj class="LayerObject">
+				<attr>
+					<left>0</left>
+					<top>0</top>
+					<width>1024</width>
+					<height>50</height>
+					<clipsens>1</clipsens>
+				</attr>
+				<children>
+					<obj id="gaussian.text" class = "TextObject">
+						<attr>
+							<left>0</left>
+							<top>0</top>
+							<width>father.width</width>
+							<height>father.height</height>
+							<text>Gaussian Blur</text>
+							<font>msg.font</font>
+							<textcolor>system.white</textcolor>
+						</attr>
+					</obj> 
+					<obj id="gaussian.fir.object" class="GaussianBlurObject">
+						<attr>
+							<left>0</left>
+							<top>0</top>
+							<width>father.width</width>
+							<height>father.height</height>
+							<gaussiantype>FIR</gaussiantype>
+						</attr>
+						<eventlist>
+							<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
+						</eventlist>
+					</obj>  
+				</children>
+			</obj>
+		</children>
+	</objtemplate>
+</control>
+
 <objtreetemplate id="HelloBolt.Tree" class="ObjectTreeTemplate">
 	<attr>
 			<left>-200</left>
@@ -22,68 +66,57 @@
 				</attr>
 			</obj>
 			
-			<obj class="LayerObject">
+			<obj class="ImageObject">
 				<attr>
 					<left>0</left>
 					<top>0</top>
 					<width>father.width</width>
 					<height>father.height</height>
-					<clipsens>1</clipsens>
+					<image>jellyfish</image>
 				</attr>
 				<children>
-					<obj class="ImageObject">
+					<obj class="GaussianUnit">
 						<attr>
 							<left>0</left>
 							<top>0</top>
-							<width>father.width</width>
-							<height>father.height</height>
-							<image>jellyfish</image>
+							<width>1024</width>
+							<height>50</height>
 						</attr>
-					</obj>   
-					<obj class="SeqImageObject">
+					</obj>
+					<obj class="GaussianUnit">
 						<attr>
-							<left>(father.width-800)/2</left>
-							<top>(father.height-600)/2+600-272</top>
-							<width>500</width>
-							<height>272</height>
-							<gif>cat</gif>
-							<loop>1</loop>
+							<left>0</left>
+							<top>50</top>
+							<width>1024</width>
+							<height>50</height>
 						</attr>
-						<eventlist>
-							<event name="OnInitControl">
-								local arg = {...}
-								local self = arg[1]
-								self:Play()
-							</event>
-						</eventlist>
-					</obj>   
-					<obj id="text" class = "TextObject">
+					</obj>
+					<obj class="GaussianUnit">
 						<attr>
 							<left>0</left>
 							<top>100</top>
-							<width>father.width</width>
-							<height>father.height</height>
-							<text>请滚动鼠标滚轮</text>
-							<font>msg.font</font>
-							<textcolor>system.white</textcolor>
+							<width>1024</width>
+							<height>50</height>
 						</attr>
-					</obj> 
-					<obj id="penguin" class="GaussianBlurObject">
+					</obj>
+					<obj class="GaussianUnit">
 						<attr>
-							<left>(father.width-800)/2</left>
-							<top>(father.height-600)/2</top>
-							<width>800</width>
-							<height>600</height>
-							<sigma>4</sigma>
-							<radius>12</radius>
-							<gaussiantype>Default</gaussiantype>
+							<left>0</left>
+							<top>150</top>
+							<width>1024</width>
+							<height>50</height>
 						</attr>
-						<eventlist>
-							<event name="OnMouseWheel" file="MainWnd.xml.lua" func="OnMouseWheel" />
-						</eventlist>
-					</obj>  
+					</obj>
+					<obj class="GaussianUnit">
+						<attr>
+							<left>0</left>
+							<top>200</top>
+							<width>1024</width>
+							<height>50</height>
+						</attr>
+					</obj>
 				</children>
-			</obj>
+			</obj>   
 		</children>
 	</obj>
 </objtreetemplate>
