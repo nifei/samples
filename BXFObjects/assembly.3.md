@@ -445,7 +445,7 @@ the processor and the operating system supports the AVX instruction set.
 |表 3.6. 32位模式下的XMM寄存器和YMM寄存器|
 |:----:|
 
-只有在微处理器和操作系统都支持的情况下XMM寄存器可用. 浮点向量的指令在单精度和双精度下分别只使用32位或64位的XMM寄存器. **(Scalar floating point instructions use only 32 or 64 bits of the XMM registers for single or double precision, respectively) 这句话是说XMM寄存器还分32位和64位的, 还是说只有寄存器中的一部分被使用了?** YMM寄存器只在处理器和操作系统都支持AVX指令集的情况下可用. 
+只有在微处理器和操作系统都支持的情况下XMM寄存器可用. 浮点标量的指令在单精度和双精度下分别只使用32位或64位的XMM寄存器. **(Scalar floating point instructions use only 32 or 64 bits of the XMM registers for single or double precision, respectively) 这句话是说XMM寄存器还分32位和64位的, 还是说只有寄存器中的一部分被使用了?** YMM寄存器只在处理器和操作系统都支持AVX指令集的情况下可用. 
 
 >Segment registers
 
@@ -474,3 +474,260 @@ the processor and the operating system supports the AVX instruction set.
 
 |表 3.7. 32位模式下的段寄存器|
 |:----:|
+
+> Registers in 64 bit mode
+> General purpose and integer registers
+
+> |Full register bit 0 - 63|Partial register bit 0 - 31|Partial register bit 0 - 15|Partial register bit 8 - 15|Partial register bit 0 - 7|
+|:----:|----:|----:|----:|----:|
+|RAX |EAX |AX |AH AL
+|RBX |EBX |BX |BH BL
+|RCX |ECX |CX |CH CL
+|RDX |EDX |DX |DH DL
+|RSI |ESI |SI |    |SIL
+|RDI |EDI |DI |    |DIL
+|RBP |EBP |BP |    |BPL
+|RSP |ESP |SP |    |SPL
+|R8 |R8D |R8W |    |R8B
+|R9 |R9D |R9W |    |R9B
+|R10 |R10D |R10W |    |R10B
+|R11 |R11D |R11W |    |R11B
+|R12 |R12D |R12W |    |R12B
+|R13 |R13D |R13W |    |R13B
+|R14 |R14D |R14W |    |R14B
+|R15 |R15D |R15W |    |R15B
+|RFlags |    |Flags
+|RIP
+
+>|Table 3.8. Registers in 64 bit mode|
+|:----:|
+
+<u>64位模式下的寄存器</u>
+
+**通用集群器和整形寄存器**
+
+|全寄存器0-63位|Partial register bit 0 - 31|Partial register bit 0 - 15|Partial register bit 8 - 15|Partial register bit 0 - 7|
+|:----:|----:|----:|----:|----:|
+|RAX |EAX |AX |AH AL
+|RBX |EBX |BX |BH BL
+|RCX |ECX |CX |CH CL
+|RDX |EDX |DX |DH DL
+|RSI |ESI |SI |    |SIL
+|RDI |EDI |DI |    |DIL
+|RBP |EBP |BP |    |BPL
+|RSP |ESP |SP |    |SPL
+|R8 |R8D |R8W |    |R8B
+|R9 |R9D |R9W |    |R9B
+|R10 |R10D |R10W |    |R10B
+|R11 |R11D |R11W |    |R11B
+|R12 |R12D |R12W |    |R12B
+|R13 |R13D |R13W |    |R13B
+|R14 |R14D |R14W |    |R14B
+|R15 |R15D |R15W |    |R15B
+|RFlags |    |Flags
+|RIP
+
+|表 3.8. 64位模式下的寄存器|
+|:----:|
+
+>The high 8-bit registers AH, BH, CH, DH can only be used in instructions that have no REX
+prefix.
+
+>Note that modifying a 32-bit partial register will set the rest of the register (bit 32-63) to zero,
+but modifying an 8-bit or 16-bit partial register does not affect the rest of the register. This
+can be illustrated by the following sequence:
+
+> <pre><code>
+; Example 3.1. 8, 16, 32 and 64 bit registers
+mov rax, 1111111111111111H ; rax = 1111111111111111H
+mov eax, 22222222H ; rax = 0000000022222222H
+mov ax, 3333H ; rax = 0000000022223333H
+mov al, 44H ; rax = 0000000022223344H
+</code></pre>
+
+> There is a good reason for this inconsistency. Setting the unused part of a register to zero is
+more efficient than leaving it unchanged because this removes a false dependence on
+previous values. But the principle of resetting the unused part of a register cannot be
+extended to 16 bit and 8 bit partial registers because this would break the backwards
+compatibility with 32-bit and 16-bit modes.
+
+> The only instruction that can have a 64-bit immediate data operand is MOV. Other integer
+instructions can only have a 32-bit sign extended operand. Examples:
+
+> <pre><code>
+; Example 3.2. Immediate operands, full and sign extended
+mov rax, 1111111111111111H ; Full 64 bit immediate operand
+mov rax, -1 ; 32 bit sign-extended operand
+mov eax, 0ffffffffH ; 32 bit zero-extended operand
+add rax, 1 ; 8 bit sign-extended operand
+add rax, 100H ; 32 bit sign-extended operand
+add eax, 100H ; 32 bit operand. result is zero-extended
+mov rbx, 100000000H ; 64 bit immediate operand
+add rax, rbx ; Use an extra register if big operand
+</code></pre>
+
+> It is not possible to use a 16-bit sign-extended operand. If you need to add an immediate
+value to a 64 bit register then it is necessary to first move the value into another register if
+the value is too big for fitting into a 32 bit sign-extended operand.
+
+高8位寄存器`AH`, `BH`, `CH`, `DH`只能在没有REX前缀的指令中使用. 
+
+注意修改32位部分寄存器会把寄存器的其余32位(32-64位)置为0, 但是修改8位或16位部分寄存器对其他位没有影响. 从下面可以看出: 
+
+<pre><code>
+; 例 3.1. 8, 16, 32和64位寄存器
+mov rax, 1111111111111111H ; rax = 1111111111111111H (64位)
+mov eax, 22222222H ; rax = 0000000022222222H	(32位)
+mov ax, 3333H ; rax = 0000000022223333H	(16位)
+mov al, 44H ; rax = 0000000022223344H	(8位)
+</code></pre>
+
+这种不一致时有理由的. 把寄存器中不用的位置为0, 就不用依赖之前的值, 这样更有效率. 但是在使用8位和16位部分寄存器时这样做会破坏对32位和16位模式的兼容性(**How?**), 所以不能这样做. 
+
+唯一能操作64位直接操作数的指令是`MOV`. 其他整形指令只能操作32位符号扩展操作数. 例如: 
+<pre><code>
+; 例 3.2. 直接操作数, 全64位, 和符号扩展的64位操作数
+mov rax, 1111111111111111H ;					全64位的直接操作数
+mov rax, -1 ;											32位符号扩展操作数
+mov eax, 0ffffffffH ;							32位0扩展操作数
+add rax, 1 ;											8位符号扩展操作数
+add rax, 100H ;									32位符号扩展操作数
+add eax, 100H ;									32位操作数. 结果是0扩展	(注: 这一行和上一行, 不明白为什么一个是符号扩展一个是0扩展)
+mov rbx, 100000000H ;						64位直接操作数, (注, 100000000H这个直接数对32位寄存器来说太大了, 所以要先放在一个64位寄存器上)
+add rax, rbx ; 如果操作数很大, 再用一个寄存器. 
+</code></pre>
+
+16位符号扩展操作数不可用. 如果你需要往一个64位寄存器上加一个比32位符号扩展操作数还大的直接数的话, 就得先把这个数值放在另一个寄存器上. 
+
+> Floating point and 64-bit vector registers
+
+> |Full register bit 0 - 79|Partial register bit 0 - 63|
+|:----:|:----:|
+|ST(0) |MM0
+|ST(1) |MM1
+|ST(2) |MM2
+|ST(3) |MM3
+|ST(4) |MM4
+|ST(5) |MM5
+|ST(6) |MM6
+|ST(7) |MM7
+
+>|Table 3.9. Floating point and MMX registers|
+|:----:|:----:|
+
+>The ST and MMX registers cannot be used in the same part of the code. A section of code
+using MMX registers must be separated from any subsequent section using ST registers by
+executing an EMMS instruction. The ST and MMX registers cannot be used in device drivers
+for 64-bit Windows.
+
+**浮点和64位向量寄存器**
+
+|全寄存器0-79位|部分寄存器0-63位|
+|:----:|:----:|
+|ST(0) |MM0
+|ST(1) |MM1
+|ST(2) |MM2
+|ST(3) |MM3
+|ST(4) |MM4
+|ST(5) |MM5
+|ST(6) |MM6
+|ST(7) |MM7
+
+|表 3.9. 浮点和MMX寄存器|
+|:----:|:----:|
+
+ST和MMX寄存器不能在代码中的同一部分使用. 使用MMX寄存器的代码要调用`EMMS`指令清除寄存器来和后续的使用ST寄存器的部分划清界限. ST和MMX寄存器不能用于64位Windows的系统驱动开发. 
+
+>128- and 256-bit integer and floating point vector registers
+
+> |Full register bit 0 - 255|Full or partial register bit 0 - 127|
+|:----:|:----:|
+|YMM0 |XMM0
+|YMM1 |XMM1
+|YMM2 |XMM2
+|YMM3 |XMM3
+|YMM4 |XMM4
+|YMM5 |XMM5
+|YMM6 |XMM6
+|YMM7 |XMM7
+|YMM8 |XMM8
+|YMM9 |XMM9
+|YMM10 |XMM10
+|YMM11 |XMM11
+|YMM12 |XMM12
+|YMM13 |XMM13
+|YMM14 |XMM14
+|YMM15 |XMM15
+
+>|Table 3.10. XMM and YMM registers in 64 bit mode|
+|:----:|
+
+> Scalar floating point instructions use only 32 or 64 bits of the XMM registers for single or
+double precision, respectively. The YMM registers are available only if the processor and
+the operating system supports the AVX instruction set.
+
+**128位和256位整形向量和浮点向量寄存器**
+
+|全寄存器0-255位|全寄存器或部分寄存器0-127位|
+|:----:|:----:|
+|YMM0 |XMM0
+|YMM1 |XMM1
+|YMM2 |XMM2
+|YMM3 |XMM3
+|YMM4 |XMM4
+|YMM5 |XMM5
+|YMM6 |XMM6
+|YMM7 |XMM7
+|YMM8 |XMM8
+|YMM9 |XMM9
+|YMM10 |XMM10
+|YMM11 |XMM11
+|YMM12 |XMM12
+|YMM13 |XMM13
+|YMM14 |XMM14
+|YMM15 |XMM15
+
+|表 3.10. 64位模式下的XMM和YMM寄存器|
+|:----:|
+
+浮点标量的指令在单精度和双精度下分别只使用XMM寄存器的32位和64位. YMM寄存器只在处理器和操作系统支持AVX指令集时可用. 
+
+> Segment registers
+
+> |Full register bit 0 - 15|
+|:----:|
+|CS
+|FS
+|GS
+
+> |Table 3.11. Segment registers in 64 bit mode|
+|:----:|
+
+> Segment registers are only used for special purposes.
+
+**段寄存器**
+
+|全寄存器0-15位|
+|:----:|
+|CS
+|FS
+|GS
+
+|表 3.11. 64位模式下的段寄存器|
+|:----:|
+
+段寄存器只用于特殊目的. 
+
+> ## 3.3 Addressing modes
+
+> Addressing in 16-bit mode
+
+> 16-bit code uses a segmented memory model. A memory operand can have any of these
+components:
+
+## 3.3 取址模式
+
+<u>16位取址模式</u>
+
+16位代码使用分段内存模式. 内存操作数可含有以下模块: 
+
