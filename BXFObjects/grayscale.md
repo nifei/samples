@@ -49,6 +49,4 @@ For Each Pixel in Image {
 
 看看算法:
 
-![Alt text][http://www.tannerhelland.com/wp-content/uploads/Secret_of_Monkey_Island-600x375.jpg]
-
-[id]:   "This bright, colorful promo art for The Secret of Monkey Island: Special Edition will be used to demonstrate each of our seven unique grayscale algorithms."
+![alt text](http://www.tannerhelland.com/wp-content/uploads/Secret_of_Monkey_Island-600x375.jpg "Title")
