@@ -102,7 +102,7 @@ const char *GaussianBlurObject::GetGaussianType()const
 	}
 }
 
-void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char /*alpha*/ )
+void GaussianBlurObject::OnPaint( XL_BITMAP_HANDLE hBitmapDest, const RECT* lpDestClipRect, const RECT* lpSrcClipRect, unsigned char alpha )
 {
 	if (m_radius > 0 && m_sigma >0 && m_type > UnDefined && m_type < ValidType)
 	{

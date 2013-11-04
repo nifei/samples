@@ -65,7 +65,6 @@
 					<zorder>-1000</zorder>
 				</attr>
 			</obj>
-			
 			<obj class="ImageObject">
 				<attr>
 					<left>0</left>
@@ -73,6 +72,7 @@
 					<width>father.width</width>
 					<height>father.height</height>
 					<image>jellyfish</image>
+					<alpha>100</alpha>
 				</attr>
 				<children>
 					<obj class="GaussianUnit">
