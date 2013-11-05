@@ -10,7 +10,7 @@
 
 extern "C" void Averaging_MMX_line(unsigned long *lpPixelBufferLine);
 void Averaging_C_Pixel(unsigned long *lpPixelBuffer);
-void Averaging_2_Pixel(unsigned long *lpPixelBuffer);
+void Averaging_2_Pixel(unsigned long *lpPixelBuffer, unsigned int width, unsigned int height);
 
 void AveragingGrayscale(XL_BITMAP_HANDLE hBitmap)
 {	
@@ -29,7 +29,7 @@ void AveragingGrayscale(XL_BITMAP_HANDLE hBitmap)
 		unsigned long *lpPixelBuffer = lpPixelBufferInitial + scanLineLengthInPixel * line;
 		for (int col = 0; col < bmp.Width/2; col++)
 		{
-			Averaging_2_Pixel(lpPixelBuffer);
+			Averaging_2_Pixel(lpPixelBuffer, bmp.Width, bmp.Height);
 			lpPixelBuffer +=2;
 		}
 	}
@@ -38,7 +38,7 @@ void AveragingGrayscale(XL_BITMAP_HANDLE hBitmap)
 unsigned long mask[] = {0x00ff0000, 0x00ff0000};
 unsigned long factor[]= {342, 342};
 // 介个一次计算俩
-void Averaging_2_Pixel(unsigned long *lpPixelBuffer)
+void Averaging_2_Pixel(unsigned long *lpPixelBuffer, unsigned int width, unsigned int height)
 {
 	_asm
 	{	
@@ -47,41 +47,41 @@ void Averaging_2_Pixel(unsigned long *lpPixelBuffer)
 		movq mm2, dword ptr [mask];
 		movq mm3, dword ptr [factor];
 
-		movq mm0, [esi];
-		movq mm6, mm0;
-		pand mm0, mm2;
-		psrld mm0, 10h;
-		movq mm1, mm0;
+		movq mm4, [esi];
 
-		movq mm0, mm6;
+		movq mm1, mm4;
+		pand mm1, mm2;
+		psrld mm1, 10h;
+
 		psrld mm2, 8h;
+		movq mm0, mm4;
 		pand mm0, mm2;
 		psrld mm0, 8h;
 		paddd mm1, mm0;
 
-		movq mm0, mm6;
 		psrld mm2, 8h;
+		movq mm0, mm4;
 		pand mm0, mm2;
 		paddd mm1, mm0;
 
-		movq mm4, mm1;
+		movq mm0, mm1;
 		pmullw mm1, mm3;
-		pmulhw mm4, mm3;
-		pslld mm4, 10h;
-		paddd mm1, mm4;
+		pmulhw mm0, mm3;
+		pslld mm0, 10h;
+		paddd mm1, mm0;
 		psrld mm1, 10; Now mm1 = 0x000000gray000000gray'
 
-		movq mm5, mm1;
-		pslld mm5, 8h;
-		paddd mm1, mm5;
+		movq mm0, mm1;
+		pslld mm0, 8h;
+		paddd mm1, mm0;
 		
-		pslld mm5, 8h;
-		paddd mm1, mm5;
+		pslld mm0, 8h;
+		paddd mm1, mm0;
 
 		pslld mm2, 24;
-		pand mm6, mm2;
+		pand mm4, mm2;
 
-		paddd mm1, mm6;
+		paddd mm1, mm4;
 		movq [esi], mm1;
 
 		emms;
@@ -111,10 +111,6 @@ void Averaging_C_Pixel(unsigned long *lpPixelBuffer)
 		shr eax, 10;
 		add eax, 1;
 
-		;mov ecx, 3;
-		;xor edx, edx;
-		;div ecx;
-		
 		mov ecx, [esi];
 		and ecx, 0xff000000;
 		add ecx, eax;
