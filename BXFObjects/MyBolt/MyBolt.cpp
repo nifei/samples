@@ -82,7 +82,8 @@ bool LoadMainXAR()
     //设置XAR的搜索路径
     result = XLUE_AddXARSearchPath(GetResDir());
     //加载主XAR,此时会执行该XAR的启动脚本onload.lua
-    result = XLUE_LoadXAR("BXFTest");
+   // result = XLUE_LoadXAR("GaussianBlurObject");
+	result = XLUE_LoadXAR("GrayscaleObject");
     if(result != 0)
     {
         return false;	

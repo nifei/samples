@@ -323,6 +323,62 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="GrayscaleObject"
+			>
+			<File
+				RelativePath=".\GrayscaleObject\AveragingMMX.asm"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleImpl.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleImpl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObjectCreator.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObjectCreator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObjectParser.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObjectParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObjectRegister.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\GrayscaleObjectRegister.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\LuaGrayscaleObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GrayscaleObject\LuaGrayscaleObject.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

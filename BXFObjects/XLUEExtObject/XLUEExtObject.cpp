@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <XLGraphicPlus.h>
 #include "./GaussianBlurObject/GaussianBlurObjectRegister.h"
+#include "./GrayscaleObject/GrayscaleObjectRegister.h"
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -52,8 +53,14 @@ BOOL XLUE_STDCALL XLUE_RegisterObj( const char* lpCategory, const char* lpObjCla
 	{
 		ret = GaussianBlurObjectRegister::RegisterGaussianBlurObject();
 	}
+	else if (strcmp(lpObjClass, EXTCLASSNAME_GRAYSCALEOBJECT) == 0)
+	{
+		ret = GrayscaleObjectRegister::RegisterGrayscaleObject();
+	}
 	else
+	{
 		assert(false);
+	}
 
 	return ret;
 }

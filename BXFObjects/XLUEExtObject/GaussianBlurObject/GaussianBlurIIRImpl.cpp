@@ -17,16 +17,6 @@
 #include <nmmintrin.h> //SSE4.2
 #include <omp.h>
 
-void Test()
-{
-	float vector[4] = {0.0, 1.1, 2.2, 3.3};
-	float factor = 0.5;
-	vector[0] *= factor;
-	vector[1] *= factor;
-	vector[2] *= factor;
-	vector[3] *= factor;
-}
-
 /* Calcualte Gaussian Blur Filter Coefficiens
  *  alpha -> smooting gradient depends on sigma
  *  k = ((1-e^-alpha)^2)/(1+2*alpha*e^-alpha - e^-2alpha)

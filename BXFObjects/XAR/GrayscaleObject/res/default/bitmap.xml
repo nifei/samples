@@ -1,0 +1,7 @@
+<XLUE>
+<resource>
+	<gif id="cat"  file="bitmap\penguins.gif" />
+	<bitmap id="penguins" path="bitmap\Penguins.png"/>
+	<bitmap id="color" path="bitmap\color.png"/>
+</resource>
+</XLUE>
