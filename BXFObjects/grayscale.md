@@ -1,7 +1,12 @@
 灰度图的几种算法资料
 
-第一篇原文在此, 没有完全翻译, 有些作者的吐槽什么的就略过了, 指甲剪狠了, 打不了几个字. 
+只看有哪些种算法的话, 看大字和图就行了. 
+
+第一篇原文在此, 没有完全翻译, 有些作者的吐槽什么的就略过了.
 http://www.tannerhelland.com/3643/
+
+第二篇只介绍了三种GIMP用的, 作为对第一篇的补充插进去了. 
+http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
 
 # Seven grayscale conversion algorithms (with pseudocode and VB6 source code)
 
@@ -17,7 +22,7 @@ http://www.tannerhelland.com/3643/
 
 ## 灰度图算法基本上都是这么算的
 
-所有的灰度图算法都有下面散步: 
+所有的灰度图算法都有下面三步: 
 
 1. 取得像素RGB分量
 2. 使用奇妙的数学公式把三个颜色分量编程一个灰度值
@@ -87,6 +92,9 @@ If you look closely, you can see a horizontal line running across the center of 
 Gray = (Red * 0.3 + Green * 0.59 + Blue * 0.11)
 </code></pre>
 
+(注: 参考二给的公式有争议)
+(再注: http://blog.csdn.net/zyl910/article/details/749752 这篇文章给了很好的优化算法)
+
 很惊讶三种颜色权重差距如此之大吧? 这个公式计算量大一点, 但是生成的灰度图更有动感. 看源代码. 
 
 值得一提的是, 哪个灰度图公式是最好的并无定论. 在源码中我使用原始的ITU-R的推荐(BT.709), 历史的先例. 我用的公式这样子, 叫做"Luma": 
@@ -104,6 +112,8 @@ Gray = (Red * 0.299 + Green * 0.587 + Blue * 0.114)
 本文不讨论哪种更好. 拓展阅读推荐The work of Charles Poynton (http://poynton.com/). 对99%的程序员来说二者的区别无关紧要. 哪个都比"平均法"强. 
 
 ## 方法三 - Desaturation (冲淡颜色, 我更愿意叫成去饱和度)
+
+(参考二管同一个公式叫lightness method)
 
 ![alt text](http://www.tannerhelland.com/wp-content/uploads/grayscale_desaturate-600x375.png "A desaturated image. Desaturating an image takes advantage of the ability to treat the (R, G, B) colorspace as a 3-dimensional cube. Desaturation approximates a luminance value for each pixel by choosing a corresponding point on the neutral axis of the cube.")
 A desaturated image. Desaturating an image takes advantage of the ability to treat the (R, G, B) colorspace as a 3-dimensional cube. Desaturation approximates a luminance value for each pixel by choosing a corresponding point on the neutral axis of the cube.
