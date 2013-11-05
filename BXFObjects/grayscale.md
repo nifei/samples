@@ -194,10 +194,7 @@ Notes:
 
 ## 方法七 - Custom # of gray shades with dithering
 
-散乱抖动吗? 例子里面用水平error-diffusion dithering
-
-![alt text](link "title")
-title
+散乱抖动吗? 例子里面用水平误差分散抖动error-diffusion dithering
 
 ![alt text](http://www.tannerhelland.com/wp-content/uploads/grayscale_4_shades_dithered-600x375.png "This image also uses only four shades of gray (black, dark gray, light gray, white), but it adds full error-diffusion dithering support")
 This image also uses only four shades of gray (black, dark gray, light gray, white), but it adds full error-diffusion dithering support
@@ -206,4 +203,33 @@ This image also uses only four shades of gray (black, dark gray, light gray, whi
 
 Dithering的解释. 在图像处理中dithering利用光学成像原理让图像看起来更多彩. Dithering算法把颜色用另一种形式分散 - 有序或者任意 - 让人眼以为它接收到了比实际更多的颜色. 不明白的话看看这个: <http://en.wikipedia.org/wiki/Dithering#Algorithms>
 
-抖动算法有很多. 
+抖动算法有很多. 作者提供的是比较简单的误差分散机制: 水平方向一维分散颜色. 
+
+上图其实只有四种颜色 - 黑色, 深灰色, 浅灰色和白色 - 但是因为混在一起, 从远看比方法六中同样只使用四个颜色的图片看起来丰富多了. 下面比较一下: 
+
+![alt text](http://www.tannerhelland.com/wp-content/uploads/grayscale_4_shades_sidebyside-600x375.png "The left side of the image is a 4-shade non-dithered image; the right side is a 4-shade image WITH dithering")
+The left side of the image is a 4-shade non-dithered image; the right side is a 4-shade image WITH dithering
+
+可用的颜色不多时, 抖动算法保留了图片更多的细微差别, 代价就是图片看起来脏乱斑驳. 有些抖动算法好一些; 作者用的比较折中. 
+
+最后举个栗子, 下面是16色抖动灰度图, 然后是一个抖动图和不抖动的比较. 
+
+![alt text](http://www.tannerhelland.com/wp-content/uploads/grayscale_16_shades_dithered-600x375.png "Hard to believe only 16 shades of gray are used in this image, isn't it?")
+Hard to believe only 16 shades of gray are used in this image, isn't it?
+
+![alt text](http://www.tannerhelland.com/wp-content/uploads/grayscale_16_shades_sidebyside-600x375.png "As the number of shades of gray in an image increases, dithering artifacts become less and less noticeable. Can you tell which side of the image is dithered and which is not?")
+As the number of shades of gray in an image increases, dithering artifacts become less and less noticeable. Can you tell which side of the image is dithered and which is not?
+
+这部分的算法比较复杂, 见Grayscale.frm中方法drawGrayscaleCustomShadesDithered 的实现. 有注释. 
+
+## 结论
+
+如果你的网速慢的话可能加载这些图片会遇到一些困难. 
+
+对工程的讲解, 源码, 界面. 很简单的. 
+
+![alt text](http://www.tannerhelland.com/wp-content/uploads/grayscale_source_code_GUI-600x344.jpg
+ "GUI of the provided source code. The program also allows you to load your own images.")
+GUI of the provided source code. The program also allows you to load your own images.
+
+工程链接和说明. 
